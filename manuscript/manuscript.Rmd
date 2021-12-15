@@ -1,31 +1,33 @@
 ---
 title: Demo targets plan manuscript
 author:
-  - name: Alice Anonymous
-    email: alice@example.com
-    affiliation: Some Institute of Technology
-    corresponding: alice@example.com
-  - name: Bob Security
-    email: bob@example.com
+  - name: Ruben Roos
+    email: ruben.erik.roos@nmbu.no
+    affiliation: NMBU
+    corresponding: ruben.erik.roos@nmbu.no
+  - name: Aud H. Halbritter
+    email: aud.halbritter@uib.no
     affiliation: 
-      - Another University
-      - Some Institute of Technology
+      - University of Bergen
+      - Bjerknessenter
 address:
-  - code: Some Institute of Technology
-    address: Department 1, Street, City, State, Zip
-  - code: Another University
-    address: Department 2, Street, City, State, Zip
+  - code: NMBU
+    address: Department of ..., As, Norway
+  - code: University of Bergen
+    address: Department of Biological Sciences, Bergen, Norway
+  - code: Bjerknessenter
+    address: Bjerknessenter Climate, Bergen, Norway
 abstract: |
   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur eget porta erat. Morbi consectetur est vel gravida pretium. Suspendisse ut dui eu ante cursus gravida non sed sem. Nullam sapien tellus, commodo id velit id, eleifend volutpat quam. Phasellus mauris velit, dapibus finibus elementum vel, pulvinar non tellus. Nunc pellentesque pretium diam, quis maximus dolor faucibus id. Nunc convallis sodales ante, ut ullamcorper est egestas vitae. Nam sit amet enim ultrices, ultrices elit pulvinar, volutpat risus.
   
 author_summary: |
   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur eget porta erat. Morbi consectetur est vel gravida pretium. Suspendisse ut dui eu ante cursus gravida non sed sem. Nullam sapien tellus, commodo id velit id, eleifend volutpat quam. Phasellus mauris velit, dapibus finibus elementum vel, pulvinar non tellus. Nunc pellentesque pretium diam, quis maximus dolor faucibus id. Nunc convallis sodales ante, ut ullamcorper est egestas vitae. Nam sit amet enim ultrices, ultrices elit pulvinar, volutpat risus.
 
-bibliography: '`r here::here(tar_read(biblio2))`'
+bibliography: '`r here::here(tar_read(bibliography))`'
 output:
   bookdown::pdf_book:
-    base_format: 
-      rticles::plos_article
+     base_format: 
+       rticles::plos_article
 csl: plos.csl
 ---
 
@@ -41,7 +43,7 @@ library("english")
 theme_set(theme_bw())
 
 # load required targets
-tar_load(count_summary)
+tar_load(diversity_grad)
 
 ```
 
@@ -52,7 +54,7 @@ The template for this manuscript was made with
 
 
 ```{r, eval = FALSE, echo=TRUE}
-rmarkdown::draft("manuscript", template = "plos", package = "rticles")
+rmarkdown::draft("manuscript", template = "rsos", package = "rticles")
 ```
 
 This also generated the csl and eps files and a sample bib file.
@@ -62,7 +64,7 @@ The `rticles` package has templates for many journals.
 
 # Methods
 
-Norwegian pollen data were downloaded from Neotoma and processed with the experimental package `neotoma2tibble` before pollen counts sums were calculated.
+Norwegian pollen data were downloaded from Neotoma and processed with the experimental package before pollen counts sums were calculated.
 
 The target that downloads the pollen data uses dynamic branching. 
 This means that if the list of required sites is updated, only the new sites need to be downloaded.
@@ -70,26 +72,37 @@ This means that if the list of required sites is updated, only the new sites nee
 In a real project, use the `renv` package for dependency management.
 
 All analyses were done in R v. `r getRversion()` [@R] and used
-neotoma v. `r packageVersion("neotoma")` [@neotoma] to extract pollen data from the Neotoma database, 
 and tidyverse v. `r packageVersion("tidyverse")` [@tidyverse] for data manipulation.
 Packages targets v. `r packageVersion("targets")` [@targets], and
 rmarkdown v. `r packageVersion("rmarkdown")` [@rmarkdown1] were used to ensure reproducibility.
 
 # Results
 
-`r Words(length(tar_read(pollen_sites)))` Norwegian pollen sites were downloaded from Neotoma (Fig. \@ref(fig:site-map)).
+Diversity along the gradient (Fig. \@ref(fig:div-plot)).
 
-```{r site-map, fig.cap = "Location of pollen records in Norway"}
-tar_read(site_map)
+```{r div-plot, fig.cap = "Change in diversity along the two gradients"}
+tar_read(diversity_plot)
 ```
 
-Count sums ranged between `r count_summary$mn` and `r count_summary$mx` (Fig. \@ref(fig:count-plot)). 
+The average trait for LDMC was .... (Fig. \@ref(fig:trait-plot)).
 
-```{r count-plot, fig.cap = "Pollen count sums.", fig.height = 3.5, fig.width = 3.5}
-tar_read(count_plot)
+```{r trait-plot, fig.cap = "Trait histograms for the two gradients"}
+tar_read(trait_histogram)
 ```
 
 
+
+
+```{r div}
+
+diversity_grad %>% 
+  group_by(DiversityIndex, Gradient) %>% 
+  summarise(Mean = mean(Value)) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = Gradient, values_from = Mean) %>% 
+  kbl(digits = 2)
+
+```
 
 
 # References {#references .unnumbered}

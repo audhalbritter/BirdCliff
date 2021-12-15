@@ -2,16 +2,16 @@
 # With many intermediate steps, it uses a lot of disk space.
 
 cleaning_plan <- list(
-  # convert to tibble
+  # import traits
   tar_target(
-    name = pollen_data,
-    command = raw_pollen_data %>%
-      as_tibble() %>%
-      #remove algal etc counts
-      mutate(data = map(data, ~filter(.x, variable.element %in% c("pollen", "spore", "pollen/spore"))))
+    name = traits_gradient,
+    command = read_csv(file = "clean_data/traits/PFTC4_Svalbard_2018_Gradient_Traits.csv")
+  ),
+
+  # import community
+  tar_target(
+    name = comm_gradient,
+    command = read_csv(file = "clean_data/community/PFTC4_Svalbard_2018_Community_Gradient.csv")
   )
-  # ?remove samples with low countsums
-  # ?taxonomic harmonisation - join to harmonisation table
-  # ?removes sites with insufficient chronology control
 
 )
