@@ -87,7 +87,7 @@ tar_read(diversity_plot)
 The average trait for LDMC was .... (Fig. \@ref(fig:trait-plot)).
 
 ```{r trait-plot, fig.cap = "Trait histograms for the two gradients"}
-tar_read(trait_histogram)
+#tar_read(trait_histogram)
 ```
 
 
