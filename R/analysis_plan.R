@@ -1,20 +1,24 @@
 #
 analysis_plan <- list(
   # do something interesting
-  # calculate count sums
+  # calculate mean trait value
   tar_target(
-    name = count_sums,
-    command = pollen_data %>%
-      mutate(countsum = map(data, ~summarise(.x, sum = sum(count)))) %>%
-      select(-data) %>% #remove data to reduce size of object
-      unnest(cols = countsum)
+    name = trait_mean,
+    command = traits_gradient %>%
+      group_by(Gradient, Trait) %>%
+      summarise(Mean = mean(Value)) %>%
+      pivot_wider(names_from = Gradient, values_from = Mean)
     ),
 
-    #summarise count sums
-    tar_target(
-      name = count_summary,
-      command = count_sums %>%
-        ungroup() %>%
-        summarise(n = n(), mn = min(sum), mx = max(sum))
-    )
+  # diversity
+  tar_target(
+    name = diversity_grad,
+    command = comm_gradient %>%
+    group_by(Gradient, Site, PlotID, Elevation_m) %>%
+    summarise(Richness = n(),
+              Diversity = diversity(Cover),
+              Evenness = Diversity/log(Richness),
+              sumAbundance = sum(Cover)) %>%
+    pivot_longer(cols = Richness:sumAbundance, names_to = "DiversityIndex", values_to = "Value")
+  )
 )
