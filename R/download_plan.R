@@ -5,16 +5,28 @@ download_plan <- list(
   # Leaf trait data
   tar_target(
     name = traits,
-    command = download_PFTC_data(country = "Svalbard",
-                                 datatype = "trait",
-                                 path = "clean_data/traits")
+    command = get_file(node = "smbqh",
+                       file = "PFTC4_Svalbard_2018_Gradient_Traits.csv",
+                       path = "clean_data/traits",
+                       remote_path = "Traits")
     ),
 
   # community data
   tar_target(
     name = community,
-    command = download_PFTC_data(country = "Svalbard",
-                                 datatype = "community",
-                                 path = "clean_data/community")
+    command = get_file(node = "smbqh",
+                       file = "PFTC4_Svalbard_2018_Community_Gradient.csv",
+                       path = "clean_data/community",
+                       remote_path = "Community")
+  ),
+  #PFTC4_Svalbard_2018_Community_Structure_Gradient.csv
+
+  # climate data
+  tar_target(
+    name = climate,
+    command = get_file(node = "smbqh",
+                       file = "PFTC4_Svalbard_2018_Gradient_Climate.csv",
+                       path = "clean_data/climate",
+                       remote_path = "Climate")
   )
 )
