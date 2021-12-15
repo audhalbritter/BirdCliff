@@ -1,8 +1,8 @@
 library("targets")
 library("tarchetypes")
-#remotes::install_github("Plant-Functional-Trait-Course/PFTCFunctions")
+#remotes::install_github("Between-the-Fjords/dataDownloader")
 
-tar_option_set(packages = c("PFTCFunctions", "tidyverse",  "googlesheets4", "vegan", "ggvegan", "kableExtra"))
+tar_option_set(packages = c("dataDownloader", "tidyverse",  "vegan", "ggvegan", "kableExtra"))
 
 
 # source target plans - can also construct plans directly in this file.

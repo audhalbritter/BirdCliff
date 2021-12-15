@@ -12,6 +12,12 @@ cleaning_plan <- list(
   tar_target(
     name = comm_gradient,
     command = read_csv(file = "clean_data/community/PFTC4_Svalbard_2018_Community_Gradient.csv")
+  ),
+
+  # import climate
+  tar_target(
+    name = climate_data,
+    command = read_csv(file = "clean_data/climate/PFTC4_Svalbard_2018_Gradient_Climate.csv")
   )
 
 )
