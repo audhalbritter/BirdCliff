@@ -23,7 +23,7 @@ transformation_plan <- list(
             "Plant_Height_cm",
             "Dry_Mass_g",
             "Leaf_Area_cm2",
-            "Thickness_mm"
+            "Leaf_Thickness_mm"
           ),
           true = suppressWarnings(log(Value)),# suppress warnings from log(-value) in isotopes (these are calculated but not kept)
           false = Value
@@ -33,8 +33,8 @@ transformation_plan <- list(
           "Plant_Height_cm" = "Plant_Height_cm_log",
           "Dry_Mass_g" = "Dry_Mass_g_log",
           "Leaf_Area_cm2" = "Leaf_Area_cm2_log",
-          "Thickness_mm" = "Thickness_mm_log"
-        )) %>% distinct(trait_trans)
+          "Leaf_Thickness_mm" = "Thickness_mm_log"
+        ))
   ),
 
   # import community
