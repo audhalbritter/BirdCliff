@@ -1,5 +1,37 @@
 figures_plan <- list(
-  # trait histogram
+
+  # climate data
+  tar_target(
+    name = climate_plot,
+    command = {
+      climate_data %>%
+        mutate(Variable = recode(Variable, "SoilMoisture" = "soil moisture in %", "SoilTemperature" = "soil temperature in °C")) %>%
+        left_join(coordinates, by = c("Gradient", "Site")) %>%
+        ggplot(aes(x = Elevation_m, y = Value, colour = Gradient)) +
+        geom_point(alpha = 0.5) +
+        geom_smooth(method = "lm") +
+        scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
+        labs(x = "Elevation in m a.s.l.", y = "") +
+        facet_wrap(~ Variable, scales = "free_y") +
+        theme_minimal()
+      }),
+
+  # trait change along gradients
+  tar_target(
+    name = trait_plot,
+    command = {
+      fancy_trait_name_dictionary(trait_mean) %>%
+        ggplot(aes(x = Elevation_m, y = mean, colour = Gradient)) +
+        geom_point(alpha = 0.3) +
+        geom_smooth(method = "lm") +
+        scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
+        labs(x = "Elevation in m a.s.l.", y = "Bootstrapped trait mean") +
+        facet_wrap(~ trait_fancy, scales = "free_y") +
+        theme_minimal() +
+        theme(legend.position = c(0.9, 0.05))
+
+    }),
+
   # tar_target(
   #   name = trait_histogram,
   #   command = {
