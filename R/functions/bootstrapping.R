@@ -1,16 +1,16 @@
 #### TRAIT BOOTSTRAPPING ####
 
 
-make_bootstrapping <- function(comm_raw, trait_raw){
+make_bootstrapping <- function(comm_raw, traits_raw){
 
   #prepare community data
   comm <- comm_raw
 
   #prepare trait data
-  trait <- trait_raw %>%
+  trait <- traits_raw %>%
     # remove bryophyte traits
     filter(! Trait %in% c("Shoot_Length_cm", "Shoot_Length_Green_cm")) %>%
-    select(Gradient, Site, PlotID, Taxon, Trait, Value) %>%
+    select(Gradient, Site, PlotID, Taxon, Trait, Value, trait_trans, value_trans) %>%
     filter(Trait != "Wet_Mass_g")
 
   #prepare trait data without intraspecific variation
@@ -31,8 +31,8 @@ make_bootstrapping <- function(comm_raw, trait_raw){
                             scale_hierarchy = c("Gradient", "Site", "PlotID"),
                             global = F,
                             taxon_col = "Taxon",
-                            trait_col = "Trait",
-                            value_col = "Value",
+                            trait_col = "trait_trans",
+                            value_col = "value_trans",
                             abundance_col = "Cover",
                             min_n_in_sample = 2
   )
@@ -63,7 +63,7 @@ make_bootstrapping <- function(comm_raw, trait_raw){
   #CWM_notiv <- trait_np_bootstrap(trait_imp_null, nrep = 100, sample_size = 200)
 
   CWM_mean <- trait_summarise_boot_moments(CWM) %>%
-    select(Site:mean)
+    select(Gradient:ci_high_mean, -n)
 
   # CWM_notiv_mean <- trait_summarise_boot_moments(CWM_notiv) %>%
   #   select(Site:mean) %>%
@@ -76,8 +76,7 @@ make_bootstrapping <- function(comm_raw, trait_raw){
   #prepare bootstrapped trait data for analyses
   traitMean <- CWM_mean %>%
     ungroup() %>%
-    select(-n) %>%
-    mutate(Trait = factor(Trait, levels = c("Plant_Height_cm", "Dry_Mass_g", "Leaf_Area_cm2", "Leaf_Thickness_mm", "SLA_cm2_g", "LDMC", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")))
+    mutate(trait_trans = factor(trait_trans, levels = c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "SLA_cm2_g", "LDMC", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")))
 
   return(traitMean)
 
