@@ -2,7 +2,7 @@ library("targets")
 library("tarchetypes")
 #remotes::install_github("Between-the-Fjords/dataDownloader")
 
-tar_option_set(packages = c("dataDownloader", "tidyverse", "traitstrap", "vegan", "ggvegan", "kableExtra"))
+tar_option_set(packages = c("dataDownloader", "tidyverse", "readxl", "traitstrap", "vegan", "ggvegan", "kableExtra", "viridis", "patchwork"))
 
 
 # source target plans - can also construct plans directly in this file.
@@ -14,6 +14,8 @@ source("R/manuscript_plan.R")
 
 # source functions
 source("R/functions/bootstrapping.R")
+source("R/functions/fancy_traits.R")
+source("R/functions/ordination.R")
 
 
 #Combine target plans
