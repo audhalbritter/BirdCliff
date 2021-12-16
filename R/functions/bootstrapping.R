@@ -76,7 +76,8 @@ make_bootstrapping <- function(comm_raw, trait_raw){
   #prepare bootstrapped trait data for analyses
   traitMean <- CWM_mean %>%
     ungroup() %>%
-    select(-n)
+    select(-n) %>%
+    mutate(Trait = factor(Trait, levels = c("Plant_Height_cm", "Dry_Mass_g", "Leaf_Area_cm2", "Leaf_Thickness_mm", "SLA_cm2_g", "LDMC", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")))
 
   return(traitMean)
 
