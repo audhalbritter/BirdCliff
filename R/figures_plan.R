@@ -59,7 +59,57 @@ figures_plan <- list(
         scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
         scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
         labs(x = "Elelvation in m a.s.l.", y = "") +
-        facet_wrap(~ DiversityIndex, scales = "free")
+        facet_wrap(~ DiversityIndex, scales = "free") +
+        theme_minimal()
+    }),
+
+
+  # species ordination
+  tar_target(
+    name = ordination_plot,
+    command = {
+    ggplot(fNMDS, aes(x = NMDS1, y = NMDS2, group = Gradient, colour = Site, shape = Gradient)) +
+      geom_point(size = 3) +
+      coord_equal() +
+      scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1) +
+      scale_shape_manual(values = c(16, 1), , labels = c("Birdcliff", "Control")) +
+      labs(x = "NMDS axis 1", y = "NMDS axis 2") +
+      theme_minimal()
+      }),
+
+
+  # trait ordination
+  tar_target(
+    name = trait_ordination_plot,
+    command = {
+
+      plot <- trait_pca[[1]] %>%
+        ggplot(aes(x = PC1, y = PC2, colour = Site, shape = Gradient)) +
+        geom_point(size = 3) +
+        coord_equal() +
+        scale_colour_manual(values = c("grey50", "pink", "lightblue", "red", "blue", "orange")) +
+        scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1) +
+        scale_shape_manual(values = c(16, 1), , labels = c("Birdcliff", "Control")) +
+        labs(x = "PC 1", y = "PC 2") +
+        theme_minimal()
+
+  arrow <- trait_pca[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2)) +
+    geom_segment(data = trait_pca[[2]],
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                 arrow = arrow(length = unit(0.2, "cm")),
+                 colour = "grey50",
+                 inherit.aes = FALSE) +
+    geom_text(data = trait_pca[[2]],
+              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = Label),
+              size = 3,
+              inherit.aes = FALSE, colour = "black") +
+    labs(x = "", y = "") +
+    scale_x_continuous(expand = c(.2, 0)) +
+    theme_minimal()
+
+  plot + arrow
+
     })
 
 )
