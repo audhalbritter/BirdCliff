@@ -16,6 +16,10 @@ transformation_plan <- list(
   tar_target(
     name = traits_raw,
     command = read_csv(file = "clean_data/traits/PFTC4_Svalbard_2018_Gradient_Traits.csv") %>%
+      # remove bryo
+      filter(Project != "Bryophytes") %>%
+      # remove wet mass, correlated with dry mass
+      filter(Trait != "Wet_Mass_g") %>%
       #log transform size and area traits
       mutate(
         value_trans = if_else(
@@ -36,6 +40,15 @@ transformation_plan <- list(
           "Leaf_Thickness_mm" = "Thickness_mm_log"
         ))
   ),
+
+  # import bryophyte traits
+  tar_target(
+    name = bryo_traits_raw,
+    command = read_csv(file = "clean_data/traits/PFTC4_Svalbard_2018_Gradient_Traits.csv") %>%
+      # filter for bryo
+      filter(Project == "Bryophytes")
+  ),
+
 
   # import community
   tar_target(
