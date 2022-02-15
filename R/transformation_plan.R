@@ -46,7 +46,9 @@ transformation_plan <- list(
     name = bryo_traits_raw,
     command = read_csv(file = "clean_data/traits/PFTC4_Svalbard_2018_Gradient_Traits.csv") %>%
       # filter for bryo
-      filter(Project == "Bryophytes")
+      filter(Project == "Bryophytes") %>%
+      # filter for important traits
+      filter(!Trait %in% c("Wet_Mass_g", "Dry_Mass_g"))
   ),
 
 
