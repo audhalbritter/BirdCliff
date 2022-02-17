@@ -101,12 +101,75 @@ make_trait_pca <- function(trait_mean){
     fortify(pca_output, display = "sites")
   )
 
-  pca_traits <- fortify(pca_output, display = "species")
+  pca_traits <- fortify(pca_output, display = "species") %>%
+    mutate(trait_trans = Label) %>%
+    fancy_trait_name_dictionary()
 
-  outputList <- list(pca_sites, pca_traits)
+  outputList <- list(pca_sites, pca_traits, pca_output)
 
   return(outputList)
 }
+
+make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
+
+  plot_B <- trait_pca_B[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2, colour = Elevation_m, group = Site)) +
+    geom_point(size = 2) +
+    coord_equal() +
+    stat_ellipse() +
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1) +
+    scale_shape_manual(values = c(16)) +
+    labs(x = "PC 1", y = "PC 2", title = "Birdcliff") +
+    theme_minimal() +
+    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5))
+
+  arrow_B <- trait_pca_B[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2)) +
+    geom_segment(data = trait_pca_B[[2]],
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                 arrow = arrow(length = unit(0.2, "cm")),
+                 colour = "grey50",
+                 inherit.aes = FALSE) +
+    geom_text(data = trait_pca_B[[2]],
+              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
+              size = 3,
+              inherit.aes = FALSE, colour = "black") +
+    labs(x = "", y = "") +
+    scale_x_continuous(expand = c(.2, 0)) +
+    theme_minimal()
+
+  plot_C <- trait_pca_C[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2, colour = Elevation_m, group = Site)) +
+    geom_point(size = 2, shape = 2) +
+    coord_equal() +
+    stat_ellipse(linetype = 2) +
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1) +
+    labs(x = "PC 1", y = "PC 2", title = "Reference") +
+    theme_minimal()
+
+  arrow_C <- trait_pca_C[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2)) +
+    geom_segment(data = trait_pca_C[[2]],
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                 arrow = arrow(length = unit(0.2, "cm")),
+                 colour = "grey50",
+                 inherit.aes = FALSE) +
+    geom_text(data = trait_pca_C[[2]],
+              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
+              size = 3,
+              inherit.aes = FALSE, colour = "black") +
+    labs(x = "", y = "") +
+    scale_x_continuous(expand = c(.2, 0)) +
+    theme_minimal()
+
+  layout <- "
+  AAB
+  CCD
+"
+  trait_ordination_plot <- wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(design = layout)
+
+}
+
 
 
 # Function to make ellipse
