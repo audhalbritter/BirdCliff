@@ -69,7 +69,22 @@ transformation_plan <- list(
       # filter for bryo
       filter(Project == "Bryophytes") %>%
       # filter for important traits
-      filter(!Trait %in% c("Wet_Mass_g", "Dry_Mass_g"))
+      filter(!Trait %in% c("Wet_Mass_g", "Dry_Mass_g")) %>%
+      #log transform shoot length traits
+      mutate(
+        value_trans = if_else(
+          Trait %in% c(
+            "Shoot_Length_cm",
+            "Shoot_Length_Green_cm"
+          ),
+          true = suppressWarnings(log(Value)),# suppress warnings from log(-value) in isotopes (these are calculated but not kept)
+          false = Value
+        ),
+        trait_trans = recode(
+          Trait,
+          "Shoot_Length_cm" = "Shoot_Length_cm_log",
+          "Shoot_Length_Green_cm" = "Shoot_Length_Green_cm_log"
+        ))
   ),
 
   # import climate
