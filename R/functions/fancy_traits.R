@@ -18,8 +18,8 @@ fancy_trait_name_dictionary <- function(dat){
                               P_percent = "P %",
                               SLA_cm2_g = "SLA cm2/g",
                               Thickness_mm_log = "Thickness mm",
-                              Shoot_Length_cm = "Shoot length cm",
-                              Shoot_Length_Green_cm = "Green length cm",
+                              Shoot_Length_cm_log = "Shoot length cm",
+                              Shoot_Length_Green_cm_log = "Green length cm",
                               Shoot_ratio = "Shoot ratio",
                               WHC_g_g = "WHC g/g"))
 
