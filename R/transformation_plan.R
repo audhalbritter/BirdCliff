@@ -12,6 +12,27 @@ transformation_plan <- list(
       select(Gradient = Treatment, Site:Longitude_E)
   ),
 
+  # import community
+  tar_target(
+    name = comm_raw,
+    command = read_csv(file = "clean_data/community/PFTC4_Svalbard_2018_Community_Gradient.csv") %>%
+      # remove duplicates
+      distinct() %>%
+      mutate(GS = paste0(Gradient, Site))
+  ),
+
+  # calculate diversity indices
+  tar_target(
+    name = diversity_grad,
+    command = comm_raw %>%
+      group_by(Gradient, Site, PlotID, Elevation_m) %>%
+      summarise(Richness = n(),
+                Diversity = diversity(Cover),
+                Evenness = Diversity/log(Richness),
+                sumAbundance = sum(Cover)) %>%
+      pivot_longer(cols = Richness:sumAbundance, names_to = "DiversityIndex", values_to = "Value")
+  ),
+
   # import traits
   tar_target(
     name = traits_raw,
@@ -49,15 +70,6 @@ transformation_plan <- list(
       filter(Project == "Bryophytes") %>%
       # filter for important traits
       filter(!Trait %in% c("Wet_Mass_g", "Dry_Mass_g"))
-  ),
-
-
-  # import community
-  tar_target(
-    name = comm_raw,
-    command = read_csv(file = "clean_data/community/PFTC4_Svalbard_2018_Community_Gradient.csv") %>%
-      # remove duplicates
-      distinct()
   ),
 
   # import climate
