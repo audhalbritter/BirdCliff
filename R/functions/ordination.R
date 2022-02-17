@@ -87,16 +87,17 @@ make_trait_pca <- function(trait_mean){
 
   # make wide trait table
   cwm_fat <- trait_mean %>%
-    select(Gradient:mean) %>%
+    mutate(GS = paste0(Gradient, Site)) %>%
+    select(Gradient:mean, Elevation_m, GS) %>%
     pivot_wider(names_from = "trait_trans", values_from = "mean")
 
   pca_output <- cwm_fat %>%
-    select(-(Gradient:PlotID)) %>%
+    select(-(Gradient:GS)) %>%
     rda(scale = TRUE)
 
   pca_sites <- bind_cols(
     cwm_fat %>%
-      select(Gradient:PlotID),
+      select(Gradient:GS),
     fortify(pca_output, display = "sites")
   )
 
@@ -106,6 +107,7 @@ make_trait_pca <- function(trait_mean){
 
   return(outputList)
 }
+
 
 # Function to make ellipse
 veganCovEllipse <- function (cov, center = c(0, 0), scale = 1, npoints = 100){
