@@ -4,17 +4,9 @@ figures_plan <- list(
   tar_target(
     name = trait_plot,
     command = {
-      fancy_trait_name_dictionary(trait_mean) %>%
-        ggplot(aes(x = Elevation_m, y = mean, colour = Gradient)) +
-        geom_point(alpha = 0.3) +
-        geom_smooth(method = "lm") +
-        scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
-        labs(x = "Elevation in m a.s.l.", y = "Bootstrapped trait mean") +
-        facet_wrap(~ trait_fancy, scales = "free_y") +
-        theme_minimal() +
-        theme(legend.position = c(0.9, 0.05))
+      make_trait_analysis(trait_mean)
+      }),
 
-    }),
 
   # FIGURE 2B: trait ordination
   tar_target(
@@ -84,13 +76,16 @@ figures_plan <- list(
     name = bryophyte_plot,
     command = {
 
-      bryo_traits_raw %>%
-        ggplot(aes(x = Elevation_m, y = Value, colour = Gradient)) +
-        geom_point() +
+      fancy_trait_name_dictionary(bryo_traits_raw) %>%
+        mutate(trait_fancy = factor(trait_fancy, levels = c("Shoot length cm", "Green length cm", "Shoot ratio", "WHC g/g", "C %", "N %", "CN", "P %", "NP", "dC13 ‰", "dN15 ‰"))) %>%
+        ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient)) +
+        geom_point(alpha = 0.5) +
         geom_smooth(method = "lm") +
-        scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
+        scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
         labs(x = "Elevation in m a.s.l.", y = "Trait value") +
-        facet_wrap(~ Trait, scales = "free_y")
+        facet_wrap(~ trait_fancy, scales = "free_y") +
+        theme_minimal() +
+        theme(legend.position = c(0.87, 0.15))
     })
 
 )
