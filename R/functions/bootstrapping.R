@@ -15,7 +15,7 @@ make_bootstrapping <- function(comm_raw, traits_raw){
     select(Gradient, Site, PlotID, Taxon, trait_trans, value_trans) %>%
     # do we want to have fixed traits per gradient or across all the gradients???
     group_by(Taxon, trait_trans) %>%
-    summarize(value_trans = mean(as.numeric(value_trans), na.rm = T)) %>%
+    summarise(value_trans = mean(as.numeric(value_trans), na.rm = TRUE)) %>%
     right_join(trait, by = c("Taxon", "trait_trans")) %>%
     select(-value_trans.y, "value_trans" = value_trans.x)
 
