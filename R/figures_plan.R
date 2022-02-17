@@ -21,24 +21,25 @@ figures_plan <- list(
     name = trait_ordination_plot,
     command = {
 
-      plot <- trait_pca[[1]] %>%
-        ggplot(aes(x = PC1, y = PC2, colour = Site, shape = Gradient)) +
-        geom_point(size = 3) +
+      plot_B <- trait_pca_B[[1]] %>%
+        ggplot(aes(x = PC1, y = PC2, colour = Elevation_m, group = Site)) +
+        geom_point(size = 2) +
         coord_equal() +
-        scale_colour_manual(values = c("grey50", "pink", "lightblue", "red", "blue", "orange")) +
+        stat_ellipse() +
         scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1) +
-        scale_shape_manual(values = c(16, 1), , labels = c("Birdcliff", "Control")) +
-        labs(x = "PC 1", y = "PC 2") +
-        theme_minimal()
+        scale_shape_manual(values = c(16)) +
+        labs(x = "PC 1", y = "PC 2", title = "Birdcliff") +
+        theme_minimal() +
+        theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5))
 
-  arrow <- trait_pca[[1]] %>%
+  arrow_B <- trait_pca_B[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
-    geom_segment(data = trait_pca[[2]],
+    geom_segment(data = trait_pca_B[[2]],
                  aes(x = 0, y = 0, xend = PC1, yend = PC2),
                  arrow = arrow(length = unit(0.2, "cm")),
                  colour = "grey50",
                  inherit.aes = FALSE) +
-    geom_text(data = trait_pca[[2]],
+    geom_text(data = trait_pca_B[[2]],
               aes(x = PC1 * 1.1,y = PC2 * 1.1, label = Label),
               size = 3,
               inherit.aes = FALSE, colour = "black") +
@@ -46,7 +47,35 @@ figures_plan <- list(
     scale_x_continuous(expand = c(.2, 0)) +
     theme_minimal()
 
-  plot + arrow
+  plot_C <- trait_pca_C[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2, colour = Elevation_m, group = Site)) +
+    geom_point(size = 2, shape = 2) +
+    coord_equal() +
+    stat_ellipse(linetype = 2) +
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1) +
+    labs(x = "PC 1", y = "PC 2", title = "Reference") +
+    theme_minimal()
+
+  arrow_C <- trait_pca_C[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2)) +
+    geom_segment(data = trait_pca_C[[2]],
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                 arrow = arrow(length = unit(0.2, "cm")),
+                 colour = "grey50",
+                 inherit.aes = FALSE) +
+    geom_text(data = trait_pca_C[[2]],
+              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = Label),
+              size = 3,
+              inherit.aes = FALSE, colour = "black") +
+    labs(x = "", y = "") +
+    scale_x_continuous(expand = c(.2, 0)) +
+    theme_minimal()
+
+  layout <- "
+  AAB
+  CCD
+"
+  trait_ordination_plot <- wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(design = layout)
 
     }),
 
