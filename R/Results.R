@@ -33,7 +33,11 @@ fancy_trait_name_dictionary(model_output[[1]]) %>%
 tar_load(trait_pca_B)
 tar_load(trait_pca_C)
 bind_rows(Birdcliff = trait_pca_B[[2]],
-          Reference = trait_pca_C[[2]],
+          Reference = trait_pca_C[[2]] %>%
+            mutate(PC1 = PC1 * -1,
+                   PC2 = PC2 * -1,
+                   PC3 = PC3 * -1,
+                   PC4 = PC4 * -1),
           .id = "Gradient") %>%
   select(Gradient, Trait = trait_fancy, PC1:PC4) %>%
   mutate(PC1 = round(PC1, digits = 2),
@@ -41,6 +45,7 @@ bind_rows(Birdcliff = trait_pca_B[[2]],
          PC3 = round(PC3, digits = 2),
          PC4 = round(PC4, digits = 2)) %>%
   mutate(Gradient = recode(Gradient, Birdcliff = "Bird cliff")) %>%
+  arrange(Gradient, -PC1) %>%
   write_csv(., file = "output/Loadings_trait_PCA.csv")
 
 
