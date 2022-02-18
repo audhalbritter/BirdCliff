@@ -75,7 +75,7 @@ make_ordination_plot <- function(comm_raw){
 
   ordi_plot <- g0 +
     geom_path(data = df_ell, aes(x = NMDS1, y = NMDS2, group = GS, colour = Elevation_m, shape = Gradient, linetype = Gradient)) +
-    scale_linetype_manual(values = c(1, 2), , labels = c("Birdcliff", "Reference"))
+    scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference"))
 
   return(ordi_plot)
 }
@@ -105,10 +105,25 @@ make_trait_pca <- function(trait_mean){
     mutate(trait_trans = Label) %>%
     fancy_trait_name_dictionary()
 
-  outputList <- list(pca_sites, pca_traits, pca_output)
+
+  # permutation test
+  # traits
+  raw <- cwm_fat %>% select(-(Gradient:GS))
+  # meta data
+  meta <- cwm_fat %>% select(Gradient:GS) %>%
+    mutate(Site = factor(Site))
+
+  # test
+  adonis_result <- adonis2(raw ~ Site, data = meta, permutations = 999, method = "euclidean")
+
+  outputList <- list(pca_sites, pca_traits, pca_output, adonis_result)
 
   return(outputList)
 }
+
+
+
+
 
 make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
 
@@ -117,11 +132,12 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     geom_point(size = 2) +
     coord_equal() +
     stat_ellipse() +
-    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1) +
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
     scale_shape_manual(values = c(16)) +
-    labs(x = "PC 1", y = "PC 2", title = "Birdcliff") +
+    labs(x = "PC 1 (47.2%)", y = "PC 2 (17.2%)", title = "Bird cliff") +
     theme_minimal() +
-    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5))
+    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5),
+          aspect.ratio = 1)
 
   arrow_B <- trait_pca_B[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
@@ -134,18 +150,20 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
               aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
               size = 3,
               inherit.aes = FALSE, colour = "black") +
-    labs(x = "", y = "") +
+    labs(x = "PC 1", y = "PC 2") +
     scale_x_continuous(expand = c(.2, 0)) +
-    theme_minimal()
+    theme_minimal() +
+    theme(aspect.ratio = 1)
 
   plot_C <- trait_pca_C[[1]] %>%
     ggplot(aes(x = PC1, y = PC2, colour = Elevation_m, group = Site)) +
     geom_point(size = 2, shape = 2) +
     coord_equal() +
     stat_ellipse(linetype = 2) +
-    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1) +
-    labs(x = "PC 1", y = "PC 2", title = "Reference") +
-    theme_minimal()
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
+    labs(x = "PC 1 (35.5%)", y = "PC 2 (21.6%)", title = "Reference") +
+    theme_minimal() +
+    theme(aspect.ratio = 1)
 
   arrow_C <- trait_pca_C[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
@@ -154,13 +172,16 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
                  arrow = arrow(length = unit(0.2, "cm")),
                  colour = "grey50",
                  inherit.aes = FALSE) +
-    geom_text(data = trait_pca_C[[2]],
-              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
+    geom_text(data = trait_pca_C[[2]] %>%
+                mutate(PC1 = PC1*-1,
+                       PC2 = PC2*-1),
+              aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy),
               size = 3,
               inherit.aes = FALSE, colour = "black") +
-    labs(x = "", y = "") +
+    labs(x = "PC 1", y = "PC 2") +
     scale_x_continuous(expand = c(.2, 0)) +
-    theme_minimal()
+    theme_minimal() +
+    theme(aspect.ratio = 1)
 
   layout <- "
   AAB
