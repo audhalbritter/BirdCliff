@@ -97,7 +97,8 @@ transformation_plan <- list(
   tar_target(
     name = trait_mean,
     command = make_bootstrapping(comm_raw, traits_raw)  %>%
-      left_join(coordinates, by = c("Gradient", "Site"))
+      left_join(coordinates, by = c("Gradient", "Site")) %>%
+      mutate(GS = paste0(Gradient, Site))
 
   )
 
