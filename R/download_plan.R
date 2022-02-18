@@ -1,8 +1,17 @@
 #
 
 download_plan <- list(
-  #select datasets to download
-  # Leaf trait data
+
+  # meta data
+  tar_target(
+    name = coords,
+    command = get_file(node = "smbqh",
+                       file = "PFTC4_Svalbard_Coordinates.xlsx",
+                       path = "clean_data",
+                       remote_path = "MetaData")
+  ),
+
+  # trait data
   tar_target(
     name = traits,
     command = get_file(node = "smbqh",

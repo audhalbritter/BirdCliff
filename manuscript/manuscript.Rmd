@@ -43,7 +43,7 @@ library("english")
 theme_set(theme_bw())
 
 # load required targets
-tar_load(diversity_grad)
+tar_load(diversity_analysis)
 
 ```
 
@@ -93,14 +93,16 @@ The average trait for LDMC was .... (Fig. \@ref(fig:trait-plot)).
 
 
 
-```{r div}
+```{r div-results}
 
-diversity_grad %>% 
-  group_by(DiversityIndex, Gradient) %>% 
-  summarise(Mean = mean(Value)) %>% 
-  ungroup() %>% 
-  pivot_wider(names_from = Gradient, values_from = Mean) %>% 
-  kbl(digits = 2)
+diversity_analysis %>% 
+  select(term, estimate:p.value)
+  kbl(booktabs = TRUE,
+      digits = 2) %>% 
+    pack_rows("Richness", 1, 4) %>%
+    pack_rows("Diversity", 5, 8) %>%
+    pack_rows("Evenness", 9, 12) %>%
+    pack_rows("Sum abundnace", 13, 16)
 
 ```
 
