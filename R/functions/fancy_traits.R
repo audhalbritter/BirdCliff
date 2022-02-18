@@ -21,6 +21,7 @@ fancy_trait_name_dictionary <- function(dat){
                               Shoot_Length_cm_log = "Shoot length cm",
                               Shoot_Length_Green_cm_log = "Green length cm",
                               Shoot_ratio = "Shoot ratio",
+                              SSL_cm_g = "SSL cm/g",
                               WHC_g_g = "WHC g/g"))
 
   return(dat)
