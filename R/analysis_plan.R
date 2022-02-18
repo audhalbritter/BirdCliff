@@ -96,10 +96,14 @@ analysis_plan <- list(
   # INDIVIDUAL TRAITS
 
   tar_target(
-    name = ind_species_figure,
-    command = make_ind_sp_plot(traits_raw, bryo_traits_raw)),
+    name = all_traits,
+    command = combine_traits(traits_raw, bryo_traits_raw)),
 
-  # ## Intra vs. Inter
+  tar_target(
+    name = ind_species_figure,
+    command = make_ind_sp_plot(all_traits)),
+
+  ### ITV
   tar_target(
     name = variation_split_exp,
     command = Intra_vs_Inter(traits_raw, trait_mean)
