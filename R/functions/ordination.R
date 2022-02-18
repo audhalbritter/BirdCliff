@@ -167,7 +167,9 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
 
   arrow_C <- trait_pca_C[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
-    geom_segment(data = trait_pca_C[[2]],
+    geom_segment(data = trait_pca_C[[2]] %>%
+                   mutate(PC1 = PC1*-1,
+                          PC2 = PC2*-1),
                  aes(x = 0, y = 0, xend = PC1, yend = PC2),
                  arrow = arrow(length = unit(0.2, "cm")),
                  colour = "grey50",
