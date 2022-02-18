@@ -32,9 +32,15 @@ fancy_trait_name_dictionary(model_output[[1]]) %>%
 # trait ordination output
 tar_load(trait_pca_B)
 tar_load(trait_pca_C)
-bind_rows(trait_pca_B[[1]], trait_pca_C[[1]]) %>%
-  select(Gradient, "Elevation m a.s.l." = Elevation_m, Site, PlotID, PC1:PC4) %>%
-  mutate(Gradient = recode(Gradient, B = "Bird cliff", C = "Reference")) %>%
+bind_rows(Birdcliff = trait_pca_B[[2]],
+          Reference = trait_pca_C[[2]],
+          .id = "Gradient") %>%
+  select(Gradient, Trait = trait_fancy, PC1:PC4) %>%
+  mutate(PC1 = round(PC1, digits = 2),
+         PC2 = round(PC2, digits = 2),
+         PC3 = round(PC3, digits = 2),
+         PC4 = round(PC4, digits = 2)) %>%
+  mutate(Gradient = recode(Gradient, Birdcliff = "Bird cliff")) %>%
   write_csv(., file = "output/Loadings_trait_PCA.csv")
 
 
