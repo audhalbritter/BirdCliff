@@ -1,4 +1,4 @@
-make_trait_analysis <- function(trait_mean){
+make_trait_figure <- function(trait_mean){
 
   dat <- fancy_trait_name_dictionary(trait_mean)
 
@@ -9,7 +9,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -27,7 +28,7 @@ make_trait_analysis <- function(trait_mean){
     filter(trait_trans == "C_percent") %>%
     ggplot(aes(x = Elevation_m, y = mean, colour = Gradient)) +
     geom_point(alpha = 0.5) +
-    scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+    scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     facet_wrap(~ trait_fancy, scales = "free_y") +
     labs(x = "", y = "") +
     theme_minimal() +
@@ -38,7 +39,7 @@ make_trait_analysis <- function(trait_mean){
   gc <- g0 +
     geom_line(data = c) +
     geom_ribbon(data = c, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     theme(axis.text.x = element_blank())
 
 
@@ -49,7 +50,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -65,8 +67,8 @@ make_trait_analysis <- function(trait_mean){
   gcn <- g0 %+% subset(dat, trait_trans == "CN_ratio") +
     geom_line(data = cn) +
     geom_ribbon(data = cn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
-    annotate("text", x = 50, y = 24, label = "E", size = 3)
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    annotate("text", x = 50, y = 24, label = "G", size = 3)
 
 
 
@@ -78,7 +80,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -94,7 +97,7 @@ make_trait_analysis <- function(trait_mean){
   gdn <- g0 %+% subset(dat, trait_trans == "dN15_permil") +
     geom_line(data = dn) +
     geom_ribbon(data = dn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     annotate("text", x = 50, y = 15, label = "GxE", size = 3)
 
 
@@ -106,7 +109,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -122,7 +126,7 @@ make_trait_analysis <- function(trait_mean){
   gdry <- g0 %+% subset(dat, trait_trans == "Dry_Mass_g_log") +
     geom_line(data = dry) +
     geom_ribbon(data = dry, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     theme(axis.text.x = element_blank())
 
 
@@ -133,7 +137,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -149,8 +154,8 @@ make_trait_analysis <- function(trait_mean){
   gldmc <- g0 %+% subset(dat, trait_trans == "LDMC") +
     geom_line(data = ldmc) +
     geom_ribbon(data = ldmc, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
-    annotate("text", x = 50, y = 0.12, label = "G+E", size = 3) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    annotate("text", x = 50, y = 0.12, label = "GxE", size = 3) +
     theme(axis.text.x = element_blank())
 
 
@@ -161,7 +166,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -177,7 +183,7 @@ make_trait_analysis <- function(trait_mean){
   garea <- g0 %+% subset(dat, trait_trans == "Leaf_Area_cm2_log") +
     geom_line(data = area) +
     geom_ribbon(data = area, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     annotate("text", x = 50, y = 0.5, label = "G+E", size = 3) +
     theme(axis.text.x = element_blank())
 
@@ -189,7 +195,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -205,8 +212,8 @@ make_trait_analysis <- function(trait_mean){
   gn <- g0 %+% subset(dat, trait_trans == "N_percent") +
     geom_line(data = n) +
     geom_ribbon(data = n, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
-    annotate("text", x = 50, y = 3.8, label = "G+E", size = 3) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    annotate("text", x = 50, y = 3.8, label = "G", size = 3) +
     theme(axis.text.x = element_blank())
 
 
@@ -217,7 +224,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -233,7 +241,7 @@ make_trait_analysis <- function(trait_mean){
   gnp <- g0 %+% subset(dat, trait_trans == "NP_ratio") +
     geom_line(data = np) +
     geom_ribbon(data = np, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference"))
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference"))
 
 
   #P_percent
@@ -243,7 +251,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -259,8 +268,7 @@ make_trait_analysis <- function(trait_mean){
   gp <- g0 %+% subset(dat, trait_trans == "P_percent") +
     geom_line(data = p) +
     geom_ribbon(data = p, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
-    annotate("text", x = 50, y = 0.38, label = "GxE", size = 3)
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference"))
 
 
   #Plant_Height_cm_log
@@ -270,7 +278,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -286,7 +295,7 @@ make_trait_analysis <- function(trait_mean){
   gheight <- g0 %+% subset(dat, trait_trans == "Plant_Height_cm_log") +
     geom_line(data = height) +
     geom_ribbon(data = height, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     annotate("text", x = 50, y = 1.8, label = "E", size = 3) +
     theme(axis.text.x = element_blank())
 
@@ -298,7 +307,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -314,7 +324,7 @@ make_trait_analysis <- function(trait_mean){
   gsla <- g0 %+% subset(dat, trait_trans == "SLA_cm2_g") +
     geom_line(data = sla) +
     geom_ribbon(data = sla, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     labs(y = "Bootstrapped trait mean") +
     annotate("text", x = 50, y = 249, label = "GxE", size = 3) +
     theme(axis.text.x = element_blank(),
@@ -328,7 +338,8 @@ make_trait_analysis <- function(trait_mean){
 
   newdat <- dd %>%
     distinct(Elevation_m, Gradient) %>%
-    mutate(mean = predict(fit, newdat, re.form = NA))
+    mutate(mean = 0)
+  newdat$mean <-  predict(fit, newdat, re.form = NA)
 
   mm <- model.matrix(terms(fit), newdat)
 
@@ -344,7 +355,7 @@ make_trait_analysis <- function(trait_mean){
   gthick <- g0 %+% subset(dat, trait_trans == "Thickness_mm_log") +
     geom_line(data = thick) +
     geom_ribbon(data = thick, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     theme(axis.text.x = element_blank())
 
 
@@ -375,26 +386,5 @@ make_trait_analysis <- function(trait_mean){
   return(trait_plot)
 
 }
-
-
-#
-# library(MuMIn)
-# dd <- dat %>%
-#   filter(trait_trans == "dC13_permil")
-# fit1 <- lmer(mean ~ Gradient * Elevation_m + (1|Site), data = dd, na.action = "na.fail", REML = FALSE)
-# model.set <- dredge(fit1, rank = "AICc", extra = "R^2")
-# model.set
-#
-#
-# # Likelihoot ratio test result
-# result <- dat %>%
-#   distinct(trait_trans) %>%
-#   mutate(model = c("", "G", "???", "GxE", "", "G+E", "G+E", "G", "", "G*E", "E", "G*E", ""))
-#
-#
-# dat %>%
-#   group_by(trait_trans) %>%
-#   nest(data = -c(trait_trans)) %>%
-#   mutate(mod = map(data, ~lmer(mean ~ Gradient * Elevation_m + (1|Site), data = .x)))
 
 
