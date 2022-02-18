@@ -84,7 +84,10 @@ transformation_plan <- list(
           Trait,
           "Shoot_Length_cm" = "Shoot_Length_cm_log",
           "Shoot_Length_Green_cm" = "Shoot_Length_Green_cm_log"
-        ))
+        )) %>%
+      # remove duplicate
+      group_by(Gradient, Site, PlotID, Individual_nr, ID, Trait, Elevation_m, trait_trans) %>%
+      slice(1)
   ),
 
   # import climate
