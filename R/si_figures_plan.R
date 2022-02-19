@@ -7,13 +7,15 @@ figures_plan <- list(
       climate_data %>%
         mutate(Variable = recode(Variable, "SoilMoisture" = "soil moisture in %", "SoilTemperature" = "soil temperature in °C")) %>%
         left_join(coordinates, by = c("Gradient", "Site")) %>%
-        ggplot(aes(x = Elevation_m, y = Value, colour = Gradient)) +
+        ggplot(aes(x = Elevation_m, y = Value, colour = Gradient, fill = Gradient)) +
         geom_point(alpha = 0.5) +
         geom_smooth(method = "lm") +
-        scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+        scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+        scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
         labs(x = "Elevation in m a.s.l.", y = "") +
         facet_wrap(~ Variable, scales = "free_y") +
-        theme_minimal()
+        theme_minimal() +
+        theme(legend.position = "bottom")
     }),
 
 
