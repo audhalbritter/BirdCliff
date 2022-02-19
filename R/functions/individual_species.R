@@ -64,61 +64,95 @@ make_ind_sp_plot <- function(all_traits){
 
 
 
-# cerastium arcticum 1 dN15_permil
-# salix polaris
-# luzula confusa
-# sanionia uncinata   3 P shoot length shoot ratio
-# aulacomnium turgidum 3 SSL Shoot ratio shoot length
-# hylocomium splendens 2 shoot ratio WHC
-#
-#
-# dd <- all_traits %>%
-#   filter(trait_trans == "Plant_Height_cm_log",
-#          Taxon == "salix polaris")
-# fit <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data = dd)
-# fit <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), na.action = "na.fail", data = dd)
-# model.set = dredge(fit, rank = "AICc", extra = "R^2")
-#
-#
-# all_traits %>% distinct(Taxon)
-#
-# all_traits %>%
-#   group_by(Taxon, trait_trans) %>%
-#   nest(data = -c(Taxon, trait_trans)) %>%
-#   mutate(mod = map(data, ~{
-#     mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
-#   }))
-#
-#
-# all_traits %>%
-#   filter(Taxon == "luzula confusa") %>%
-#   group_by(trait_trans) %>%
-#   nest(data = -c(trait_trans)) %>%
-#   mutate(model.set = map(data, ~{
-#     mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
-#     #model.set = dredge(mod, rank = "AICc", extra = "R^2")
-#   })) %>%
-#   unnest(model.set)
-#
-#
-#
-#
-# all_traits %>%
-#   filter(Taxon == "luzula confusa") %>%
-#   group_by(trait_trans) %>%
-#   nest(data = -c(trait_trans)) %>%
-#   mutate(mod = map(data, ~{
-#     mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), data = .x)
-#   }))
-#
-#
-# all_traits %>%
-#   filter(Taxon == "luzula confusa") %>%
-#   group_by(trait_trans) %>%
-#   nest(data = -c(trait_trans)) %>%
-#   mutate(estimate = map(data, ~{
-#     mod <- lmer(mean ~ Gradient + (1|Site), data = .x)
-#     estimates = broom.mixed::tidy(mod)
-#   })) %>%
-#   unnest(estimate)
-#
+#cerastium arcticum 4 Height, Area, N, N15
+salix polaris 1 Height
+luzula confusa
+
+#sanionia uncinata   4 P shoot length shoot ratio ssl
+#aulacomnium turgidum 4 shoot length shoot ratio ssl shc
+hylocomium splendens 3 P shoot ratio WHC
+
+1 Plant_Height_cm_log
+2 Leaf_Area_cm2_log
+3 LDMC
+4 N_percent
+5 dN15_permil
+6 P_percent
+7 Shoot_Length_cm_log
+8 Shoot_ratio
+9 SSL_cm_g
+10 WHC_g_g
+
+dd <- all_traits %>%
+  filter(trait_trans == "WHC_g_g",
+         Taxon == "hylocomium splendens")
+fit <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), na.action = "na.fail", REML = FALSE, data = dd)
+model.set = dredge(fit, rank = "AICc", extra = "R^2")
+model.set
+
+sal.pol A: G+E, LDMC: G+E, N: G, N15: G
+#cer.arc LDMC: Null
+luz.conf H: G+E, A: G+E, LDMC: GxE, N: G, N15: G
+
+san.unc WHC: G
+aul.tur P: Null
+hyl spl SL: Null, SSL: Null
+
+
+all_traits %>% distinct(Taxon)
+
+# run models for single species
+all_traits %>%
+  filter(Taxon %in% c("salix polaris", "luzula confusa")) %>%
+  group_by(Taxon, trait_trans) %>%
+  nest(data = -c(Taxon, trait_trans)) %>%
+  mutate(estimate = map(data, ~{
+    mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
+    estimates = broom.mixed::tidy(mod)
+  })) %>%
+  unnest(estimate) %>%
+  mutate(r = map(data, ~{
+    mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
+    r = as.numeric(r.squaredGLMM(mod))
+  })) %>%
+  unnest_wider(col = r) %>%
+  select(trait_trans, "Rm" = "...1", "Rc" = "...2")
+
+
+
+
+
+all_traits %>%
+  filter(Taxon == "salix polaris") %>%
+  group_by(trait_trans) %>%
+  nest(data = -c(trait_trans)) %>%
+  mutate(model.set = map(data, ~{
+    mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
+    model.set = dredge(mod, rank = "AICc", extra = "R^2")
+    model.set
+  })) %>%
+  unnest(model.set)
+
+
+
+
+
+all_traits %>%
+  filter(Taxon == "luzula confusa") %>%
+  group_by(trait_trans) %>%
+  nest(data = -c(trait_trans)) %>%
+  mutate(mod = map(data, ~{
+    mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), data = .x)
+  }))
+
+
+all_traits %>%
+  filter(Taxon == "luzula confusa") %>%
+  group_by(trait_trans) %>%
+  nest(data = -c(trait_trans)) %>%
+  mutate(estimate = map(data, ~{
+    mod <- lmer(mean ~ Gradient + (1|Site), data = .x)
+    estimates = broom.mixed::tidy(mod)
+  })) %>%
+  unnest(estimate)
+
