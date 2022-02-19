@@ -6,15 +6,54 @@ analysis_plan <- list(
   tar_target(
     name = diversity_analysis,
     command = {
+
+      best <- diversity_grad %>%
+        ungroup() %>%
+        distinct(DiversityIndex) %>%
+        mutate(best_model = c("G", "G", "Null", "E"))
+
+      # only richness and diverity
+      nest <- diversity_grad %>%
+        mutate(GS = paste0(Gradient, Site)) %>%
+        filter(DiversityIndex %in% c("Richness", "Diversity")) %>%
+        group_by(DiversityIndex) %>%
+        nest(data = -c(DiversityIndex))
+
+      r_square <- nest %>%
+        mutate(r = map(data, ~{
+          mod <- lmer(Value ~ Gradient + (1|GS), data = .x)
+          r = as.numeric(r.squaredGLMM(mod))
+        })) %>%
+        unnest_wider(col = r) %>%
+        select(DiversityIndex, "Rm" = "...1", "Rc" = "...2")
+
+      diversity <- nest %>%
+        mutate(mod = map(data, ~lmer(Value ~ Gradient + (1|GS), data = .x)),
+               result = map(mod, tidy)) %>%
+          unnest(result) %>%
+        filter(effect == "fixed") %>%
+        select(DiversityIndex, term:statistic) %>%
+        left_join(best, by = "DiversityIndex") %>%
+        left_join(r_square, by = "DiversityIndex") %>%
+        select(Index = DiversityIndex, "Best model" = best_model, Estimate = estimate, "Standard error" = std.error, "t-value" = statistic, "Marginal R2" = Rm, "Conditional R2" = Rc)
+
+      return(diversity)
+
+    }),
+
+  tar_target(
+    name = div_best_model,
+    command = {
       diversity_grad %>%
         mutate(GS = paste0(Gradient, Site)) %>%
         group_by(DiversityIndex) %>%
         nest(data = -c(DiversityIndex)) %>%
-        mutate(mod = map(data, ~lmer(Value ~ Gradient * Elevation_m + (1|GS), data = .x)),
-               result = map(mod, tidy)) %>%
-          unnest(result)
+        mutate(model.set = map(data, ~{
+          mod <- lmer(Value ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
+          model.set = dredge(mod, rank = "AICc", extra = "R^2")
+          })) %>%
+        unnest(model.set)
     }),
-
 
   # make species ordination
   tar_target(
