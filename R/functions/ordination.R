@@ -23,6 +23,29 @@ make_ordination <- function(comm_raw){
 }
 
 
+### NEEDS A BETTER MODEL!!!
+test_ordination <- function(comm_raw){
+  set.seed(32)
+
+  comm_fat <- comm_raw %>%
+    select(Gradient, Site, GS, Elevation_m, PlotID, Taxon) %>%
+    mutate(presence = 1) %>%
+    pivot_wider(names_from = Taxon,
+                values_from = presence,
+                values_fill = 0)
+
+  env <- comm_fat %>% select(Gradient:PlotID)
+  attach(env)
+  dis <- vegdist(comm_fat_spp)
+  dune.ano <- anosim(dis, GS)
+  summary(dune.ano)
+  plot(dune.ano)
+
+  }
+
+
+
+
 make_ordination_plot <- function(comm_raw){
 
   set.seed(32)
