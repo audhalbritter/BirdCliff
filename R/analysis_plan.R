@@ -57,7 +57,7 @@ analysis_plan <- list(
 
   # make species ordination
   tar_target(
-    name = fNMDS,
+    name = sp_ordination,
     command = make_ordination(comm_raw)
   ),
 
@@ -132,15 +132,26 @@ analysis_plan <- list(
 
     }),
 
-  # INDIVIDUAL TRAITS
+  # INDIVIDUAL TRAITS (vascular plants)
 
+  # combine data
   tar_target(
-    name = all_traits,
+    name = ind_traits,
     command = combine_traits(traits_raw, bryo_traits_raw)),
+
+  # run model selection
+  # does not work yet!
+
+  # model output
+  tar_target(
+    name = ind_traits_output,
+    command = run_ind_models(ind_traits)),
 
   tar_target(
     name = ind_species_figure,
-    command = make_ind_sp_plot(all_traits)),
+    command = make_ind_sp_plot(ind_traits)),
+
+
 
   ### ITV
   tar_target(

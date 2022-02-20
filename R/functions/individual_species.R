@@ -16,26 +16,37 @@
 combine_traits <- function(traits_raw, bryo_traits_raw){
 
   # cobmine species vascular and bryophytes
-  all_traits <- bind_rows(traits_raw %>%
-                            filter(Taxon %in% c("luzula confusa", "salix polaris", "cerastium arcticum"),
+  ind_traits <- bind_rows(traits_raw %>%
+                            filter(Taxon %in% c("luzula confusa", "salix polaris"),
                                    trait_trans %in% c("Plant_Height_cm_log", "Leaf_Area_cm2_log", "LDMC", "N_percent", "dN15_permil")),
                           bryo_traits_raw %>%
                             filter(Taxon %in% c("aulacomnium turgidum", "hylocomium splendens", "sanionia uncinata"),
                                    trait_trans %in% c("Shoot_Length_cm_log", "Shoot_ratio", "SSL_cm_g", "WHC_g_g", "P_percent"))) %>%
     mutate(trait_trans = factor(trait_trans, levels = c("Plant_Height_cm_log", "Leaf_Area_cm2_log", "LDMC", "N_percent", "dN15_permil", "Shoot_Length_cm_log", "Shoot_ratio", "SSL_cm_g", "WHC_g_g", "P_percent")),
-           Taxon = factor(Taxon, levels = c("cerastium arcticum", "luzula confusa", "salix polaris", "aulacomnium turgidum", "hylocomium splendens", "sanionia uncinata"))) %>%
+           Taxon = factor(Taxon, levels = c("luzula confusa", "salix polaris", "aulacomnium turgidum", "hylocomium splendens", "sanionia uncinata"))) %>%
     mutate(GS = paste0(Gradient, Site))
 
-  return(all_traits)
+  return(ind_traits)
 }
 
-make_ind_sp_plot <- function(all_traits){
+make_ind_sp_plot <- function(ind_traits){
 
-  v <- fancy_trait_name_dictionary(all_traits) %>%
+  # best model from model selection
+  best_model <- ind_traits %>%
     filter(Functional_group == "vascular") %>%
+    distinct(Taxon, trait_trans) %>%
+    mutate(best = c(NA_character_, "G+E", "G+E", "G", "G", "G+E", "G+E", "GxE", "G", "G"),
+           x.pos = c(rep(10, 10)),
+           y.pos = c(2.8, 0.8, 0.5, 3.8, 12, 2.8, 0.8, 0.5, 3.8, 12))
+
+
+  v <- fancy_trait_name_dictionary(ind_traits) %>%
+    filter(Functional_group == "vascular") %>%
+    left_join(best_model, by = c("Taxon", "trait_trans")) %>%
     ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient)) +
     geom_point(alpha = 0.5) +
     geom_smooth(method = "lm", se = FALSE) +
+    geom_text(aes(label = best, x = x.pos, y = y.pos), parse = TRUE, hjust = 0, size = 3, colour = "black") +
     scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     facet_grid(trait_fancy ~ Taxon, scales = "free_y") +
     labs(x = "", y = "") +
@@ -44,7 +55,7 @@ make_ind_sp_plot <- function(all_traits){
           plot.margin = margin(0.5, 0.5, 0.5, 0.5))
 
 
-  b <- fancy_trait_name_dictionary(all_traits) %>%
+  b <- fancy_trait_name_dictionary(ind_traits) %>%
     filter(Functional_group == "bryophyte") %>%
     ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient)) +
     geom_point(alpha = 0.5) +
@@ -64,95 +75,135 @@ make_ind_sp_plot <- function(all_traits){
 
 
 
-#cerastium arcticum 4 Height, Area, N, N15
-salix polaris 1 Height
-luzula confusa
 
-#sanionia uncinata   4 P shoot length shoot ratio ssl
-#aulacomnium turgidum 4 shoot length shoot ratio ssl shc
-hylocomium splendens 3 P shoot ratio WHC
+# Model selection (DOES NOT RUN!!!)
+run_ind_model_sel <- function(ind_traits){
 
-1 Plant_Height_cm_log
-2 Leaf_Area_cm2_log
-3 LDMC
-4 N_percent
-5 dN15_permil
-6 P_percent
-7 Shoot_Length_cm_log
-8 Shoot_ratio
-9 SSL_cm_g
-10 WHC_g_g
+  ind_traits %>%
+    filter(Taxon == "salix polaris") %>%
+    group_by(trait_trans) %>%
+    nest(data = -c(trait_trans)) %>%
+    mutate(model.set = map(data, ~{
+      mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
+      model.set = dredge(mod, rank = "AICc", extra = "R^2")
+      model.set
+    })) %>%
+    unnest(model.set)
 
-dd <- all_traits %>%
-  filter(trait_trans == "WHC_g_g",
-         Taxon == "hylocomium splendens")
-fit <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), na.action = "na.fail", REML = FALSE, data = dd)
-model.set = dredge(fit, rank = "AICc", extra = "R^2")
-model.set
+}
 
-sal.pol A: G+E, LDMC: G+E, N: G, N15: G
-#cer.arc LDMC: Null
-luz.conf H: G+E, A: G+E, LDMC: GxE, N: G, N15: G
+# manual model selection
+# dd <- ind_traits %>%
+#   filter(trait_trans == "WHC_g_g",
+#          Taxon == "hylocomium splendens")
+# fit <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), na.action = "na.fail", REML = FALSE, data = dd)
+# model.set = dredge(fit, rank = "AICc", extra = "R^2")
+# model.set
 
-san.unc WHC: G
-aul.tur P: Null
-hyl spl SL: Null, SSL: Null
-
-
-all_traits %>% distinct(Taxon)
-
-# run models for single species
-all_traits %>%
-  filter(Taxon %in% c("salix polaris", "luzula confusa")) %>%
-  group_by(Taxon, trait_trans) %>%
-  nest(data = -c(Taxon, trait_trans)) %>%
-  mutate(estimate = map(data, ~{
-    mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
-    estimates = broom.mixed::tidy(mod)
-  })) %>%
-  unnest(estimate) %>%
-  mutate(r = map(data, ~{
-    mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
-    r = as.numeric(r.squaredGLMM(mod))
-  })) %>%
-  unnest_wider(col = r) %>%
-  select(trait_trans, "Rm" = "...1", "Rc" = "...2")
+# Results from model selection
+# sal.pol A: G+E, LDMC: G+E, N: G, N15: G
+# #cer.arc LDMC: Null (removed!)
+# luz.conf H: G+E, A: G+E, LDMC: GxE, N: G, N15: G
+#
+# Bryos: too little data and most are Null model!!!
+# san.unc WHC: G
+# aul.tur P: Null
+# hyl spl SL: Null, SSL: Null
 
 
 
 
+# Run models for single species
+run_ind_models <- function(ind_traits){
 
-all_traits %>%
-  filter(Taxon == "salix polaris") %>%
-  group_by(trait_trans) %>%
-  nest(data = -c(trait_trans)) %>%
-  mutate(model.set = map(data, ~{
-    mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
-    model.set = dredge(mod, rank = "AICc", extra = "R^2")
-    model.set
-  })) %>%
-  unnest(model.set)
+  ### GRADIENT MODEL
+  dat <- ind_traits %>%
+    filter(Taxon %in% c("salix polaris", "luzula confusa"),
+           trait_trans %in% c("N_percent", "dN15_permil"))
+
+  estimate_g <- dat %>%
+    group_by(Taxon, trait_trans) %>%
+    nest(data = -c(Taxon, trait_trans)) %>%
+    mutate(estimate = map(data, ~{
+      mod <- lmer(value_trans ~ Gradient + (1|GS), data =  .x)
+      estimates = broom.mixed::tidy(mod)
+    })) %>%
+    unnest(estimate)
+
+  r_square_g <- dat %>%
+    group_by(Taxon, trait_trans) %>%
+    nest(data = -c(Taxon, trait_trans)) %>%
+    mutate(r = map(data, ~{
+      mod <- lmer(value_trans ~ Gradient + (1|GS), data =  .x)
+      r = as.numeric(r.squaredGLMM(mod))
+    })) %>%
+    unnest_wider(col = r) %>%
+    select(trait_trans, "Rm" = "...1", "Rc" = "...2")
 
 
+  ### GRADIENT + ELEVATION MODEL
+  dat <- ind_traits %>%
+    filter(Taxon %in% c("salix polaris") & trait_trans %in% c("Leaf_Area_cm2_log", "LDMC") |
+             Taxon %in% c("luzula confusa")  & trait_trans %in% c("Plant_Height_cm_log", "Leaf_Area_cm2_log"))
+
+  estimate_ge <- dat %>%
+    group_by(Taxon, trait_trans) %>%
+    nest(data = -c(Taxon, trait_trans)) %>%
+    mutate(estimate = map(data, ~{
+      mod <- lmer(value_trans ~ Gradient + Elevation_m + (1|GS), data =  .x)
+      estimates = broom.mixed::tidy(mod)
+    })) %>%
+    unnest(estimate)
+
+  r_square_ge <- dat %>%
+    group_by(Taxon, trait_trans) %>%
+    nest(data = -c(Taxon, trait_trans)) %>%
+    mutate(r = map(data, ~{
+      mod <- lmer(value_trans ~ Gradient + Elevation_m + (1|GS), data =  .x)
+      r = as.numeric(r.squaredGLMM(mod))
+    })) %>%
+    unnest_wider(col = r) %>%
+    select(trait_trans, "Rm" = "...1", "Rc" = "...2")
 
 
+  ### GRADIENT * ELEVATION MODEL
+  dat <- ind_traits %>%
+    filter(Taxon %in% c("luzula confusa")  & trait_trans %in% c("LDMC"))
 
-all_traits %>%
-  filter(Taxon == "luzula confusa") %>%
-  group_by(trait_trans) %>%
-  nest(data = -c(trait_trans)) %>%
-  mutate(mod = map(data, ~{
-    mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), data = .x)
-  }))
+  estimate_gxe <- dat %>%
+    group_by(Taxon, trait_trans) %>%
+    nest(data = -c(Taxon, trait_trans)) %>%
+    mutate(estimate = map(data, ~{
+      mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
+      estimates = broom.mixed::tidy(mod)
+    })) %>%
+    unnest(estimate)
+
+  r_square_gxe <- dat %>%
+    group_by(Taxon, trait_trans) %>%
+    nest(data = -c(Taxon, trait_trans)) %>%
+    mutate(r = map(data, ~{
+      mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
+      r = as.numeric(r.squaredGLMM(mod))
+    })) %>%
+    unnest_wider(col = r) %>%
+    select(trait_trans, "Rm" = "...1", "Rc" = "...2")
 
 
-all_traits %>%
-  filter(Taxon == "luzula confusa") %>%
-  group_by(trait_trans) %>%
-  nest(data = -c(trait_trans)) %>%
-  mutate(estimate = map(data, ~{
-    mod <- lmer(mean ~ Gradient + (1|Site), data = .x)
-    estimates = broom.mixed::tidy(mod)
-  })) %>%
-  unnest(estimate)
+  estimate <- bind_rows(
+    G = estimate_g,
+    GE = estimate_ge,
+    GxE = estimate_gxe,
+    .id = "Best_model"
+  )
+
+  r <- bind_rows(
+    G = r_square_g,
+    GE = r_square_ge,
+    GxE = r_square_gxe,
+    .id = "Best_model"
+  )
+
+  return(list(estimate, r))
+}
 
