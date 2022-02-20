@@ -45,7 +45,6 @@ make_bootstrapping <- function(comm_raw, traits_raw){
 
   #check trait coverage
   trait_imp %>%
-    #filter(Trait == "C_percent") %>%
     autoplot(.) +
     theme(axis.text.x = element_text(angle = 90))
 
