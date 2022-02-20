@@ -19,26 +19,12 @@ figures_plan <- list(
     }),
 
 
-
-  # diversity (probably not needed!)
-  # tar_target(
-  #   name = diversity_plot,
-  #   command = {
-  #     ggplot(diversity_grad, aes(x = Elevation_m, y = Value, colour = Gradient, fill = Gradient)) +
-  #       geom_point() +
-  #       geom_smooth(method = "lm") +
-  #       scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
-  #       scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
-  #       labs(x = "Elelvation in m a.s.l.", y = "") +
-  #       facet_wrap(~ DiversityIndex, scales = "free") +
-  #       theme_minimal()
-  #   }),
-
-
   # species ordination
   tar_target(
     name = ordination_plot,
-    command = make_ordination_plot(comm_raw)),
+    command = make_ordination_plot(comm_raw,
+                                   NMDS = sp_ordination[[1]],
+                                   fNMDS = sp_ordination[[2]])),
 
 
   # correlation plot

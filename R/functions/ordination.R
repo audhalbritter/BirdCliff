@@ -12,14 +12,18 @@ make_ordination <- function(comm_raw){
 
   comm_fat_spp <- comm_fat %>% select(-(Gradient:PlotID))
 
-  NMDS <-  metaMDS(comm_fat_spp, noshare = TRUE, try = 30)
+  NMDS <-  metaMDS(comm_fat_spp, noshare = TRUE, try = 30, k = 3)
+
+  stress <- NMDS$stress
+
+  #stressplot(NMDS)
 
   # fortify
   fNMDS <- fortify(NMDS) %>%
     filter(Score == "sites") %>%
     bind_cols(comm_fat %>% select(Gradient:PlotID))
 
-  return(fNMDS)
+  return(list(NMDS, fNMDS, stress))
 }
 
 
@@ -34,6 +38,7 @@ test_ordination <- function(comm_raw){
                 values_from = presence,
                 values_fill = 0)
 
+  comm_fat_spp <- comm_fat %>% select(-c(Gradient:PlotID))
   env <- comm_fat %>% select(Gradient:PlotID)
   attach(env)
   dis <- vegdist(comm_fat_spp)
@@ -46,45 +51,52 @@ test_ordination <- function(comm_raw){
 
 
 
-make_ordination_plot <- function(comm_raw){
+make_ordination_plot <- function(comm_raw, NMDS, fNMDS){
 
-  set.seed(32)
+  # set.seed(32)
+  #
+  # comm_fat <- comm_raw %>%
+  #   select(Gradient, Site, GS, Elevation_m, PlotID, Taxon) %>%
+  #   mutate(presence = 1) %>%
+  #   pivot_wider(names_from = Taxon,
+  #               values_from = presence,
+  #               values_fill = 0)
+  #
+  # comm_fat_spp <- comm_fat %>% select(-(Gradient:PlotID))
+  #
+  # NMDS <-  metaMDS(comm_fat_spp, noshare = TRUE, try = 30, k = 3)
+  #
+  # # extract important data
+  # fNMDS <- fortify(NMDS) %>%
+  #   filter(Score == "sites") %>%
+  #   bind_cols(comm_fat %>% select(Gradient:PlotID))
 
-  comm_fat <- comm_raw %>%
+  env <- comm_raw %>%
     select(Gradient, Site, GS, Elevation_m, PlotID, Taxon) %>%
     mutate(presence = 1) %>%
     pivot_wider(names_from = Taxon,
                 values_from = presence,
-                values_fill = 0)
-
-  comm_fat_spp <- comm_fat %>% select(-(Gradient:PlotID))
-
-  NMDS <-  metaMDS(comm_fat_spp, noshare = TRUE, try = 30)
-
-  # extract important data
-  fNMDS <- fortify(NMDS) %>%
-    filter(Score == "sites") %>%
-    bind_cols(comm_fat %>% select(Gradient:PlotID))
-
-  env <- comm_fat %>% select(Gradient:Elevation_m)
+                values_fill = 0) %>%
+    select(Gradient:Elevation_m)
 
   # extract NMDS scores
   sites <- as.data.frame(scores(NMDS, display = "sites"))
   sites <- cbind(sites, GS = env$GS)
   sites$GS <- factor(sites$GS)
 
+  ### NMDS 1 and 2
   #data for ellipse, in this case using the management factor
-  df_ell <- data.frame() #sets up a data frame before running the function.
+  df_ell_12 <- data.frame() #sets up a data frame before running the function.
   for(g in levels(sites$GS)){
-    df_ell <- rbind(df_ell, cbind(as.data.frame(with(sites [sites$GS==g,],
+    df_ell_12 <- rbind(df_ell_12, cbind(as.data.frame(with(sites [sites$GS==g,],
                                                      veganCovEllipse(cov.wt(cbind(NMDS1,NMDS2),wt=rep(1/length(NMDS1),length(NMDS1)))$cov,center=c(mean(NMDS1),mean(NMDS2))))) ,GS=g))
   }
 
-  df_ell <- df_ell %>%
+  df_ell_12 <- df_ell_12 %>%
     left_join(env %>% distinct(GS, Gradient, Site, Elevation_m), by = "GS")
 
-  g0 <- fNMDS %>%
-    ggplot(aes(x = NMDS1, y = NMDS2, group = Gradient, colour = Elevation_m, shape = Gradient)) +
+  g12 <- fNMDS %>%
+    ggplot(aes(x = NMDS1, y = NMDS2, group = GS, colour = Elevation_m, shape = Gradient)) +
     geom_point(size = 2) +
     coord_equal() +
     scale_colour_viridis_c(name = "Elevation in m a.s.l.",
@@ -92,13 +104,46 @@ make_ordination_plot <- function(comm_raw){
                            option = "inferno",
                            direction = -1) +
     scale_fill_viridis_c(name = "Elevation", end = 0.8, option = "inferno", direction = -1) +
-    scale_shape_manual(values = c(16, 2), , labels = c("Birdcliff", "Reference")) +
+    scale_shape_manual(values = c(16, 2), , labels = c("Bird cliff", "Reference")) +
     labs(x = "NMDS axis 1", y = "NMDS axis 2") +
     theme_minimal()
 
-  ordi_plot <- g0 +
-    geom_path(data = df_ell, aes(x = NMDS1, y = NMDS2, group = GS, colour = Elevation_m, shape = Gradient, linetype = Gradient)) +
+  ordi_plot12 <- g12 +
+    geom_path(data = df_ell_12, aes(x = NMDS1, y = NMDS2, group = GS, colour = Elevation_m, linetype = Gradient)) +
     scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference"))
+
+
+
+  ### NMDS 1 and 3
+  #data for ellipse, in this case using the management factor
+  df_ell_13 <- data.frame() #sets up a data frame before running the function.
+  for(g in levels(sites$GS)){
+    df_ell_13 <- rbind(df_ell_13, cbind(as.data.frame(with(sites [sites$GS==g,],
+                                                     veganCovEllipse(cov.wt(cbind(NMDS1,NMDS3),wt=rep(1/length(NMDS1),length(NMDS1)))$cov,center=c(mean(NMDS1),mean(NMDS3))))) ,GS=g))
+  }
+
+  df_ell_13 <- df_ell_13 %>%
+    left_join(env %>% distinct(GS, Gradient, Site, Elevation_m), by = "GS")
+
+  g13 <- fNMDS %>%
+    ggplot(aes(x = NMDS1, y = NMDS3, group = GS, colour = Elevation_m, shape = Gradient)) +
+    geom_point(size = 2) +
+    coord_equal() +
+    scale_colour_viridis_c(name = "Elevation in m a.s.l.",
+                           end = 0.8,
+                           option = "inferno",
+                           direction = -1) +
+    scale_fill_viridis_c(name = "Elevation", end = 0.8, option = "inferno", direction = -1) +
+    scale_shape_manual(values = c(16, 2), , labels = c("Bird cliff", "Reference")) +
+    labs(x = "NMDS axis 1", y = "NMDS axis 3") +
+    theme_minimal()
+
+  ordi_plot13 <- g13 +
+    geom_path(data = df_ell_13, aes(x = NMDS1, y = NMDS3, group = GS, colour = Elevation_m, linetype = Gradient)) +
+    scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference"))
+
+  ordi_plot <- ordi_plot12 + ordi_plot13 + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
+
 
   return(ordi_plot)
 }
