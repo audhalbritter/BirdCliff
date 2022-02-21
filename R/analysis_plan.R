@@ -12,7 +12,7 @@ analysis_plan <- list(
         distinct(DiversityIndex) %>%
         mutate(best_model = c("G", "G", "Null", "E"))
 
-      # only richness and diverity
+      # GRADIENT MODEL only richness and diverity
       nest <- diversity_grad %>%
         mutate(GS = paste0(Gradient, Site)) %>%
         filter(DiversityIndex %in% c("Richness", "Diversity")) %>%
@@ -27,17 +27,48 @@ analysis_plan <- list(
         unnest_wider(col = r) %>%
         select(DiversityIndex, "Rm" = "...1", "Rc" = "...2")
 
-      diversity <- nest %>%
+      estimate <- nest %>%
         mutate(mod = map(data, ~lmer(Value ~ Gradient + (1|GS), data = .x)),
                result = map(mod, tidy)) %>%
-          unnest(result) %>%
+          unnest(result)
+
+
+      # NULL MODEL only evenness
+      even <- diversity_grad %>%
+        mutate(GS = paste0(Gradient, Site)) %>%
+        filter(DiversityIndex %in% c("Evenness"))
+
+      mod_even <- lmer(Value ~ 1 + (1|GS), data = even)
+      est_even <- tidy(mod_even) %>% mutate(DiversityIndex = "Evenness")
+      r_even = as.numeric(r.squaredGLMM(mod_even)) %>% as_tibble() %>%
+        mutate(DiversityIndex = "Evenness",
+               R = c("Rm", "Rc")) %>%
+        pivot_wider(names_from = "R", values_from = "value")
+
+      # ELEVATION MODEL only sumAbundance
+      abund <- diversity_grad %>%
+        mutate(GS = paste0(Gradient, Site)) %>%
+        filter(DiversityIndex %in% c("sumAbundance"))
+
+      mod_abund <- lmer(Value ~ Elevation_m + (1|GS), data = abund)
+      est_abund <- tidy(mod_abund) %>% mutate(DiversityIndex = "sumAbundance")
+      r_abund = as.numeric(r.squaredGLMM(mod_abund)) %>% as_tibble() %>%
+        mutate(DiversityIndex = "sumAbundance",
+               R = c("Rm", "Rc")) %>%
+        pivot_wider(names_from = "R", values_from = "value")
+
+
+      diversity_output <- estimate %>%
+        select(-data, -mod) %>%
+        bind_rows(est_even, est_abund) %>%
         filter(effect == "fixed") %>%
-        select(DiversityIndex, term:statistic) %>%
         left_join(best, by = "DiversityIndex") %>%
-        left_join(r_square, by = "DiversityIndex") %>%
+        left_join(r_square %>%
+                    bind_rows(r_even, r_abund), by = "DiversityIndex") %>%
         select(Index = DiversityIndex, "Best model" = best_model, Estimate = estimate, "Standard error" = std.error, "t-value" = statistic, "Marginal R2" = Rm, "Conditional R2" = Rc)
 
-      return(diversity)
+
+      return(diversity_output)
 
     }),
 
