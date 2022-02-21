@@ -137,16 +137,17 @@ make_intra_vs_inter_figure <- function(trait_mean, var_split_exp){
     rename(Turnover = RelSumSq.Turnover, Intraspecific = RelSumSq.Intraspec., Covariation = RelSumSq.Covariation, Total = RelSumSq.Total) %>%
     gather(key = variable, value = value, -trait, -level) %>%
     filter(variable != "Covariation", level != "Total", variable != "Total") %>%
-    mutate(level = factor(level, levels = c("Gradient", "Elevation_m", "Gradient:Elevation_m", "Residuals"))) %>%
-    mutate(level = plyr::mapvalues(level, from = c("Gradient", "Elevation_m", "Gradient:Elevation_m", "Residuals"), to = c("G", "E", "GxE", "Resid"))) %>%
     left_join(names, by = "trait") %>%
-    filter(level!= "Resid") %>%
-    group_by(trait, variable) %>%
+    filter(level!= "Residuals") %>%
+    mutate(level = factor(level, levels = c("Gradient", "Elevation_m", "Gradient:Elevation_m"))) %>%
+    mutate(level = plyr::mapvalues(level, from = c("Gradient", "Elevation_m", "Gradient:Elevation_m"), to = c("G", "E", "GxE"))) %>%
+
+    group_by(trait, level) %>%
     mutate(total = sum(value)) %>%
     group_by(trait, level, variable) %>%
     mutate(percentage = value * 100/ total) %>%
     ggplot() +
-    geom_bar(aes(x = variable, y = percentage, fill = level), stat = "identity") +
+    geom_bar(aes(x = level, y = percentage, fill = variable), stat = "identity") +
     facet_wrap(~ trait_fancy) +
     theme_minimal() +
     theme(text = element_text(size = 15), legend.position = "top",
