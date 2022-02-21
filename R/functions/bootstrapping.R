@@ -57,7 +57,7 @@ make_bootstrapping <- function(comm_raw, traits_raw){
   CWM_notiv <- trait_np_bootstrap(trait_imp_null, nrep = 100, sample_size = 200)
 
   CWM_mean <- trait_summarise_boot_moments(CWM) %>%
-    select(Gradient:mean, -n)
+    select(Gradient:mean, var, -n)
 
   CWM_notiv_mean <- trait_summarise_boot_moments(CWM_notiv) %>%
     select(Gradient:mean, -n) %>%
