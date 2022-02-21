@@ -105,7 +105,7 @@ make_ordination_plot <- function(comm_raw, NMDS, fNMDS){
                            direction = -1) +
     scale_fill_viridis_c(name = "Elevation", end = 0.8, option = "inferno", direction = -1) +
     scale_shape_manual(values = c(16, 2), , labels = c("Bird cliff", "Reference")) +
-    labs(x = "NMDS axis 1", y = "NMDS axis 2") +
+    labs(x = "NMDS axis 1", y = "NMDS axis 2", tag = "(a)") +
     theme_minimal()
 
   ordi_plot12 <- g12 +
@@ -135,7 +135,7 @@ make_ordination_plot <- function(comm_raw, NMDS, fNMDS){
                            direction = -1) +
     scale_fill_viridis_c(name = "Elevation", end = 0.8, option = "inferno", direction = -1) +
     scale_shape_manual(values = c(16, 2), , labels = c("Bird cliff", "Reference")) +
-    labs(x = "NMDS axis 1", y = "NMDS axis 3") +
+    labs(x = "NMDS axis 1", y = "NMDS axis 3", tag = "(b)") +
     theme_minimal()
 
   ordi_plot13 <- g13 +
@@ -202,7 +202,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     stat_ellipse() +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
     scale_shape_manual(values = c(16)) +
-    labs(x = "PC 1 (47.2%)", y = "PC 2 (17.2%)", title = "Bird cliff") +
+    labs(x = "PC 1 (47.2%)", y = "PC 2 (17.2%)", title = "Bird cliff", tag = "(a)") +
     theme_minimal() +
     theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5),
           aspect.ratio = 1)
@@ -218,7 +218,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
               aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
               size = 3,
               inherit.aes = FALSE, colour = "black") +
-    labs(x = "PC 1", y = "PC 2") +
+    labs(x = "PC 1", y = "PC 2", tag = "(b)") +
     scale_x_continuous(expand = c(.2, 0)) +
     theme_minimal() +
     theme(aspect.ratio = 1)
@@ -229,7 +229,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     coord_equal() +
     stat_ellipse(linetype = 2) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
-    labs(x = "PC 1 (35.5%)", y = "PC 2 (21.6%)", title = "Reference") +
+    labs(x = "PC 1 (35.5%)", y = "PC 2 (21.6%)", title = "Reference", tag = "(c)") +
     theme_minimal() +
     theme(aspect.ratio = 1)
 
@@ -248,7 +248,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
               aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy),
               size = 3,
               inherit.aes = FALSE, colour = "black") +
-    labs(x = "PC 1", y = "PC 2") +
+    labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     scale_x_continuous(expand = c(.2, 0)) +
     theme_minimal() +
     theme(aspect.ratio = 1)

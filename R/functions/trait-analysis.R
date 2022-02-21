@@ -30,11 +30,13 @@ make_trait_figure <- function(trait_mean){
     geom_point(alpha = 0.5) +
     scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     facet_wrap(~ trait_fancy, scales = "free_y") +
-    labs(x = "", y = "") +
+    labs(x = "", y = "", tag = "(g)") +
     theme_minimal() +
     theme(legend.position = "none",
           aspect.ratio = 0.7,
-          plot.margin = margin(t = 0.5, r = 0.5, b = 0.5, l = 0.5))
+          plot.margin = margin(t = 0.5, r = 0.5, b = 0.5, l = 0.5),
+          plot.tag.position = c(0,1),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
   gc <- g0 +
     geom_line(data = c) +
@@ -68,6 +70,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = cn) +
     geom_ribbon(data = cn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(j)") +
     annotate("text", x = 50, y = 24, label = "G", size = 3)
 
 
@@ -98,6 +101,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = dn) +
     geom_ribbon(data = dn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(l)") +
     annotate("text", x = 50, y = 15, label = "GxE", size = 3)
 
 
@@ -127,6 +131,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = dry) +
     geom_ribbon(data = dry, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(b)") +
     theme(axis.text.x = element_blank())
 
 
@@ -155,6 +160,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = ldmc) +
     geom_ribbon(data = ldmc, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(f)") +
     annotate("text", x = 50, y = 0.12, label = "GxE", size = 3) +
     theme(axis.text.x = element_blank())
 
@@ -184,6 +190,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = area) +
     geom_ribbon(data = area, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(c)") +
     annotate("text", x = 50, y = 0.5, label = "G+E", size = 3) +
     theme(axis.text.x = element_blank())
 
@@ -213,6 +220,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = n) +
     geom_ribbon(data = n, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(h)") +
     annotate("text", x = 50, y = 3.8, label = "G", size = 3) +
     theme(axis.text.x = element_blank())
 
@@ -241,7 +249,8 @@ make_trait_figure <- function(trait_mean){
   gnp <- g0 %+% subset(dat, trait_trans == "NP_ratio") +
     geom_line(data = np) +
     geom_ribbon(data = np, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference"))
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(k)")
 
 
   #P_percent
@@ -268,7 +277,8 @@ make_trait_figure <- function(trait_mean){
   gp <- g0 %+% subset(dat, trait_trans == "P_percent") +
     geom_line(data = p) +
     geom_ribbon(data = p, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference"))
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(i)")
 
 
   #Plant_Height_cm_log
@@ -296,6 +306,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = height) +
     geom_ribbon(data = height, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(a)") +
     annotate("text", x = 50, y = 1.8, label = "E", size = 3) +
     theme(axis.text.x = element_blank())
 
