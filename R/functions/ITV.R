@@ -118,9 +118,36 @@ make_intra_vs_inter_figure <- function(trait_mean, var_split_exp){
     left_join(names, by = "trait") %>%
     ggplot() +
     geom_bar(aes(x = level, y = value, fill = variable), stat = "identity") +
-    geom_point(aes(x = level, y  = value), data = variation_split, size = 1) +
+    #geom_point(aes(x = level, y  = value), data = variation_split, size = 1) +
     facet_wrap(~ trait_fancy) +
     #facet_wrap(~trait, nrow = 3, labeller = label_parsed) +
+    theme_minimal() +
+    theme(text = element_text(size = 15), legend.position = "top",
+          strip.background = element_blank()) +
+    xlab(NULL) +
+    ylab("Proportion Variation Explained") +
+    scale_fill_manual(values = c("blue", "darkorange"), name = "Source of Variation") +
+    scale_x_discrete(drop = FALSE)
+
+
+  # stacked bar plot
+  varpart_graph <- var_split_exp %>%
+    mutate(level = trimws(level)) %>%
+    filter(RelSumSq.Turnover < 999) %>%
+    rename(Turnover = RelSumSq.Turnover, Intraspecific = RelSumSq.Intraspec., Covariation = RelSumSq.Covariation, Total = RelSumSq.Total) %>%
+    gather(key = variable, value = value, -trait, -level) %>%
+    filter(variable != "Covariation", level != "Total", variable != "Total") %>%
+    mutate(level = factor(level, levels = c("Gradient", "Elevation_m", "Gradient:Elevation_m", "Residuals"))) %>%
+    mutate(level = plyr::mapvalues(level, from = c("Gradient", "Elevation_m", "Gradient:Elevation_m", "Residuals"), to = c("G", "E", "GxE", "Resid"))) %>%
+    left_join(names, by = "trait") %>%
+    filter(level!= "Resid") %>%
+    group_by(trait, variable) %>%
+    mutate(total = sum(value)) %>%
+    group_by(trait, level, variable) %>%
+    mutate(percentage = value * 100/ total) %>%
+    ggplot() +
+    geom_bar(aes(x = variable, y = percentage, fill = level), stat = "identity") +
+    facet_wrap(~ trait_fancy) +
     theme_minimal() +
     theme(text = element_text(size = 15), legend.position = "top",
           strip.background = element_blank()) +
