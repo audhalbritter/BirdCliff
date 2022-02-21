@@ -8,6 +8,15 @@ trait_mean %>%
 
 0.328/0.158 # times higher
 
+fancy_trait_name_dictionary(trait_mean) %>%
+  group_by(Gradient, trait_fancy) %>%
+  summarise(se = round(sd(mean)/sqrt(n()), 2),
+            mean = round(mean(mean), 2),
+            se_var = round(sd(var)/sqrt(n()), 2),
+            var = round(mean(var), 2)) %>%
+  select(Trait = trait_fancy, Gradient, Mean = mean, se, Variance = var, se_var) %>%
+  write_csv(file = "output/Mean_var.csv")
+
 
 
 # Regression output
@@ -24,7 +33,8 @@ fancy_trait_name_dictionary(model_output[[1]]) %>%
          Rm = round(Rm, digits = 2),
          Rc = round(Rc, digits = 2)) %>%
   ungroup() %>%
-  select(-trait_trans, Term = term, Estimate = estimate, "Std error" = std.error, "t value" = "statistic") %>%
+  select(-trait_trans, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
+  arrange(Trait) %>%
   write_csv(., file = "output/Regression_output.csv")
 
 
@@ -49,3 +59,25 @@ bind_rows(Birdcliff = trait_pca_B[[2]],
   write_csv(., file = "output/Loadings_trait_PCA.csv")
 
 
+best_ind_model <- ind_traits %>%
+  filter(Functional_group == "vascular") %>%
+  distinct(Taxon, trait_trans) %>%
+  mutate(best = c(NA_character_, "G+E", "G+E", "G", "G", "G+E", "G+E", "GxE", "G", "G"))
+
+tar_load(ind_traits_output)
+fancy_trait_name_dictionary(ind_traits_output[[1]]) %>%
+  filter(effect == "fixed") %>%
+  left_join(best_ind_model, by = c("Taxon", "trait_trans")) %>%
+  select(Trait = trait_fancy, Model = best, term, estimate:statistic) %>%
+  mutate(term = recode(term, "(Intercept)" = "Intercept", "Elevation_m" = "E", "GradientC" = "G", "GradientC:Elevation_m" = "GxE")) %>%
+  left_join(model_output[[2]] %>%
+              select(trait_trans, Rm, Rc), by = "trait_trans") %>%
+  mutate(estimate = round(estimate, digits = 2),
+         std.error = round(std.error, digits = 2),
+         statistic = round(statistic, digits = 2),
+         Rm = round(Rm, digits = 2),
+         Rc = round(Rc, digits = 2)) %>%
+  ungroup() %>%
+  select(-trait_trans, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
+  arrange(Taxon, Trait) %>%
+  write_csv(., file = "output/Ind_sp_regression_output.csv")

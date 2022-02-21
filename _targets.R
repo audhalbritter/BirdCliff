@@ -22,7 +22,7 @@ source("R/functions/correlation_plot.R")
 source("R/functions/trait-analysis.R")
 source("R/functions/trait_output.R")
 source("R/functions/ITV.R")
-source("R/functions/vascular_spcies.R")
+source("R/functions/individual_species.R")
 
 
 #Combine target plans

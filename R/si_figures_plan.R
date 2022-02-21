@@ -7,36 +7,24 @@ figures_plan <- list(
       climate_data %>%
         mutate(Variable = recode(Variable, "SoilMoisture" = "soil moisture in %", "SoilTemperature" = "soil temperature in °C")) %>%
         left_join(coordinates, by = c("Gradient", "Site")) %>%
-        ggplot(aes(x = Elevation_m, y = Value, colour = Gradient)) +
+        ggplot(aes(x = Elevation_m, y = Value, colour = Gradient, fill = Gradient)) +
         geom_point(alpha = 0.5) +
         geom_smooth(method = "lm") +
-        scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Reference")) +
+        scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+        scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
         labs(x = "Elevation in m a.s.l.", y = "") +
         facet_wrap(~ Variable, scales = "free_y") +
-        theme_minimal()
+        theme_minimal() +
+        theme(legend.position = "bottom")
     }),
-
-
-
-  # diversity (probably not needed!)
-  # tar_target(
-  #   name = diversity_plot,
-  #   command = {
-  #     ggplot(diversity_grad, aes(x = Elevation_m, y = Value, colour = Gradient, fill = Gradient)) +
-  #       geom_point() +
-  #       geom_smooth(method = "lm") +
-  #       scale_colour_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
-  #       scale_fill_manual(values = c("green4", "grey"), labels = c("Birdcliff", "Control")) +
-  #       labs(x = "Elelvation in m a.s.l.", y = "") +
-  #       facet_wrap(~ DiversityIndex, scales = "free") +
-  #       theme_minimal()
-  #   }),
 
 
   # species ordination
   tar_target(
     name = ordination_plot,
-    command = make_ordination_plot(comm_raw)),
+    command = make_ordination_plot(comm_raw,
+                                   NMDS = sp_ordination[[1]],
+                                   fNMDS = sp_ordination[[2]])),
 
 
   # correlation plot
@@ -101,24 +89,6 @@ figures_plan <- list(
 
       trait_corr = trait_corr_all / trait_corr_B / trait_corr_C
     })
-
-
-  # tar_target(
-  #   name = trait_histogram,
-  #   command = {
-  #
-  #     trait_plot <- traits_gradient %>%
-  #       mutate(Value = if_else(Trait %in% c("Dry_Mass_g", "Wet_Mass_g", "Leaf_Area_cm2", "Plant_Height_cm"), log(Value), Value),
-  #              Trait = factor(Trait, levels = c("Plant_Height_cm", "Wet_Mass_g", "Dry_Mass_g", "Leaf_Area_cm2", "Leaf_Thickness_mm", "SLA_cm2_g", "LDMC", "C_percent", "N_percent", "P_percent", "CN_ratio", "dC13_permil", "dN15_permil"))) %>%
-  #         filter(!is.na(Trait)) %>%
-  #       ggplot(aes(x = Value, fill = Gradient, colour = Gradient)) +
-  #       geom_density(alpha = 0.5) +
-  #       scale_fill_manual(values = c("grey", "green4"), labels = c("Control", "Birdcliff")) +
-  #       scale_colour_manual(values = c("grey", "green4"), labels = c("Control", "Birdcliff")) +
-  #       labs(x = "Trait values", y = "Density") +
-  #       facet_wrap(~Trait, scales = "free")
-  #
-  #   }),
 
 
 )

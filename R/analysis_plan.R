@@ -6,19 +6,89 @@ analysis_plan <- list(
   tar_target(
     name = diversity_analysis,
     command = {
+
+      best <- diversity_grad %>%
+        ungroup() %>%
+        distinct(DiversityIndex) %>%
+        mutate(best_model = c("G", "G", "Null", "E"))
+
+      # GRADIENT MODEL only richness and diverity
+      nest <- diversity_grad %>%
+        mutate(GS = paste0(Gradient, Site)) %>%
+        filter(DiversityIndex %in% c("Richness", "Diversity")) %>%
+        group_by(DiversityIndex) %>%
+        nest(data = -c(DiversityIndex))
+
+      r_square <- nest %>%
+        mutate(r = map(data, ~{
+          mod <- lmer(Value ~ Gradient + (1|GS), data = .x)
+          r = as.numeric(r.squaredGLMM(mod))
+        })) %>%
+        unnest_wider(col = r) %>%
+        select(DiversityIndex, "Rm" = "...1", "Rc" = "...2")
+
+      estimate <- nest %>%
+        mutate(mod = map(data, ~lmer(Value ~ Gradient + (1|GS), data = .x)),
+               result = map(mod, tidy)) %>%
+          unnest(result)
+
+
+      # NULL MODEL only evenness
+      even <- diversity_grad %>%
+        mutate(GS = paste0(Gradient, Site)) %>%
+        filter(DiversityIndex %in% c("Evenness"))
+
+      mod_even <- lmer(Value ~ 1 + (1|GS), data = even)
+      est_even <- tidy(mod_even) %>% mutate(DiversityIndex = "Evenness")
+      r_even = as.numeric(r.squaredGLMM(mod_even)) %>% as_tibble() %>%
+        mutate(DiversityIndex = "Evenness",
+               R = c("Rm", "Rc")) %>%
+        pivot_wider(names_from = "R", values_from = "value")
+
+      # ELEVATION MODEL only sumAbundance
+      abund <- diversity_grad %>%
+        mutate(GS = paste0(Gradient, Site)) %>%
+        filter(DiversityIndex %in% c("sumAbundance"))
+
+      mod_abund <- lmer(Value ~ Elevation_m + (1|GS), data = abund)
+      est_abund <- tidy(mod_abund) %>% mutate(DiversityIndex = "sumAbundance")
+      r_abund = as.numeric(r.squaredGLMM(mod_abund)) %>% as_tibble() %>%
+        mutate(DiversityIndex = "sumAbundance",
+               R = c("Rm", "Rc")) %>%
+        pivot_wider(names_from = "R", values_from = "value")
+
+
+      diversity_output <- estimate %>%
+        select(-data, -mod) %>%
+        bind_rows(est_even, est_abund) %>%
+        filter(effect == "fixed") %>%
+        left_join(best, by = "DiversityIndex") %>%
+        left_join(r_square %>%
+                    bind_rows(r_even, r_abund), by = "DiversityIndex") %>%
+        select(Index = DiversityIndex, "Best model" = best_model, Estimate = estimate, "Standard error" = std.error, "t-value" = statistic, "Marginal R2" = Rm, "Conditional R2" = Rc)
+
+
+      return(diversity_output)
+
+    }),
+
+  tar_target(
+    name = div_best_model,
+    command = {
       diversity_grad %>%
         mutate(GS = paste0(Gradient, Site)) %>%
         group_by(DiversityIndex) %>%
         nest(data = -c(DiversityIndex)) %>%
-        mutate(mod = map(data, ~lmer(Value ~ Gradient * Elevation_m + (1|GS), data = .x)),
-               result = map(mod, tidy)) %>%
-          unnest(result)
+        mutate(model.set = map(data, ~{
+          mod <- lmer(Value ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
+          model.set = dredge(mod, rank = "AICc", extra = "R^2")
+          })) %>%
+        unnest(model.set)
     }),
-
 
   # make species ordination
   tar_target(
-    name = fNMDS,
+    name = sp_ordination,
     command = make_ordination(comm_raw)
   ),
 
@@ -93,15 +163,26 @@ analysis_plan <- list(
 
     }),
 
-  # INDIVIDUAL TRAITS
+  # INDIVIDUAL TRAITS (vascular plants)
 
+  # combine data
   tar_target(
-    name = all_traits,
+    name = ind_traits,
     command = combine_traits(traits_raw, bryo_traits_raw)),
+
+  # run model selection
+  # does not work yet!
+
+  # model output
+  tar_target(
+    name = ind_traits_output,
+    command = run_ind_models(ind_traits)),
 
   tar_target(
     name = ind_species_figure,
-    command = make_ind_sp_plot(all_traits)),
+    command = make_ind_sp_plot(ind_traits)),
+
+
 
   ### ITV
   tar_target(

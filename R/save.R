@@ -18,7 +18,7 @@ tar_load(climate_plot)
 ggsave("output/climate_plot.jpg", climate_plot, dpi = 300, height = 4, width = 6, bg = "white")
 
 tar_load(ordination_plot)
-ggsave("output/ordination_plot.jpg", ordination_plot, dpi = 300, height = 5, width = 5, bg = "white")
+ggsave("output/ordination_plot.jpg", ordination_plot, dpi = 300, height = 5, width = 10, bg = "white")
 
 tar_load(diversity_plot)
 ggsave("output/diversity_plot.jpg", diversity_plot, dpi = 300, height = 4, width = 6, bg = "white")
