@@ -1,4 +1,22 @@
 # save figures
+library("targets")
+library("tarchetypes")
+library("dataDownloader")
+library("tidyverse")
+library("readxl")
+library("traitstrap")
+library("vegan")
+library("ggvegan")
+library("kableExtra")
+library("viridis")
+library("patchwork")
+library("broom")
+library("ape")
+library("nlme")
+library("Hmisc")
+library("lme4")
+library("broom.mixed")
+library("MuMIn")
 
 # Main MS
 tar_load(trait_plot)
