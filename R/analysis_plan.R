@@ -10,7 +10,7 @@ analysis_plan <- list(
       best <- diversity_grad %>%
         ungroup() %>%
         distinct(DiversityIndex) %>%
-        mutate(best_model = c("G", "G", "Null", "E"))
+        mutate(best_model = c("G", "G", "Null", "Null"))
 
       # GRADIENT MODEL only richness and diverity
       nest <- diversity_grad %>%
@@ -33,39 +33,36 @@ analysis_plan <- list(
           unnest(result)
 
 
-      # NULL MODEL only evenness
-      even <- diversity_grad %>%
+      # NULL MODEL evenness and sumAbundance
+      nest_2 <- diversity_grad %>%
         mutate(GS = paste0(Gradient, Site)) %>%
-        filter(DiversityIndex %in% c("Evenness"))
+        filter(DiversityIndex %in% c("Evenness", "sumAbundance")) %>%
+        group_by(DiversityIndex) %>%
+        nest(data = -c(DiversityIndex))
 
-      mod_even <- lmer(Value ~ 1 + (1|GS), data = even)
-      est_even <- tidy(mod_even) %>% mutate(DiversityIndex = "Evenness")
-      r_even = as.numeric(r.squaredGLMM(mod_even)) %>% as_tibble() %>%
-        mutate(DiversityIndex = "Evenness",
-               R = c("Rm", "Rc")) %>%
-        pivot_wider(names_from = "R", values_from = "value")
+      r_square_2 <- nest_2 %>%
+        mutate(r = map(data, ~{
+          mod <- lmer(Value ~ 1 + (1|GS), data = .x)
+          r = as.numeric(r.squaredGLMM(mod))
+        })) %>%
+        unnest_wider(col = r) %>%
+        select(DiversityIndex, "Rm" = "...1", "Rc" = "...2")
 
-      # ELEVATION MODEL only sumAbundance
-      abund <- diversity_grad %>%
-        mutate(GS = paste0(Gradient, Site)) %>%
-        filter(DiversityIndex %in% c("sumAbundance"))
-
-      mod_abund <- lmer(Value ~ Elevation_m + (1|GS), data = abund)
-      est_abund <- tidy(mod_abund) %>% mutate(DiversityIndex = "sumAbundance")
-      r_abund = as.numeric(r.squaredGLMM(mod_abund)) %>% as_tibble() %>%
-        mutate(DiversityIndex = "sumAbundance",
-               R = c("Rm", "Rc")) %>%
-        pivot_wider(names_from = "R", values_from = "value")
+      estimate_2 <- nest_2 %>%
+        mutate(mod = map(data, ~lmer(Value ~ 1 + (1|GS), data = .x)),
+               result = map(mod, tidy)) %>%
+        unnest(result)
 
 
-      diversity_output <- estimate %>%
+
+
+
+      diversity_output <- bind_rows(estimate, estimate_2) %>%
         select(-data, -mod) %>%
-        bind_rows(est_even, est_abund) %>%
         filter(effect == "fixed") %>%
         left_join(best, by = "DiversityIndex") %>%
-        left_join(r_square %>%
-                    bind_rows(r_even, r_abund), by = "DiversityIndex") %>%
-        select(Index = DiversityIndex, "Best model" = best_model, Estimate = estimate, "Standard error" = std.error, "t-value" = statistic, "Marginal R2" = Rm, "Conditional R2" = Rc)
+        left_join(bind_rows(r_square, r_square_2), by = "DiversityIndex") %>%
+        select(Index = DiversityIndex, "Best model" = best_model, term, Estimate = estimate, "Standard error" = std.error, "t-value" = statistic, "Marginal R2" = Rm, "Conditional R2" = Rc)
 
 
       return(diversity_output)
@@ -97,6 +94,7 @@ analysis_plan <- list(
     name = trait_analysis,
     command = {
       trait_mean %>%
+        filter(trait_trans != "dC13_permil") %>%
         group_by(trait_trans) %>%
         nest(data = -c(trait_trans)) %>%
         mutate(mod = map(data, ~lmer(mean ~ Gradient * Elevation_m + (1|Site), data = .x)),
@@ -119,7 +117,7 @@ analysis_plan <- list(
       trait_mean %>%
         distinct(trait_trans) %>%
         filter(trait_trans != "dC13_permil") %>%
-        mutate(model = c("", "G", "GxE", "", "GxE", "G+E", "G", "", "", "E", "GxE", ""))
+        mutate(model = c("", "G", "GxE", "", "G+E", "G+E", "G", "", "", "E", "G+E", ""))
     }),
 
   tar_target(
@@ -173,7 +171,7 @@ analysis_plan <- list(
   # run model selection
   # does not work yet!
 
-  # model output
+  # vascular: model output
   tar_target(
     name = ind_traits_output,
     command = run_ind_models(ind_traits)),
@@ -182,18 +180,40 @@ analysis_plan <- list(
     name = ind_species_figure,
     command = make_ind_sp_plot(ind_traits)),
 
+  # bryophytes
+  tar_target(
+    name = bryo_trait_output,
+    command = make_ind_sp_plot(ind_traits))#,
+
+
 
 
   ### ITV
-  tar_target(
-    name = variation_split_exp,
-    command = Intra_vs_Inter(traits_raw, trait_mean)
-  ),
-
-  tar_target(
-    name = variation_split,
-    command = Intra_vs_Inter_var_split(variation_split_exp)
-  )
+  # tar_target(
+  #   name = variation_split_exp_B,
+  #   command = Intra_vs_Inter(traits_raw  %>%
+  #                              filter(Gradient == "B"),
+  #                            trait_mean %>%
+  #                              filter(Gradient == "B"))
+  # ),
+  #
+  # tar_target(
+  #   name = variation_split_B,
+  #   command = Intra_vs_Inter_var_split(variation_split_exp_B)
+  # ),
+  #
+  # tar_target(
+  #   name = variation_split_exp_C,
+  #   command = Intra_vs_Inter(traits_raw  %>%
+  #                              filter(Gradient == "C"),
+  #                            trait_mean %>%
+  #                              filter(Gradient == "C"))
+  # ),
+  #
+  # tar_target(
+  #   name = variation_split_C,
+  #   command = Intra_vs_Inter_var_split(variation_split_exp_C)
+  # ),
 
   #make_intra_vs_inter_figure(var_split_exp, var_split)
 
