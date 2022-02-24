@@ -2,7 +2,7 @@
 analysis_plan <- list(
 
   # COMMUNITY
-  # test diversity along gradients
+  #test diversity along gradients
   tar_target(
     name = diversity_analysis,
     command = {
@@ -32,7 +32,6 @@ analysis_plan <- list(
                result = map(mod, tidy)) %>%
           unnest(result)
 
-
       # NULL MODEL evenness and sumAbundance
       nest_2 <- diversity_grad %>%
         mutate(GS = paste0(Gradient, Site)) %>%
@@ -53,10 +52,6 @@ analysis_plan <- list(
                result = map(mod, tidy)) %>%
         unnest(result)
 
-
-
-
-
       diversity_output <- bind_rows(estimate, estimate_2) %>%
         select(-data, -mod) %>%
         filter(effect == "fixed") %>%
@@ -64,11 +59,11 @@ analysis_plan <- list(
         left_join(bind_rows(r_square, r_square_2), by = "DiversityIndex") %>%
         select(Index = DiversityIndex, "Best model" = best_model, term, Estimate = estimate, "Standard error" = std.error, "t-value" = statistic, "Marginal R2" = Rm, "Conditional R2" = Rc)
 
-
       return(diversity_output)
 
     }),
 
+  # test best diversity model
   tar_target(
     name = div_best_model,
     command = {
@@ -87,6 +82,12 @@ analysis_plan <- list(
   tar_target(
     name = sp_ordination,
     command = make_ordination(comm_raw)
+  ),
+
+  # test species ordination
+  tar_target(
+    name = output_sp_ordination,
+    command = test_ordination(comm_raw)
   ),
 
   # test vascular plants along gradients
@@ -145,10 +146,15 @@ analysis_plan <- list(
     command = make_trait_pca(trait_mean %>% filter(Gradient == "C"))
   ),
 
+  tar_target(
+    name = trait_pca,
+    command = make_trait_pca(trait_mean)
+  ),
+
   # FIGURE 2B: trait ordination
   tar_target(
     name = trait_ordination_plot,
-    command = make_trait_pca_plot(trait_pca_B, trait_pca_C)
+    command = make_trait_pca_plot(trait_pca_B, trait_pca_C, trait_pca)
   ),
 
   tar_target(
@@ -183,43 +189,18 @@ analysis_plan <- list(
   # bryophytes
   tar_target(
     name = bryo_trait_output,
-    command = make_ind_sp_plot(ind_traits))#,
-
-
+    command = make_ind_sp_plot(ind_traits)),
 
 
   ### ITV
-  # tar_target(
-  #   name = variation_split_exp_B,
-  #   command = Intra_vs_Inter(traits_raw  %>%
-  #                              filter(Gradient == "B"),
-  #                            trait_mean %>%
-  #                              filter(Gradient == "B"))
-  # ),
-  #
-  # tar_target(
-  #   name = variation_split_B,
-  #   command = Intra_vs_Inter_var_split(variation_split_exp_B)
-  # ),
-  #
-  # tar_target(
-  #   name = variation_split_exp_C,
-  #   command = Intra_vs_Inter(traits_raw  %>%
-  #                              filter(Gradient == "C"),
-  #                            trait_mean %>%
-  #                              filter(Gradient == "C"))
-  # ),
-  #
-  # tar_target(
-  #   name = variation_split_C,
-  #   command = Intra_vs_Inter_var_split(variation_split_exp_C)
-  # ),
+  tar_target(
+    name = itv_output,
+    command = make_ITV_analysis(trait_mean)),
 
-  #make_intra_vs_inter_figure(var_split_exp, var_split)
-
+  tar_target(
+    name = ITV_plot,
+    command = make_ITV_plot(itv_output)
+  )
 
 )
-
-#variation_split_exp <- Intra_vs_Inter(traits_raw, trait_mean)
-#variation_split <- Intra_vs_Inter_var_split(variation_split_exp)
 
