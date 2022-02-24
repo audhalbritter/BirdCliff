@@ -29,6 +29,9 @@ ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, hei
 tar_load(ind_species_figure)
 ggsave("output/ind_species_figure.jpg", ind_species_figure, dpi = 300, height = 6, width = 10, bg = "white")
 
+tar_load(ITV_plot)
+ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 6, width = 6, bg = "white")
+
 
 # SI figures
 

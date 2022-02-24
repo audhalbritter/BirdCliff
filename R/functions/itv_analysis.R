@@ -65,7 +65,8 @@ make_ITV_plot <- function(itv_output){
     geom_col() +
     scale_fill_viridis_d(begin = 0.2, end = 0.8, option = "inferno") +
     labs(x = "", y = "Variation explained") +
-    facet_wrap(~trait_fancy, scales = "free_y")
+    facet_wrap(~trait_fancy, scales = "free_y") +
+    theme_minimal()
 
   return(ITV_plot)
 
