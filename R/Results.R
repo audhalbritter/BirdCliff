@@ -42,27 +42,40 @@ fancy_trait_name_dictionary(model_output[[1]]) %>%
 # trait ordination output
 tar_load(trait_pca_B)
 tar_load(trait_pca_C)
+tar_load(trait_pca)
 bind_rows(Birdcliff = trait_pca_B[[2]],
           Reference = trait_pca_C[[2]] %>%
             mutate(PC1 = PC1 * -1,
                    PC2 = PC2 * -1,
                    PC3 = PC3 * -1,
                    PC4 = PC4 * -1),
+          Both = trait_pca[[2]],
           .id = "Gradient") %>%
   select(Gradient, Trait = trait_fancy, PC1:PC4) %>%
   mutate(PC1 = round(PC1, digits = 2),
          PC2 = round(PC2, digits = 2),
          PC3 = round(PC3, digits = 2),
          PC4 = round(PC4, digits = 2)) %>%
-  mutate(Gradient = recode(Gradient, Birdcliff = "Bird cliff")) %>%
+  mutate(Gradient = recode(Gradient, Birdcliff = "Bird cliff"),
+         Gradient = factor(Gradient, levels = c("Bird cliff", "Reference", "Both"))) %>%
   arrange(Gradient, -PC1) %>%
   write_csv(., file = "output/Loadings_trait_PCA.csv")
 
 
+
+bind_rows(Birdcliff = tidy(trait_pca_B[[4]]),
+          Reference = tidy(trait_pca_C[[4]]),
+          Both = tidy(trait_pca[[4]]),
+          .id = "Gradient") %>%
+  write_csv(., file = "output/adonis_pca.csv")
+
+
+
+### Ind Species
 best_ind_model <- ind_traits %>%
   filter(Functional_group == "vascular") %>%
   distinct(Taxon, trait_trans) %>%
-  mutate(best = c(NA_character_, "G+E", "G+E", "G", "G", "G+E", "G+E", "GxE", "G", "G"))
+  mutate(best = c("NA", "Null", "G+E", "Null", "G", "G+E", "G+E", "GxE", "G", "Gx"))
 
 tar_load(ind_traits_output)
 fancy_trait_name_dictionary(ind_traits_output[[1]]) %>%
@@ -81,3 +94,6 @@ fancy_trait_name_dictionary(ind_traits_output[[1]]) %>%
   select(-trait_trans, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
   arrange(Taxon, Trait) %>%
   write_csv(., file = "output/Ind_sp_regression_output.csv")
+
+
+

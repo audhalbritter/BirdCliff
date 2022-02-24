@@ -6,7 +6,7 @@ figures_plan <- list(
     command = {
       climate_data %>%
         mutate(Variable = recode(Variable, "SoilMoisture" = "soil moisture in %", "SoilTemperature" = "soil temperature in °C")) %>%
-        left_join(coordinates, by = c("Gradient", "Site")) %>%
+        left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
         ggplot(aes(x = Elevation_m, y = Value, colour = Gradient, fill = Gradient)) +
         geom_point(alpha = 0.5) +
         geom_smooth(method = "lm") +

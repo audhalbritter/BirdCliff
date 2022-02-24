@@ -6,9 +6,10 @@ download_plan <- list(
   tar_target(
     name = coords,
     command = get_file(node = "smbqh",
-                       file = "PFTC4_Svalbard_Coordinates.xlsx",
+                       file = "PFTC4_Svalbard_Coordinates_Gradient.csv",
                        path = "clean_data",
-                       remote_path = "MetaData")
+                       remote_path = "MetaData"),
+    format = "file"
   ),
 
   # trait data
@@ -17,7 +18,8 @@ download_plan <- list(
     command = get_file(node = "smbqh",
                        file = "PFTC4_Svalbard_2018_Gradient_Traits.csv",
                        path = "clean_data/traits",
-                       remote_path = "Traits")
+                       remote_path = "Traits"),
+    format = "file"
     ),
 
   # community data
@@ -26,9 +28,9 @@ download_plan <- list(
     command = get_file(node = "smbqh",
                        file = "PFTC4_Svalbard_2018_Community_Gradient.csv",
                        path = "clean_data/community",
-                       remote_path = "Community")
+                       remote_path = "Community"),
+    format = "file"
   ),
-  #PFTC4_Svalbard_2018_Community_Structure_Gradient.csv
 
   # climate data
   tar_target(
@@ -36,6 +38,7 @@ download_plan <- list(
     command = get_file(node = "smbqh",
                        file = "PFTC4_Svalbard_2018_Gradient_Climate.csv",
                        path = "clean_data/climate",
-                       remote_path = "Climate")
+                       remote_path = "Climate"),
+    format = "file"
   )
 )

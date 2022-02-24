@@ -161,7 +161,7 @@ make_trait_figure <- function(trait_mean){
     geom_ribbon(data = ldmc, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     labs(tag = "(f)") +
-    annotate("text", x = 50, y = 0.12, label = "GxE", size = 3) +
+    annotate("text", x = 50, y = 0.12, label = "G+E", size = 3) +
     theme(axis.text.x = element_blank())
 
 
@@ -337,7 +337,7 @@ make_trait_figure <- function(trait_mean){
     geom_ribbon(data = sla, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     labs(y = "Bootstrapped trait mean") +
-    annotate("text", x = 50, y = 249, label = "GxE", size = 3) +
+    annotate("text", x = 50, y = 249, label = "G+E", size = 3) +
     theme(axis.text.x = element_blank(),
           axis.title.y = element_text(margin = margin(r = 20)))
 

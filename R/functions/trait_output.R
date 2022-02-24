@@ -4,7 +4,8 @@ make_trait_model_selection <- function(trait_mean){
 
   model.sel <- trait_mean %>%
     # remove singular fit
-    filter(!trait_trans %in% c("SLA_cm2_g", "dC13_permil")) %>%
+    filter(!trait_trans %in% c("SLA_cm2_g")) %>%
+    #filter(!trait_trans %in% c("SLA_cm2_g", "dC13_permil")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(model.set = map(data, ~{
@@ -127,7 +128,7 @@ make_trait_output <- function(trait_mean){
   # GRADIENT + ELEVATION MODEL
   # estimate
   ge_est <- trait_mean %>%
-    filter(trait_trans %in% c("Leaf_Area_cm2_log")) %>%
+    filter(trait_trans %in% c("Leaf_Area_cm2_log", "LDMC", "SLA_cm2_g")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(estimate = map(data, ~{
@@ -139,7 +140,7 @@ make_trait_output <- function(trait_mean){
 
   # r squared
   ge_r <- trait_mean %>%
-    filter(trait_trans %in% c("Leaf_Area_cm2_log")) %>%
+    filter(trait_trans %in% c("Leaf_Area_cm2_log", "LDMC", "SLA_cm2_g")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(r = map(data, ~{
@@ -153,7 +154,7 @@ make_trait_output <- function(trait_mean){
   # GRADIENT * ELEVATION MODEL
   # estimate
   gxe_est <- trait_mean %>%
-    filter(trait_trans %in% c("dN15_permil", "LDMC", "SLA_cm2_g")) %>%
+    filter(trait_trans %in% c("dN15_permil")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(estimate = map(data, ~{
@@ -165,7 +166,7 @@ make_trait_output <- function(trait_mean){
 
   # r squared
   gxe_r <- trait_mean %>%
-    filter(trait_trans %in% c("dN15_permil", "LDMC", "SLA_cm2_g")) %>%
+    filter(trait_trans %in% c("dN15_permil")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(r = map(data, ~{

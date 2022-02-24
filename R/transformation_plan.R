@@ -3,19 +3,18 @@
 
 transformation_plan <- list(
 
+
   # import coordinates
   tar_target(
     name = coordinates,
-    command = read_excel(path = "clean_data/PFTC4_Svalbard_Coordinates.xlsx") %>%
-      filter(Project == "T", Treatment %in% c("C", "B"), !Site %in% c("CAS", "BIS", "DRY")) %>%
-      mutate(Site = as.numeric(Site)) %>%
-      select(Gradient = Treatment, Site:Longitude_E)
+    command = read_csv(coords) %>%
+      mutate(Site = as.numeric(Site))
   ),
 
   # import community
   tar_target(
     name = comm_raw,
-    command = read_csv(file = "clean_data/community/PFTC4_Svalbard_2018_Community_Gradient.csv") %>%
+    command = read_csv(community) %>%
       # remove duplicates
       distinct() %>%
       mutate(GS = paste0(Gradient, Site))
@@ -36,7 +35,7 @@ transformation_plan <- list(
   # import traits
   tar_target(
     name = traits_raw,
-    command = read_csv(file = "clean_data/traits/PFTC4_Svalbard_2018_Gradient_Traits.csv") %>%
+    command = read_csv(traits) %>%
       # remove bryo
       filter(Project != "Bryophytes") %>%
       # remove wet mass, correlated with dry mass
@@ -65,7 +64,7 @@ transformation_plan <- list(
   # import bryophyte traits
   tar_target(
     name = bryo_traits_raw,
-    command = read_csv(file = "clean_data/traits/PFTC4_Svalbard_2018_Gradient_Traits.csv") %>%
+    command = read_csv(traits) %>%
       # filter for bryo
       filter(Project == "Bryophytes") %>%
       # filter for important traits
@@ -85,22 +84,23 @@ transformation_plan <- list(
           "Shoot_Length_cm" = "Shoot_Length_cm_log",
           "Shoot_Length_Green_cm" = "Shoot_Length_Green_cm_log"
         )) %>%
-      # remove duplicate
-      group_by(Gradient, Site, PlotID, Individual_nr, ID, Trait, Elevation_m, trait_trans) %>%
-      slice(1)
+      select(-c(Elevation_m:Longitude_E)) %>%
+      left_join(coordinates %>%
+                  group_by(Gradient, Site) %>%
+                  summarise(Elevation_m = mean(Elevation_m)), by = c("Gradient", "Site"))
   ),
 
   # import climate
   tar_target(
     name = climate_data,
-    command = read_csv(file = "clean_data/climate/PFTC4_Svalbard_2018_Gradient_Climate.csv")
+    command = read_csv(climate)
   ),
 
   # make bootstrap
   tar_target(
     name = trait_mean,
     command = make_bootstrapping(comm_raw, traits_raw)  %>%
-      left_join(coordinates, by = c("Gradient", "Site")) %>%
+      left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
       mutate(GS = paste0(Gradient, Site))
 
   )
