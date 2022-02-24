@@ -23,13 +23,13 @@ Intra_vs_Inter <- function(traits_raw, trait_mean){
 
   var_split <- trait_mean %>%
     group_by(trait_trans) %>%
-    do(test = trait.flex.anova(~Gradient*Elevation_m, mean, mean_noitv, data = .))
+    do(test = trait.flex.anova(~Site, mean, mean_noitv, data = .))
 
   var_split_exp <- data.frame(RelSumSq.Turnover = 1000, RelSumSq.Intraspec. = 1000, RelSumSq.Covariation = 1000, RelSumSq.Total = 1000, trait = "E", level = "F")
 
   for(i in 1:nrow(var_split)){
-    out <- as.data.frame(var_split$test[[i]][2])
-    out$trait <- as.factor(rep(var_split[i,1], 5))
+    out <- as.data.frame(var_split$test[[1]][2])
+    out$trait <- as.factor(rep(var_split[i,1], 3))
     out$level <- rownames(out)
     var_split_exp <- rbind(var_split_exp, out)
   }
@@ -38,7 +38,7 @@ Intra_vs_Inter <- function(traits_raw, trait_mean){
 
 }
 
-
+#var_split_exp <- variation_split_exp_B
 Intra_vs_Inter_var_split <- function(var_split_exp){
 
   var_split <- var_split_exp %>%
@@ -46,17 +46,79 @@ Intra_vs_Inter_var_split <- function(var_split_exp){
     filter(RelSumSq.Turnover < 999) %>%
     rename(Turnover = RelSumSq.Turnover, Intraspecific = RelSumSq.Intraspec., Covariation = RelSumSq.Covariation, Total = RelSumSq.Total) %>%
     gather(key = variable, value = value, -trait, -level) %>%
-    filter(variable != "Covariation", level != "Total", variable != "Total") %>%
-    filter(variable != "Total") %>%
+    filter(variable == "Total") %>%
     filter(level != "Total") %>%
-    mutate(level = factor(level, levels = c("Gradient", "Elevation_m", "Gradient:Elevation_m", "Residuals"))) %>%
-    mutate(level = plyr::mapvalues(level, from = c("Gradient", "Elevation_m", "Gradient:Elevation_m", "Residuals"), to = c("G", "E", "GxE", "Resid"))) #%>%
-    # mutate(trait = plyr::mapvalues(trait, from = c("SLA_cm2_g", "LDMC", "Leaf_Area_cm2", "Leaf_Thickness_mm", "N_percent", "C_percent", "P_Ave", "CN_ratio", "dC13_percent", "dN15_percent", "Dry_Mass_g", "Plant_Height_cm"), to = c("`SLA`*` `*(cm^2/g)", "`LDMC`*` `*(g/g)", "'Leaf'*' '*'Area'*' '*(cm^2)", "'Leaf'*' '*'Thickness'*' '*(mm)", "'N'*' '*'(%)'", "'C'*' '*'(%)'", "'P'*' '*'(%)'", "'C'*':'*'N'", "paste(delta^13, 'C'*' '*'(\u2030)')", "paste(delta^15, 'N'*' '*'(\u2030)')", "'Dry'*' '*'Mass'*' '*'(g)'", "'Plant'*' '*'Height'*' '*'(cm)'"))) %>%
-    # mutate(trait = factor(trait, levels = c("'Plant'*' '*'Height'*' '*'(cm)'", "`SLA`*` `*(cm^2/g)", "'Dry'*' '*'Mass'*' '*'(g)'","'Leaf'*' '*'Area'*' '*(cm^2)",  "'Leaf'*' '*'Thickness'*' '*(mm)", "`LDMC`*` `*(g/g)",  "'N'*' '*'(%)'", "'C'*' '*'(%)'", "'P'*' '*'(%)'", "'C'*':'*'N'", "paste(delta^13, 'C'*' '*'(\u2030)')", "paste(delta^15, 'N'*' '*'(\u2030)')" )))
+    mutate(level = factor(level, levels = c("Site", "Residuals"))) %>%
+    mutate(level = plyr::mapvalues(level, from = c("Site", "Residuals"), to = c("E", "Resid")))
 
   return(var_split)
 }
 
+trait_mean <- trait_mean %>% filter(Gradient == "B")
+var_split_exp <- variation_split_exp_B
+var_split <- variation_split_B
+make_intra_vs_inter_figure <- function(trait_mean, var_split_exp, var_split){
+
+  names <- fancy_trait_name_dictionary(trait_mean) %>%
+    distinct(trait_fancy) %>%
+    mutate(trait = factor(1:13))
+
+
+  varpart_graph <- var_split_exp %>%
+    mutate(level = trimws(level)) %>%
+    filter(RelSumSq.Turnover < 999) %>%
+    rename(Turnover = RelSumSq.Turnover, Intraspecific = RelSumSq.Intraspec., Covariation = RelSumSq.Covariation, Total = RelSumSq.Total) %>%
+    gather(key = variable, value = value, -trait, -level) %>%
+    filter(variable != "Covariation", level != "Total", variable != "Total") %>%
+    mutate(level = factor(level, levels = c("Site", "Residuals"))) %>%
+    mutate(level = plyr::mapvalues(level, from = c("Site", "Residuals"), to = c("E", "Resid"))) %>%
+    left_join(names, by = "trait") %>%
+    ggplot() +
+    geom_bar(aes(x = level, y = value, fill = variable), stat = "identity") +
+    geom_point(aes(x = level, y  = value), data = var_split, size = 1) +
+    facet_wrap(~ trait_fancy) +
+    theme_minimal() +
+    theme(text = element_text(size = 15), legend.position = "top",
+          strip.background = element_blank()) +
+    xlab(NULL) +
+    ylab("Proportion Variation Explained") +
+    scale_fill_manual(values = c("blue", "darkorange"), name = "Source of Variation") +
+    scale_x_discrete(drop = FALSE)
+
+#
+#   # stacked bar plot
+#   varpart_graph <- var_split_exp %>%
+#     mutate(level = trimws(level)) %>%
+#     filter(RelSumSq.Turnover < 999) %>%
+#     rename(Turnover = RelSumSq.Turnover, Intraspecific = RelSumSq.Intraspec., Covariation = RelSumSq.Covariation, Total = RelSumSq.Total) %>%
+#     gather(key = variable, value = value, -trait, -level) %>%
+#     filter(variable != "Covariation", level != "Total", variable != "Total") %>%
+#     left_join(names, by = "trait") %>%
+#     filter(level!= "Residuals") %>%
+#     mutate(level = factor(level, levels = c("Gradient", "Elevation_m", "Gradient:Elevation_m"))) %>%
+#     mutate(level = plyr::mapvalues(level, from = c("Gradient", "Elevation_m", "Gradient:Elevation_m"), to = c("G", "E", "GxE"))) %>%
+#
+#     group_by(trait, level) %>%
+#     mutate(total = sum(value)) %>%
+#     group_by(trait, level, variable) %>%
+#     mutate(percentage = value * 100/ total) %>%
+#     ggplot() +
+#     geom_bar(aes(x = level, y = percentage, fill = variable), stat = "identity") +
+#     facet_wrap(~ trait_fancy) +
+#     theme_minimal() +
+#     theme(text = element_text(size = 15), legend.position = "top",
+#           strip.background = element_blank()) +
+#     xlab(NULL) +
+#     ylab("Proportion Variation Explained") +
+#     scale_fill_manual(values = c("blue", "darkorange"), name = "Source of Variation") +
+#     scale_x_discrete(drop = FALSE)
+
+  return(varpart_graph)
+}
+
+
+# mutate(trait = plyr::mapvalues(trait, from = c("SLA_cm2_g", "LDMC", "Leaf_Area_cm2", "Leaf_Thickness_mm", "N_percent", "C_percent", "P_Ave", "CN_ratio", "dC13_percent", "dN15_percent", "Dry_Mass_g", "Plant_Height_cm"), to = c("`SLA`*` `*(cm^2/g)", "`LDMC`*` `*(g/g)", "'Leaf'*' '*'Area'*' '*(cm^2)", "'Leaf'*' '*'Thickness'*' '*(mm)", "'N'*' '*'(%)'", "'C'*' '*'(%)'", "'P'*' '*'(%)'", "'C'*':'*'N'", "paste(delta^13, 'C'*' '*'(\u2030)')", "paste(delta^15, 'N'*' '*'(\u2030)')", "'Dry'*' '*'Mass'*' '*'(g)'", "'Plant'*' '*'Height'*' '*'(cm)'"))) %>%
+# mutate(trait = factor(trait, levels = c("'Plant'*' '*'Height'*' '*'(cm)'", "'Dry'*' '*'Mass'*' '*'(g)'","'Leaf'*' '*'Area'*' '*(cm^2)", "`SLA`*` `*(cm^2/g)",  "'Leaf'*' '*'Thickness'*' '*(mm)", "`LDMC`*` `*(g/g)",  "'N'*' '*'(%)'", "'C'*' '*'(%)'", "'P'*' '*'(%)'", "'C'*':'*'N'", "paste(delta^13, 'C'*' '*'(\u2030)')", "paste(delta^15, 'N'*' '*'(\u2030)')" ))) %>%
 
 
 
@@ -97,68 +159,3 @@ make_itv_figure <- function(trait_mean){
 
 }
 
-
-
-
-make_intra_vs_inter_figure <- function(trait_mean, var_split_exp){
-
-  names <- fancy_trait_name_dictionary(trait_mean) %>%
-    distinct(trait_fancy) %>%
-    mutate(trait = factor(1:13))
-
-
-  varpart_graph <- var_split_exp %>%
-    mutate(level = trimws(level)) %>%
-    filter(RelSumSq.Turnover < 999) %>%
-    rename(Turnover = RelSumSq.Turnover, Intraspecific = RelSumSq.Intraspec., Covariation = RelSumSq.Covariation, Total = RelSumSq.Total) %>%
-    gather(key = variable, value = value, -trait, -level) %>%
-    filter(variable != "Covariation", level != "Total", variable != "Total") %>%
-    mutate(level = factor(level, levels = c("Gradient", "Elevation_m", "Gradient:Elevation_m", "Residuals"))) %>%
-    mutate(level = plyr::mapvalues(level, from = c("Gradient", "Elevation_m", "Gradient:Elevation_m", "Residuals"), to = c("G", "E", "GxE", "Resid"))) %>%
-    left_join(names, by = "trait") %>%
-    ggplot() +
-    geom_bar(aes(x = level, y = value, fill = variable), stat = "identity") +
-    #geom_point(aes(x = level, y  = value), data = variation_split, size = 1) +
-    facet_wrap(~ trait_fancy) +
-    #facet_wrap(~trait, nrow = 3, labeller = label_parsed) +
-    theme_minimal() +
-    theme(text = element_text(size = 15), legend.position = "top",
-          strip.background = element_blank()) +
-    xlab(NULL) +
-    ylab("Proportion Variation Explained") +
-    scale_fill_manual(values = c("blue", "darkorange"), name = "Source of Variation") +
-    scale_x_discrete(drop = FALSE)
-
-
-  # stacked bar plot
-  varpart_graph <- var_split_exp %>%
-    mutate(level = trimws(level)) %>%
-    filter(RelSumSq.Turnover < 999) %>%
-    rename(Turnover = RelSumSq.Turnover, Intraspecific = RelSumSq.Intraspec., Covariation = RelSumSq.Covariation, Total = RelSumSq.Total) %>%
-    gather(key = variable, value = value, -trait, -level) %>%
-    filter(variable != "Covariation", level != "Total", variable != "Total") %>%
-    left_join(names, by = "trait") %>%
-    filter(level!= "Residuals") %>%
-    mutate(level = factor(level, levels = c("Gradient", "Elevation_m", "Gradient:Elevation_m"))) %>%
-    mutate(level = plyr::mapvalues(level, from = c("Gradient", "Elevation_m", "Gradient:Elevation_m"), to = c("G", "E", "GxE"))) %>%
-
-    group_by(trait, level) %>%
-    mutate(total = sum(value)) %>%
-    group_by(trait, level, variable) %>%
-    mutate(percentage = value * 100/ total) %>%
-    ggplot() +
-    geom_bar(aes(x = level, y = percentage, fill = variable), stat = "identity") +
-    facet_wrap(~ trait_fancy) +
-    theme_minimal() +
-    theme(text = element_text(size = 15), legend.position = "top",
-          strip.background = element_blank()) +
-    xlab(NULL) +
-    ylab("Proportion Variation Explained") +
-    scale_fill_manual(values = c("blue", "darkorange"), name = "Source of Variation") +
-    scale_x_discrete(drop = FALSE)
-
-}
-
-
-# mutate(trait = plyr::mapvalues(trait, from = c("SLA_cm2_g", "LDMC", "Leaf_Area_cm2", "Leaf_Thickness_mm", "N_percent", "C_percent", "P_Ave", "CN_ratio", "dC13_percent", "dN15_percent", "Dry_Mass_g", "Plant_Height_cm"), to = c("`SLA`*` `*(cm^2/g)", "`LDMC`*` `*(g/g)", "'Leaf'*' '*'Area'*' '*(cm^2)", "'Leaf'*' '*'Thickness'*' '*(mm)", "'N'*' '*'(%)'", "'C'*' '*'(%)'", "'P'*' '*'(%)'", "'C'*':'*'N'", "paste(delta^13, 'C'*' '*'(\u2030)')", "paste(delta^15, 'N'*' '*'(\u2030)')", "'Dry'*' '*'Mass'*' '*'(g)'", "'Plant'*' '*'Height'*' '*'(cm)'"))) %>%
-# mutate(trait = factor(trait, levels = c("'Plant'*' '*'Height'*' '*'(cm)'", "'Dry'*' '*'Mass'*' '*'(g)'","'Leaf'*' '*'Area'*' '*(cm^2)", "`SLA`*` `*(cm^2/g)",  "'Leaf'*' '*'Thickness'*' '*(mm)", "`LDMC`*` `*(g/g)",  "'N'*' '*'(%)'", "'C'*' '*'(%)'", "'P'*' '*'(%)'", "'C'*':'*'N'", "paste(delta^13, 'C'*' '*'(\u2030)')", "paste(delta^15, 'N'*' '*'(\u2030)')" ))) %>%
