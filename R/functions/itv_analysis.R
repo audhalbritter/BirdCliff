@@ -78,40 +78,40 @@ make_ITV_plot <- function(itv_output){
 
 
 
-# one trait
-m <- trait_mean %>%
-  filter(trait_trans %in% c("LDMC"),
-         Gradient == "B") %>%
-  # specific - constant
-  mutate(diff = mean - mean_noitv)
-
-# With effect of Site
-# specific
-fit_specific <- aov(mean ~ Site, data = m)
-
-# constant
-fit_constant <- aov(mean_noitv ~ Site, data = m)
-
-# diff
-fit_diff <- aov(diff ~ Site, data = m)
-
-out <- bind_rows(
-  total = tidy(fit_specific),
-  turnover = tidy(fit_constant),
-  intraspecific = tidy(fit_diff),
-  .id = "model"
-)
-
-out %>%
-  select(model, term, sumsq) %>%
-  pivot_wider(names_from = model, values_from = sumsq) %>%
-  mutate(covariation = total - turnover - intraspecific) %>%
-  pivot_longer(cols = c(total:covariation), names_to = "process", values_to = "value") %>%
-  filter(process %in% c("turnover", "intraspecific")) %>%
-  ggplot(aes(x = term, y = value, fill = process)) +
-  geom_col() +
-  scale_fill_viridis_d(begin = 0.2, end = 0.8, option = "inferno") +
-  labs(x = "", y = "Variation explained")
+# test code with one trait
+# m <- trait_mean %>%
+#   filter(trait_trans %in% c("LDMC"),
+#          Gradient == "B") %>%
+#   # specific - constant
+#   mutate(diff = mean - mean_noitv)
+#
+# # With effect of Site
+# # specific
+# fit_specific <- aov(mean ~ Site, data = m)
+#
+# # constant
+# fit_constant <- aov(mean_noitv ~ Site, data = m)
+#
+# # diff
+# fit_diff <- aov(diff ~ Site, data = m)
+#
+# out <- bind_rows(
+#   total = tidy(fit_specific),
+#   turnover = tidy(fit_constant),
+#   intraspecific = tidy(fit_diff),
+#   .id = "model"
+# )
+#
+# out %>%
+#   select(model, term, sumsq) %>%
+#   pivot_wider(names_from = model, values_from = sumsq) %>%
+#   mutate(covariation = total - turnover - intraspecific) %>%
+#   pivot_longer(cols = c(total:covariation), names_to = "process", values_to = "value") %>%
+#   filter(process %in% c("turnover", "intraspecific")) %>%
+#   ggplot(aes(x = term, y = value, fill = process)) +
+#   geom_col() +
+#   scale_fill_viridis_d(begin = 0.2, end = 0.8, option = "inferno") +
+#   labs(x = "", y = "Variation explained")
 
 
 
@@ -120,11 +120,11 @@ out %>%
 
 #centre elevation to fix singular fix
 
-trait_mean %>%
-  mutate(Elevation_cent = scale(Elevation_m, center = TRUE, scale = FALSE)[1] %>% as.vector())
-
-
-scale(trait_mean$Elevation_m, center = TRUE, scale = FALSE)[,1] %>% as_tibble()
+# trait_mean %>%
+#   mutate(Elevation_cent = scale(Elevation_m, center = TRUE, scale = FALSE)[1] %>% as.vector())
+#
+#
+# scale(trait_mean$Elevation_m, center = TRUE, scale = FALSE)[,1] %>% as_tibble()
 
 
 
