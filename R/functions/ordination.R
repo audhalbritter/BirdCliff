@@ -4,7 +4,10 @@ make_ordination <- function(comm_raw){
   set.seed(32)
 
   comm_fat <- comm_raw %>%
-    select(Gradient, Site, GS, Elevation_m, PlotID, Taxon) %>%
+    group_by(Site) %>%
+    mutate(Mean_elevation = mean(Elevation_m)) %>%
+    ungroup() %>%
+    select(Gradient, Site, GS, Mean_elevation, PlotID, Taxon) %>%
     mutate(presence = 1) %>%
     pivot_wider(names_from = Taxon,
                 values_from = presence,
@@ -29,22 +32,34 @@ make_ordination <- function(comm_raw){
 
 ### NEEDS A BETTER MODEL!!!
 test_ordination <- function(comm_raw){
-  set.seed(32)
+
 
   comm_fat <- comm_raw %>%
-    select(Gradient, Site, GS, Elevation_m, PlotID, Taxon) %>%
+    group_by(Site) %>%
+    mutate(Mean_elevation = mean(Elevation_m)) %>%
+    ungroup() %>%
+    select(Gradient, Site, GS, Mean_elevation, PlotID, Taxon) %>%
     mutate(presence = 1) %>%
     pivot_wider(names_from = Taxon,
                 values_from = presence,
                 values_fill = 0)
 
-  comm_fat_spp <- comm_fat %>% select(-c(Gradient:PlotID))
-  env <- comm_fat %>% select(Gradient:PlotID)
-  attach(env)
-  dis <- vegdist(comm_fat_spp)
-  dune.ano <- anosim(dis, GS)
-  summary(dune.ano)
-  plot(dune.ano)
+  comm_fat_spp <- comm_fat %>% select(-(Gradient:PlotID))
+  meta <- comm_fat %>% select(Gradient:PlotID)
+
+  adon.results <- adonis(comm_fat_spp ~ Gradient*Mean_elevation, data = meta, method = "bray", perm = 999)
+
+  # set.seed(32)
+  #
+  # comm_fat_spp <- comm_fat %>% select(-c(Gradient:PlotID))
+  # env <- comm_fat %>% select(Gradient:PlotID)
+  # attach(env)
+  # dis <- vegdist(comm_fat_spp)
+  # dune.ano <- anosim(dis, GS)
+  # summary(dune.ano)
+  # plot(dune.ano)
+
+  return(adon.results)
 
   }
 
@@ -53,96 +68,84 @@ test_ordination <- function(comm_raw){
 
 make_ordination_plot <- function(comm_raw, NMDS, fNMDS){
 
-  # set.seed(32)
-  #
-  # comm_fat <- comm_raw %>%
-  #   select(Gradient, Site, GS, Elevation_m, PlotID, Taxon) %>%
+  # env <- comm_raw %>%
+  #   group_by(Site) %>%
+  #   mutate(Mean_elevation = mean(Elevation_m)) %>%
+  #   ungroup() %>%
+  #   select(Gradient, Site, GS, Mean_elevation, PlotID, Taxon) %>%
   #   mutate(presence = 1) %>%
   #   pivot_wider(names_from = Taxon,
   #               values_from = presence,
-  #               values_fill = 0)
+  #               values_fill = 0) %>%
+  #   select(Gradient:PlotID)
   #
-  # comm_fat_spp <- comm_fat %>% select(-(Gradient:PlotID))
+  # # extract NMDS scores
+  # sites <- as.data.frame(scores(NMDS, display = "sites"))
+  # sites <- cbind(sites, GS = env$GS)
+  # sites$GS <- factor(sites$GS)
   #
-  # NMDS <-  metaMDS(comm_fat_spp, noshare = TRUE, try = 30, k = 3)
+  # ### NMDS 1 and 2
+  # #data for ellipse, in this case using the management factor
+  # df_ell_12 <- data.frame() #sets up a data frame before running the function.
+  # for(g in levels(sites$GS)){
+  #   df_ell_12 <- rbind(df_ell_12, cbind(as.data.frame(with(sites [sites$GS==g,],
+  #                                                    veganCovEllipse(cov.wt(cbind(NMDS1,NMDS2),wt=rep(1/length(NMDS1),length(NMDS1)))$cov,center=c(mean(NMDS1),mean(NMDS2))))) ,GS=g))
+  # }
   #
-  # # extract important data
-  # fNMDS <- fortify(NMDS) %>%
-  #   filter(Score == "sites") %>%
-  #   bind_cols(comm_fat %>% select(Gradient:PlotID))
-
-  env <- comm_raw %>%
-    select(Gradient, Site, GS, Elevation_m, PlotID, Taxon) %>%
-    mutate(presence = 1) %>%
-    pivot_wider(names_from = Taxon,
-                values_from = presence,
-                values_fill = 0) %>%
-    select(Gradient:Elevation_m)
-
-  # extract NMDS scores
-  sites <- as.data.frame(scores(NMDS, display = "sites"))
-  sites <- cbind(sites, GS = env$GS)
-  sites$GS <- factor(sites$GS)
-
-  ### NMDS 1 and 2
-  #data for ellipse, in this case using the management factor
-  df_ell_12 <- data.frame() #sets up a data frame before running the function.
-  for(g in levels(sites$GS)){
-    df_ell_12 <- rbind(df_ell_12, cbind(as.data.frame(with(sites [sites$GS==g,],
-                                                     veganCovEllipse(cov.wt(cbind(NMDS1,NMDS2),wt=rep(1/length(NMDS1),length(NMDS1)))$cov,center=c(mean(NMDS1),mean(NMDS2))))) ,GS=g))
-  }
-
-  df_ell_12 <- df_ell_12 %>%
-    left_join(env %>% distinct(GS, Gradient, Site, Elevation_m), by = "GS")
+  # df_ell_12 <- df_ell_12 %>%
+  #   left_join(env %>% distinct(GS, Gradient, Site, Elevation_m), by = "GS")
 
   g12 <- fNMDS %>%
-    ggplot(aes(x = NMDS1, y = NMDS2, group = GS, colour = Elevation_m, shape = Gradient)) +
+    ggplot(aes(x = NMDS1, y = NMDS2, group = GS, colour = Mean_elevation, shape = Gradient, linetype = Gradient)) +
     geom_point(size = 2) +
+    stat_ellipse() +
     coord_equal() +
     scale_colour_viridis_c(name = "Elevation in m a.s.l.",
                            end = 0.8,
                            option = "inferno",
                            direction = -1) +
-    scale_fill_viridis_c(name = "Elevation", end = 0.8, option = "inferno", direction = -1) +
+    scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference")) +
     scale_shape_manual(values = c(16, 2), , labels = c("Bird cliff", "Reference")) +
     labs(x = "NMDS axis 1", y = "NMDS axis 2", tag = "(a)") +
     theme_minimal()
 
-  ordi_plot12 <- g12 +
-    geom_path(data = df_ell_12, aes(x = NMDS1, y = NMDS2, group = GS, colour = Elevation_m, linetype = Gradient)) +
-    scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference"))
+  # ordi_plot12 <- g12 +
+  #   geom_path(data = df_ell_12, aes(x = NMDS1, y = NMDS2, group = GS, colour = Elevation_m)) +
+  #   scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference"))
+
 
 
 
   ### NMDS 1 and 3
   #data for ellipse, in this case using the management factor
-  df_ell_13 <- data.frame() #sets up a data frame before running the function.
-  for(g in levels(sites$GS)){
-    df_ell_13 <- rbind(df_ell_13, cbind(as.data.frame(with(sites [sites$GS==g,],
-                                                     veganCovEllipse(cov.wt(cbind(NMDS1,NMDS3),wt=rep(1/length(NMDS1),length(NMDS1)))$cov,center=c(mean(NMDS1),mean(NMDS3))))) ,GS=g))
-  }
-
-  df_ell_13 <- df_ell_13 %>%
-    left_join(env %>% distinct(GS, Gradient, Site, Elevation_m), by = "GS")
+  # df_ell_13 <- data.frame() #sets up a data frame before running the function.
+  # for(g in levels(sites$GS)){
+  #   df_ell_13 <- rbind(df_ell_13, cbind(as.data.frame(with(sites [sites$GS==g,],
+  #                                                    veganCovEllipse(cov.wt(cbind(NMDS1,NMDS3),wt=rep(1/length(NMDS1),length(NMDS1)))$cov,center=c(mean(NMDS1),mean(NMDS3))))) ,GS=g))
+  # }
+  #
+  # df_ell_13 <- df_ell_13 %>%
+  #   left_join(env %>% distinct(GS, Gradient, Site, Elevation_m), by = "GS")
 
   g13 <- fNMDS %>%
-    ggplot(aes(x = NMDS1, y = NMDS3, group = GS, colour = Elevation_m, shape = Gradient)) +
+    ggplot(aes(x = NMDS1, y = NMDS3, group = GS, colour = Mean_elevation, shape = Gradient, linetype = Gradient)) +
     geom_point(size = 2) +
+    stat_ellipse() +
     coord_equal() +
     scale_colour_viridis_c(name = "Elevation in m a.s.l.",
                            end = 0.8,
                            option = "inferno",
                            direction = -1) +
-    scale_fill_viridis_c(name = "Elevation", end = 0.8, option = "inferno", direction = -1) +
+    scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference")) +
     scale_shape_manual(values = c(16, 2), , labels = c("Bird cliff", "Reference")) +
     labs(x = "NMDS axis 1", y = "NMDS axis 3", tag = "(b)") +
     theme_minimal()
 
-  ordi_plot13 <- g13 +
-    geom_path(data = df_ell_13, aes(x = NMDS1, y = NMDS3, group = GS, colour = Elevation_m, linetype = Gradient)) +
-    scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference"))
+  # ordi_plot13 <- g13 +
+  #   geom_path(data = df_ell_13, aes(x = NMDS1, y = NMDS3, group = GS, colour = Elevation_m)) +
+  #   scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference"))
 
-  ordi_plot <- ordi_plot12 + ordi_plot13 + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
+  ordi_plot <- g12 + g13 + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
 
 
   return(ordi_plot)
@@ -155,9 +158,12 @@ make_trait_pca <- function(trait_mean){
 
   # make wide trait table
   cwm_fat <- trait_mean %>%
-    mutate(GS = paste0(Gradient, Site)) %>%
-    select(Gradient:mean, Elevation_m, GS) %>%
-    pivot_wider(names_from = "trait_trans", values_from = "mean")
+    group_by(Site) %>%
+    mutate(Mean_elevation = mean(Elevation_m),
+           GS = paste0(Gradient, Site)) %>%
+    select(Gradient:mean, Mean_elevation, GS) %>%
+    pivot_wider(names_from = "trait_trans", values_from = "mean") %>%
+    ungroup()
 
   pca_output <- cwm_fat %>%
     select(-(Gradient:GS)) %>%
@@ -181,8 +187,13 @@ make_trait_pca <- function(trait_mean){
   meta <- cwm_fat %>% select(Gradient:GS) %>%
     mutate(Site = factor(Site))
 
-  # test
-  adonis_result <- adonis2(raw ~ Site, data = meta, permutations = 999, method = "euclidean")
+  # adonis test
+  if(meta %>% distinct(Gradient) %>% count() == 2){
+    adonis_result <- adonis2(raw ~ Site*Gradient, data = meta, permutations = 999, method = "euclidean")
+  } else {
+    adonis_result <- adonis2(raw ~ Site, data = meta, permutations = 999, method = "euclidean")
+  }
+
 
   outputList <- list(pca_sites, pca_traits, pca_output, adonis_result)
 
@@ -193,19 +204,25 @@ make_trait_pca <- function(trait_mean){
 
 
 
-make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
+make_trait_pca_plot <- function(trait_pca_B, trait_pca_C, trait_pca){
+
+  # prop explained
+  e_B <- eigenvals(trait_pca_B[[3]])/sum(eigenvals(trait_pca_B[[3]]))
 
   plot_B <- trait_pca_B[[1]] %>%
-    ggplot(aes(x = PC1, y = PC2, colour = Elevation_m, group = Site)) +
+    ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, group = Site)) +
     geom_point(size = 2) +
     coord_equal() +
-    stat_ellipse() +
+    stat_ellipse(aes(colour = Mean_elevation)) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
-    scale_shape_manual(values = c(16)) +
-    labs(x = "PC 1 (47.2%)", y = "PC 2 (17.2%)", title = "Bird cliff", tag = "(a)") +
+    labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
+         y = glue("PCA1 ({round(e_B[2] * 100, 1)}%)"),
+         title = "Bird cliff", tag = "(a)") +
     theme_minimal() +
-    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5),
-          aspect.ratio = 1)
+    theme(aspect.ratio = 1,
+          legend.position = "none",
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
   arrow_B <- trait_pca_B[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
@@ -221,17 +238,28 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     labs(x = "PC 1", y = "PC 2", tag = "(b)") +
     scale_x_continuous(expand = c(.2, 0)) +
     theme_minimal() +
-    theme(aspect.ratio = 1)
+    theme(aspect.ratio = 1,
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
+
+
+  # prop explained
+  e_C <- eigenvals(trait_pca_C[[3]])/sum(eigenvals(trait_pca_C[[3]]))
 
   plot_C <- trait_pca_C[[1]] %>%
-    ggplot(aes(x = PC1, y = PC2, colour = Elevation_m, group = Site)) +
+    ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, group = Site)) +
     geom_point(size = 2, shape = 2) +
     coord_equal() +
-    stat_ellipse(linetype = 2) +
+    stat_ellipse(aes(colour = Mean_elevation), linetype = 2) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
-    labs(x = "PC 1 (35.5%)", y = "PC 2 (21.6%)", title = "Reference", tag = "(c)") +
+    labs(x = glue("PCA1 ({round(e_C[1] * 100, 1)}%)"),
+         y = glue("PCA1 ({round(e_C[2] * 100, 1)}%)"),
+         title = "Reference", tag = "(c)") +
     theme_minimal() +
-    theme(aspect.ratio = 1)
+    theme(aspect.ratio = 1,
+          legend.position = "none",
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
   arrow_C <- trait_pca_C[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
@@ -251,13 +279,60 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     scale_x_continuous(expand = c(.2, 0)) +
     theme_minimal() +
-    theme(aspect.ratio = 1)
+    theme(aspect.ratio = 1,
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
+
+
+  # prop explained
+  e <- eigenvals(trait_pca_C[[3]])/sum(eigenvals(trait_pca_C[[3]]))
+
+  plot <- trait_pca[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, shape = Gradient, linetype = Gradient, group = GS)) +
+    geom_point(size = 2) +
+    coord_equal() +
+    stat_ellipse(aes(colour = Mean_elevation, linetyp = Gradient)) +
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
+    scale_shape_manual(values = c(16, 2), labels = c("Bird cliff", "Reference")) +
+    scale_linetype_manual(values = c(1, 2), labels = c("Bird cliff", "Reference")) +
+    labs(x = glue("PCA1 ({round(e[1] * 100, 1)}%)"),
+         y = glue("PCA1 ({round(e[2] * 100, 1)}%)"),
+         title = "Both gradients", tag = "(e)") +
+    theme_minimal() +
+    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5),
+          aspect.ratio = 1,
+          legend.position = "none",
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
+
+  arrow <- trait_pca[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2)) +
+    geom_segment(data = trait_pca[[2]],
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                 arrow = arrow(length = unit(0.2, "cm")),
+                 colour = "grey50",
+                 inherit.aes = FALSE) +
+    geom_text(data = trait_pca[[2]],
+              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
+              size = 3,
+              inherit.aes = FALSE, colour = "black") +
+    labs(x = "PC 1", y = "PC 2", tag = "(f)") +
+    scale_x_continuous(expand = c(.2, 0)) +
+    theme_minimal() +
+    theme(aspect.ratio = 1,
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
+
+  legend <- cowplot::get_legend(plot + theme(legend.position = "bottom"))
 
   layout <- "
-  AAB
-  CCD
+  AABB
+  CCDD
+  EEFF
+  GGGG
 "
-  trait_ordination_plot <- wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(design = layout)
+  trait_ordination_plot <- ((plot_B + arrow_B) / (plot_C + arrow_C) / (plot + arrow)) / legend
+    #wrap_plots(plot_B, arrow_B, plot_C, arrow_C, plot, arrow, legend) + plot_layout(design = layout)
 
 }
 
