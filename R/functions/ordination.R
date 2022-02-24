@@ -217,12 +217,12 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C, trait_pca){
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
     labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
          y = glue("PCA1 ({round(e_B[2] * 100, 1)}%)"),
-         title = "Bird cliff", tag = "(a)") +
+         tag = "(a) Bird cliff") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           legend.position = "none",
           plot.tag.position = c(0, 0.9),
-          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
+          plot.tag = element_text(vjust = -1.5, hjust = -0.5, size = 10))
 
   arrow_B <- trait_pca_B[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
@@ -254,12 +254,12 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C, trait_pca){
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
     labs(x = glue("PCA1 ({round(e_C[1] * 100, 1)}%)"),
          y = glue("PCA1 ({round(e_C[2] * 100, 1)}%)"),
-         title = "Reference", tag = "(c)") +
+         tag = "(c) Reference") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           legend.position = "none",
           plot.tag.position = c(0, 0.9),
-          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
+          plot.tag = element_text(vjust = -1, hjust = -0.5, size = 10))
 
   arrow_C <- trait_pca_C[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
@@ -285,7 +285,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C, trait_pca){
 
 
   # prop explained
-  e <- eigenvals(trait_pca_C[[3]])/sum(eigenvals(trait_pca_C[[3]]))
+  e <- eigenvals(trait_pca[[3]])/sum(eigenvals(trait_pca[[3]]))
 
   plot <- trait_pca[[1]] %>%
     ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, shape = Gradient, linetype = Gradient, group = GS)) +
@@ -297,13 +297,13 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C, trait_pca){
     scale_linetype_manual(values = c(1, 2), labels = c("Bird cliff", "Reference")) +
     labs(x = glue("PCA1 ({round(e[1] * 100, 1)}%)"),
          y = glue("PCA1 ({round(e[2] * 100, 1)}%)"),
-         title = "Both gradients", tag = "(e)") +
+         tag = "(e) Both gradients") +
     theme_minimal() +
     theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5),
           aspect.ratio = 1,
           legend.position = "none",
           plot.tag.position = c(0, 0.9),
-          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
+          plot.tag = element_text(vjust = -1, hjust = -0.3, size = 10))
 
   arrow <- trait_pca[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
