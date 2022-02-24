@@ -17,17 +17,17 @@ library("Hmisc")
 library("lme4")
 library("broom.mixed")
 library("MuMIn")
+library(glue)
 
 # Main MS
 tar_load(trait_plot)
 ggsave("output/trait_plot.jpg", trait_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
 tar_load(trait_ordination_plot)
-ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 7, width = 10, bg = "white")
+ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 8, width = 7, bg = "white")
 
 tar_load(ind_species_figure)
 ggsave("output/ind_species_figure.jpg", ind_species_figure, dpi = 300, height = 6, width = 10, bg = "white")
-
 
 
 # SI figures
