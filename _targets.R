@@ -2,7 +2,7 @@ library("targets")
 library("tarchetypes")
 #remotes::install_github("Between-the-Fjords/dataDownloader")
 
-tar_option_set(packages = c("dataDownloader", "tidyverse", "readxl", "traitstrap", "vegan", "ggvegan", "kableExtra", "viridis", "patchwork", "broom", "ape", "nlme", "Hmisc", "lme4", "broom.mixed", "MuMIn"))
+tar_option_set(packages = c("dataDownloader", "tidyverse", "readxl", "traitstrap", "vegan", "ggvegan", "kableExtra", "viridis", "patchwork", "broom", "ape", "nlme", "Hmisc", "lme4", "broom.mixed", "MuMIn", "glue"))
 #"performance",
 
 # source target plans - can also construct plans directly in this file.
