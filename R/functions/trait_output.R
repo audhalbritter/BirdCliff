@@ -14,20 +14,6 @@ make_trait_model_selection <- function(trait_mean){
     })) %>%
     unnest(model.set)
 
-
-  model.sel_sla <- trait_mean %>%
-    # remove singular fit
-    filter(trait_trans == "SLA_cm2_g") %>%
-    group_by(trait_trans) %>%
-    nest(data = -c(trait_trans)) %>%
-    mutate(model.set = map(data, ~{
-      mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), REML = TRUE, na.action = "na.fail", data = .x)
-      model.set = dredge(mod, rank = "AICc", extra = "R^2")
-    })) %>%
-    unnest(model.set)
-
-  model.sel <- bind_rows(model.sel, model.sel_sla)
-
   return(model.sel)
 
 }
