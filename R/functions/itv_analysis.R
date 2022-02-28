@@ -117,20 +117,5 @@ make_ITV_plot <- function(itv_output){
 
 
 
-
-
-#centre elevation to fix singular fix
-
-# trait_mean %>%
-#   mutate(Elevation_cent = scale(Elevation_m, center = TRUE, scale = FALSE)[1] %>% as.vector())
-#
-#
-# scale(trait_mean$Elevation_m, center = TRUE, scale = FALSE)[,1] %>% as_tibble()
-
-
-
-# make screeplot self
-
-
 # PCAs do rda test
 # could also use PCA for species composition, square root/tranform species data
