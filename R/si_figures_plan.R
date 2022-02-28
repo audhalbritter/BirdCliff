@@ -2,8 +2,49 @@ figures_plan <- list(
 
   # climate data
   tar_target(
+    name = climate_analysis,
+    command = {
+
+      dat <- climate_data %>%
+      mutate(Variable = recode(Variable, "SoilMoisture" = "soil moisture in %", "SoilTemperature" = "soil temperature in °C"),
+             GS = paste0(Gradient, Site)) %>%
+      left_join(coordinates, by = c("Gradient", "Site", "PlotID"))
+
+      # model selection
+      dat %>%
+        group_by(Variable) %>%
+        nest() %>%
+        mutate(model.set = map(data, ~{
+          mod <- lmer(Value ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
+          model.set = dredge(mod, rank = "AICc", extra = "R^2")
+        })) %>%
+        unnest(model.set)
+
+      # moisture: GxE, temperature G
+      fit_m <- lmer(Value ~  Gradient * Elevation_m + (1|GS), data = dat %>% filter(Variable == "soil moisture in %"))
+
+      fit_t <- lmer(Value ~  Gradient + (1|GS), data = dat %>% filter(Variable == "soil temperature in °C"))
+
+      bind_rows(
+        moisture = tidy(fit_m),
+        temperature = tidy(fit_t),
+        .id = "Variable") %>%
+        left_join(tibble(Rm = r.squaredGLMM(fit_m) %>% as.vector(),
+                               Rc = r.squaredGLMM(fit_t) %>% as.vector(),
+                               Variable = c("moisture", "temperature")),
+                  by = "Variable")
+    }
+  ),
+
+  tar_target(
     name = climate_plot,
     command = {
+
+      text = tibble(label = c("GxE", "G"),
+               Variable = c("soil moisture in %", "soil temperature in °C"),
+               Elevation_m = 125,
+               Value = c(50, 10),
+               Gradient = NA)
       climate_data %>%
         mutate(Variable = recode(Variable, "SoilMoisture" = "soil moisture in %", "SoilTemperature" = "soil temperature in °C")) %>%
         left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
@@ -12,6 +53,7 @@ figures_plan <- list(
         geom_smooth(method = "lm") +
         scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
         scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+        geom_text(data = text, aes(label = label), colour = "black") +
         labs(x = "Elevation in m a.s.l.", y = "") +
         facet_wrap(~ Variable, scales = "free_y") +
         theme_minimal() +
