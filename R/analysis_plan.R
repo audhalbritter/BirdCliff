@@ -78,6 +78,12 @@ analysis_plan <- list(
         unnest(model.set)
     }),
 
+  # check the nr of dimensions for NMDS
+  tar_target(
+    name = stress_plot,
+    command = check_dimensions_NMDS(comm_raw)
+  ),
+
   # make species ordination
   tar_target(
     name = sp_ordination,
