@@ -4,7 +4,7 @@ make_trait_model_selection <- function(trait_mean){
 
   model.sel <- trait_mean %>%
     # remove singular fit
-    filter(!trait_trans %in% c("SLA_cm2_g")) %>%
+    #filter(!trait_trans %in% c("SLA_cm2_g")) %>%
     #filter(!trait_trans %in% c("SLA_cm2_g", "dC13_permil")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
