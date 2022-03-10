@@ -192,7 +192,7 @@ make_trait_pca <- function(trait_mean){
 
 
 
-make_trait_pca_plot <- function(trait_pca_B, trait_pca_C, trait_pca){
+make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
 
   # prop explained
   e_B <- eigenvals(trait_pca_B[[3]])/sum(eigenvals(trait_pca_B[[3]]))
@@ -227,7 +227,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C, trait_pca){
     scale_x_continuous(expand = c(.2, 0)) +
     theme_minimal() +
     theme(aspect.ratio = 1,
-          plot.tag.position = c(0, 0.9),
+          plot.tag.position = c(0, 1),
           plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
 
@@ -268,58 +268,57 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C, trait_pca){
     scale_x_continuous(expand = c(.2, 0)) +
     theme_minimal() +
     theme(aspect.ratio = 1,
-          plot.tag.position = c(0, 0.9),
+          plot.tag.position = c(0, 1),
           plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
 
   # prop explained
-  e <- eigenvals(trait_pca[[3]])/sum(eigenvals(trait_pca[[3]]))
+  # e <- eigenvals(trait_pca[[3]])/sum(eigenvals(trait_pca[[3]]))
+  #
+  # plot <- trait_pca[[1]] %>%
+  #   ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, shape = Gradient, linetype = Gradient, group = GS)) +
+  #   geom_point(size = 2) +
+  #   coord_equal() +
+  #   stat_ellipse(aes(colour = Mean_elevation, linetyp = Gradient)) +
+  #   scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
+  #   scale_shape_manual(values = c(16, 2), labels = c("Bird cliff", "Reference")) +
+  #   scale_linetype_manual(values = c(1, 2), labels = c("Bird cliff", "Reference")) +
+  #   labs(x = glue("PCA1 ({round(e[1] * 100, 1)}%)"),
+  #        y = glue("PCA1 ({round(e[2] * 100, 1)}%)"),
+  #        tag = "(e) Both gradients") +
+  #   theme_minimal() +
+  #   theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5),
+  #         aspect.ratio = 1,
+  #         legend.position = "none",
+  #         plot.tag.position = c(0, 0.9),
+  #         plot.tag = element_text(vjust = -1, hjust = -0.3, size = 10))
+  #
+  # arrow <- trait_pca[[1]] %>%
+  #   ggplot(aes(x = PC1, y = PC2)) +
+  #   geom_segment(data = trait_pca[[2]],
+  #                aes(x = 0, y = 0, xend = PC1, yend = PC2),
+  #                arrow = arrow(length = unit(0.2, "cm")),
+  #                colour = "grey50",
+  #                inherit.aes = FALSE) +
+  #   geom_text(data = trait_pca[[2]],
+  #             aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
+  #             size = 3,
+  #             inherit.aes = FALSE, colour = "black") +
+  #   labs(x = "PC 1", y = "PC 2", tag = "(f)") +
+  #   scale_x_continuous(expand = c(.2, 0)) +
+  #   theme_minimal() +
+  #   theme(aspect.ratio = 1,
+  #         plot.tag.position = c(0, 0.9),
+  #         plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
-  plot <- trait_pca[[1]] %>%
-    ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, shape = Gradient, linetype = Gradient, group = GS)) +
-    geom_point(size = 2) +
-    coord_equal() +
-    stat_ellipse(aes(colour = Mean_elevation, linetyp = Gradient)) +
-    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
-    scale_shape_manual(values = c(16, 2), labels = c("Bird cliff", "Reference")) +
-    scale_linetype_manual(values = c(1, 2), labels = c("Bird cliff", "Reference")) +
-    labs(x = glue("PCA1 ({round(e[1] * 100, 1)}%)"),
-         y = glue("PCA1 ({round(e[2] * 100, 1)}%)"),
-         tag = "(e) Both gradients") +
-    theme_minimal() +
-    theme(plot.margin = margin(0.5, 0.5, 0.5, 0.5),
-          aspect.ratio = 1,
-          legend.position = "none",
-          plot.tag.position = c(0, 0.9),
-          plot.tag = element_text(vjust = -1, hjust = -0.3, size = 10))
-
-  arrow <- trait_pca[[1]] %>%
-    ggplot(aes(x = PC1, y = PC2)) +
-    geom_segment(data = trait_pca[[2]],
-                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
-                 arrow = arrow(length = unit(0.2, "cm")),
-                 colour = "grey50",
-                 inherit.aes = FALSE) +
-    geom_text(data = trait_pca[[2]],
-              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
-              size = 3,
-              inherit.aes = FALSE, colour = "black") +
-    labs(x = "PC 1", y = "PC 2", tag = "(f)") +
-    scale_x_continuous(expand = c(.2, 0)) +
-    theme_minimal() +
-    theme(aspect.ratio = 1,
-          plot.tag.position = c(0, 0.9),
-          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
-
-  legend <- cowplot::get_legend(plot + theme(legend.position = "bottom"))
+  legend <- cowplot::get_legend(plot_B + theme(legend.position = "bottom"))
 
   layout <- "
   AABB
   CCDD
-  EEFF
   GGGG
 "
-  trait_ordination_plot <- ((plot_B + arrow_B) / (plot_C + arrow_C) / (plot + arrow)) / legend
+  trait_ordination_plot <- ((plot_B + arrow_B) / (plot_C + arrow_C)) / legend
     #wrap_plots(plot_B, arrow_B, plot_C, arrow_C, plot, arrow, legend) + plot_layout(design = layout)
 
 }
