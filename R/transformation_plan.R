@@ -101,17 +101,13 @@ transformation_plan <- list(
     name = trait_mean,
     command = make_bootstrapping(comm_raw, traits_raw)  %>%
       left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
-      mutate(GS = paste0(Gradient, Site)) %>%
-      # centre elevation
-      mutate(Elevation_cent = scale(Elevation_m, center = TRUE, scale = FALSE) %>% as.vector())
+      mutate(GS = paste0(Gradient, Site)) |>
+      # join climate data
+      left_join(climate_data |>
+                  pivot_wider(names_from = Variable, values_from = Value),
+                by = c("Gradient", "Site", "PlotID"))
 
-  ),
-
-  # extract centering factor
-  tar_target(
-    name = c_factor,
-    command = attributes(scale(trait_mean$Elevation_m, center = TRUE, scale = FALSE))$`scaled:center`
-    )
+  )
 
 )
 
