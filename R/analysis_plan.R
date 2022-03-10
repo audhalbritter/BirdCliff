@@ -152,15 +152,15 @@ analysis_plan <- list(
     command = make_trait_pca(trait_mean %>% filter(Gradient == "C"))
   ),
 
-  tar_target(
-    name = trait_pca,
-    command = make_trait_pca(trait_mean)
-  ),
+  # tar_target(
+  #   name = trait_pca,
+  #   command = make_trait_pca(trait_mean)
+  # ),
 
   # FIGURE 2B: trait ordination
   tar_target(
     name = trait_ordination_plot,
-    command = make_trait_pca_plot(trait_pca_B, trait_pca_C, trait_pca)
+    command = make_trait_pca_plot(trait_pca_B, trait_pca_C)
   ),
 
   tar_target(
