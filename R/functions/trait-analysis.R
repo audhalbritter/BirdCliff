@@ -101,7 +101,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = dn) +
     geom_ribbon(data = dn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-    labs(tag = "(l)") +
+    labs(tag = "(m)") +
     annotate("text", x = 50, y = 15, label = "GxE", size = 3)
 
 
@@ -220,7 +220,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = n) +
     geom_ribbon(data = n, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-    labs(tag = "(h)") +
+    labs(tag = "(i)") +
     annotate("text", x = 50, y = 3.8, label = "G", size = 3) +
     theme(axis.text.x = element_blank())
 
@@ -250,7 +250,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = np) +
     geom_ribbon(data = np, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-    labs(tag = "(k)")
+    labs(tag = "(l)")
 
 
   #P_percent
@@ -278,7 +278,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = p) +
     geom_ribbon(data = p, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-    labs(tag = "(i)")
+    labs(tag = "(k)")
 
 
   #Plant_Height_cm_log
@@ -312,32 +312,18 @@ make_trait_figure <- function(trait_mean){
 
 
   #SLA_cm2_g
-  dd <- dat %>%
-    filter(trait_trans == "SLA_cm2_g")
-  fit <- lmer(mean ~ Gradient * Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(mean = 0)
-  newdat$mean <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  sla <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = mean - cmult*sqrt(pvar1),
-           phi = mean + cmult*sqrt(pvar1),
-           tlo = mean - cmult*sqrt(tvar1),
-           thi = mean + cmult*sqrt(tvar1))
-
   gsla <- g0 %+% subset(dat, trait_trans == "SLA_cm2_g") +
-    geom_line(data = sla) +
-    geom_ribbon(data = sla, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
+    geom_smooth(method = "lm", linetype = "dashed", size = 0.5, aes(fill = Gradient)) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-    labs(y = "Bootstrapped trait mean") +
-    annotate("text", x = 50, y = 249, label = "G+E", size = 3) +
+    labs(y = "Bootstrapped trait mean", tag = "(e)") +
+    theme(axis.text.x = element_blank(),
+          axis.title.y = element_text(margin = margin(r = 20)))
+
+  #dC13_permil
+  gdC13 <- g0 %+% subset(dat, trait_trans == "dC13_permil") +
+    geom_smooth(method = "lm", linetype = "dashed", size = 0.5, aes(fill = Gradient)) +
+    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(h)") +
     theme(axis.text.x = element_blank(),
           axis.title.y = element_text(margin = margin(r = 20)))
 
@@ -367,6 +353,7 @@ make_trait_figure <- function(trait_mean){
     geom_line(data = thick) +
     geom_ribbon(data = thick, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    labs(tag = "(d)") +
     theme(axis.text.x = element_blank())
 
 
@@ -377,7 +364,7 @@ make_trait_figure <- function(trait_mean){
     theme_void()
 
   library(cowplot)
-  legend <- gheight + theme(legend.position = "bottom")
+  legend <- gheight + theme(legend.position = "right")
   legend <- cowplot::get_legend(legend)
 
 
@@ -386,13 +373,14 @@ make_trait_figure <- function(trait_mean){
   ABCD
   EFGH
   EFGH
-  JIKL
-  JIKL
-  MMMM
-  NNNN
+  IJKL
+  IJKL
+  MNNN
+  MNNN
+  OOOO
 "
 
-  trait_plot <- wrap_plots(gheight, gdry, garea, gthick, gsla, gldmc, gc, gn, gcn, gp, gnp, gdn) + p2 + legend  + plot_layout(design = layout)
+  trait_plot <- wrap_plots(gheight, gdry, garea, gthick, gsla, gldmc, gc, gdC13, gn, gcn, gp, gnp, gdn) + legend + p2  + plot_layout(design = layout)
 
   return(trait_plot)
 
