@@ -180,23 +180,29 @@ analysis_plan <- list(
     name = ind_traits,
     command = combine_traits(traits_raw, bryo_traits_raw)),
 
+  # Vascular Plants
   # run model selection
   # does not work yet!
 
   # vascular: model output
   tar_target(
-    name = ind_traits_output,
-    command = run_ind_models(ind_traits)),
+    name = ind_vascular_traits_output,
+    command = run_vascular_plant_models(ind_traits)),
 
+  # figure
   tar_target(
-    name = ind_species_figure,
-    command = make_ind_sp_plot(ind_traits)),
+    name = vascular_plot,
+    command = make_ind_vascular_plant_plot(ind_traits)),
 
-  # bryophytes
+  # BRYOPHYTES
   tar_target(
     name = bryo_trait_output,
-    command = make_ind_sp_plot(ind_traits)),
+    command = make_bryo_trait_model(ind_traits)),
 
+  # figure
+  tar_target(
+    name = bryo_plot,
+    command = make_bryo_figure(ind_traits, bryo_trait_output)),
 
   ### ITV
   tar_target(
