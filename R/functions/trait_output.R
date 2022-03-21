@@ -29,6 +29,29 @@ make_trait_model_selection <- function(trait_mean){
 # model.sel %>% filter(trait_trans == "Thickness_mm_log")
 
 
+# model.sel <- trait_mean %>%
+#   filter(Gradient == "B") %>%
+#   mutate(Site2 = if_else(Site == "5", "high", "low")) |>
+#   group_by(trait_trans) %>%
+#   nest(data = -c(trait_trans)) %>%
+#   mutate(model = map(data, ~{
+#     mod <- lmer(mean ~  Site2 + (1|GS), data = .x)
+#   })) %>%
+#   unnest(model)
+
+
+# to do
+#sum total divide each blue and yellow by 100
+# x axis title: relative contribution
+# table with all values
+# split ind specie figure in 2
+# non parametric test for proportions, is mean trait value iTV different N traits vs growth traits
+# Climate figure: soil temp lines with G model
+# check shoot length log transformation
+
+
+
+
 
 make_trait_output <- function(trait_mean){
 
@@ -36,7 +59,7 @@ make_trait_output <- function(trait_mean){
   # NULL MODEL
   # estimate
   null_est <- trait_mean %>%
-    filter(trait_trans %in% c("C_percent", "Dry_Mass_g_log", "P_percent", "Thickness_mm_log")) %>%
+    filter(trait_trans %in% c("C_percent", "Dry_Mass_g_log", "P_percent", "Thickness_mm_log", "NP_ratio")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(estimate = map(data, ~{
@@ -48,7 +71,7 @@ make_trait_output <- function(trait_mean){
 
   # r squared
   null_r <- trait_mean %>%
-    filter(trait_trans %in% c("C_percent", "Dry_Mass_g_log", "P_percent", "Thickness_mm_log")) %>%
+    filter(trait_trans %in% c("C_percent", "Dry_Mass_g_log", "P_percent", "Thickness_mm_log", "NP_ratio")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(r = map(data, ~{
@@ -88,11 +111,11 @@ make_trait_output <- function(trait_mean){
   # GRADIENT MODEL
   # estimate
   g_est <- trait_mean %>%
-    filter(trait_trans %in% c("CN_ratio", "N_percent", "NP_ratio")) %>%
+    filter(trait_trans %in% c("CN_ratio", "N_percent")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(estimate = map(data, ~{
-      mod <- lmer(mean ~ Elevation_m + (1|Site), data = .x)
+      mod <- lmer(mean ~ Gradient + (1|Site), data = .x)
       estimates = broom.mixed::tidy(mod)
     })) %>%
     unnest(estimate)
@@ -100,11 +123,11 @@ make_trait_output <- function(trait_mean){
 
   # r squared
   g_r <- trait_mean %>%
-    filter(trait_trans %in% c("CN_ratio", "N_percent", "NP_ratio")) %>%
+    filter(trait_trans %in% c("CN_ratio", "N_percent")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(r = map(data, ~{
-      mod <- lmer(mean ~ Elevation_m + (1|Site), data = .x)
+      mod <- lmer(mean ~ Gradient + (1|Site), data = .x)
       r = as.numeric(r.squaredGLMM(mod))
     })) %>%
     unnest_wider(col = r) %>%
@@ -114,7 +137,7 @@ make_trait_output <- function(trait_mean){
   # GRADIENT + ELEVATION MODEL
   # estimate
   ge_est <- trait_mean %>%
-    filter(trait_trans %in% c("Leaf_Area_cm2_log", "LDMC", "SLA_cm2_g")) %>%
+    filter(trait_trans %in% c("Leaf_Area_cm2_log", "LDMC")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(estimate = map(data, ~{
@@ -126,7 +149,7 @@ make_trait_output <- function(trait_mean){
 
   # r squared
   ge_r <- trait_mean %>%
-    filter(trait_trans %in% c("Leaf_Area_cm2_log", "LDMC", "SLA_cm2_g")) %>%
+    filter(trait_trans %in% c("Leaf_Area_cm2_log", "LDMC")) %>%
     group_by(trait_trans) %>%
     nest(data = -c(trait_trans)) %>%
     mutate(r = map(data, ~{
