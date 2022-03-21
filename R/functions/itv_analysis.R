@@ -15,12 +15,11 @@ make_ITV_analysis <- function(trait_mean){
     pivot_longer(cols = c(mean, mean_noitv, diff), names_to = "mean", values_to = "value")
 
   itv_output <- trait_long %>%
-    group_by(trait_trans, mean) %>%
+    group_by(Gradient, trait_trans, mean) %>%
     nest() %>%
     # anova for each mean (3x)
     mutate(estimate = map(data, ~{
-      #mod <- aov(value ~ Site, data =  .x)
-      mod <- aov(value ~ Gradient, data =  .x)
+      mod <- aov(value ~ 1, data =  .x)
       # output tidy results
       estimates = tidy(mod)
     })) %>%
@@ -41,7 +40,7 @@ make_ITV_plot <- function(itv_output){
     # rename columns
     rename("total" = mean, "turnover" = mean_noitv, "intraspecific" = diff) %>%
     # calculate total SS for total variation
-    group_by(trait_trans) %>%
+    group_by(Gradient, trait_trans) %>%
     mutate(total_var = sum(total),
            total_turnover = sum(turnover),
            total_ITV = sum(intraspecific)) %>%
@@ -49,74 +48,32 @@ make_ITV_plot <- function(itv_output){
     # calculate covariation
     mutate(covariation = total - turnover - intraspecific,
            # calculate proportion explained variation
-           #total_p = total/total_var,
-           turnover_p = turnover/total_var,
-           intra_p = intraspecific/total_var,
-           #covariation_p = covariation/total_var,
-           total_turnover_p = total_turnover/total_var,
-           total_ITV_p = total_ITV/total_var) %>%
+           turnover_p = turnover/total,
+           intra_p = intraspecific/total) %>%
     # make long table
-    pivot_longer(cols = c(turnover_p:total_ITV_p), names_to = "process", values_to = "value") |>
-    mutate(term = if_else(str_detect(process, "total_turnover|total_ITV"), "Total", term),
-           process = recode(process, total_turnover_p = "turnover_p", total_ITV_p = "intra_p"))
+    pivot_longer(cols = c(turnover_p:intra_p), names_to = "process", values_to = "value") |>
+    group_by(Gradient, trait_trans) |>
+    mutate(sum = sum(value),
+           proportion = value / sum)
 
 
   ITV_plot <- fancy_trait_name_dictionary(variance_part) %>%
     # filter only turnover and ITV
     #filter(process %in% c("turnover_p", "intra_p")) %>%
     mutate(process = recode(process, turnover_p = "turnover", intra_p = "ITV"),
-           term = factor(term, levels = c("Total", "Gradient", "Residuals"))) %>%
-    ggplot(aes(x = trait_fancy, y = value, fill = process)) +
+           Gradient = recode(Gradient, B = "Bird cliff", C = "Reference")
+           ) %>%
+    ggplot(aes(x = trait_fancy, y = proportion, fill = process)) +
     geom_col() +
+    geom_hline(yintercept = 0.5, colour = "grey", linetype = "dashed") +
+    scale_x_discrete(limits = rev) +
     coord_flip() +
     scale_fill_viridis_d(begin = 0.25, end = 1, option = "viridis") +
-    labs(x = "", y = "% explained") +
-    facet_wrap(~ term, scales = "free_x") +
+    labs(x = "", y = "relative contribution") +
+    facet_wrap(~ Gradient, scales = "free_x") +
     theme_minimal()
 
   return(ITV_plot)
 
 }
 
-
-
-
-
-# itv_output <- trait_long %>%
-#   group_by(trait_trans, mean) %>%
-#   nest() %>%
-#   # anova for each mean (3x)
-#   mutate(estimate = map(data, ~{
-#     mod <- aov(value ~ 1, data =  .x)
-#     # output tidy results
-#     estimates = tidy(mod)
-#   })) %>%
-#   unnest(estimate)
-#
-# variance_part <- itv_output %>%
-#   # select important columns: sumsq = SS
-#   select(trait_trans, mean, term, sumsq) %>%
-#   # make wide table
-#   pivot_wider(names_from = mean, values_from = sumsq) %>%
-#   # rename columns
-#   rename("total" = mean, "turnover" = mean_noitv, "intraspecific" = diff) %>%
-#   ungroup() %>%
-#   # calculate covariation
-#   mutate(covariation = total - turnover - intraspecific,
-#          # calculate proportion explained variation
-#          turnover_p = turnover/total,
-#          intra_p = intraspecific/total) %>%
-#   # make long table
-#   pivot_longer(cols = c(turnover_p:intra_p), names_to = "process", values_to = "value")
-#
-#
-# ITV <- fancy_trait_name_dictionary(variance_part) %>%
-#   mutate(process = recode(process, turnover_p = "turnover", intra_p = "ITV")) %>%
-#   ggplot(aes(x = trait_fancy, y = value, fill = process)) +
-#   geom_col() +
-#   coord_flip() +
-#   scale_x_discrete(limits = rev) +
-#   scale_fill_viridis_d(begin = 0.25, end = 1, option = "viridis") +
-#   labs(x = "", y = "% explained") +
-#   theme_minimal()
-# ggsave(ITV, filename = "ITV.jpg", dpi = 300, height = 6, width = 8)
