@@ -78,12 +78,6 @@ analysis_plan <- list(
         unnest(model.set)
     }),
 
-  # check the nr of dimensions for NMDS
-  tar_target(
-    name = stress_plot,
-    command = check_dimensions_NMDS(comm_raw)
-  ),
-
   # make species ordination
   tar_target(
     name = sp_ordination,
@@ -132,13 +126,13 @@ analysis_plan <- list(
     command = make_trait_output(trait_mean)
   ),
 
-
-  # FIGURE 2a: trait change along gradients
+  # test top site
   tar_target(
-    name = trait_plot,
-    command = {
-      make_trait_figure(trait_mean)
-    }),
+    name = top_site,
+    command = test_top_site(trait_mean)
+  ),
+
+
 
 
   # make trait ordination
@@ -150,17 +144,6 @@ analysis_plan <- list(
   tar_target(
     name = trait_pca_C,
     command = make_trait_pca(trait_mean %>% filter(Gradient == "C"))
-  ),
-
-  # tar_target(
-  #   name = trait_pca,
-  #   command = make_trait_pca(trait_mean)
-  # ),
-
-  # FIGURE 2B: trait ordination
-  tar_target(
-    name = trait_ordination_plot,
-    command = make_trait_pca_plot(trait_pca_B, trait_pca_C)
   ),
 
   tar_target(
@@ -189,30 +172,17 @@ analysis_plan <- list(
     name = ind_vascular_traits_output,
     command = run_vascular_plant_models(ind_traits)),
 
-  # figure
-  tar_target(
-    name = vascular_plot,
-    command = make_ind_vascular_plant_plot(ind_traits)),
 
   # BRYOPHYTES
   tar_target(
     name = bryo_trait_output,
     command = make_bryo_trait_model(ind_traits)),
 
-  # figure
-  tar_target(
-    name = bryo_plot,
-    command = make_bryo_figure(ind_traits, bryo_trait_output)),
 
   ### ITV
   tar_target(
     name = itv_output,
-    command = make_ITV_analysis(trait_mean)),
-
-  tar_target(
-    name = ITV_plot,
-    command = make_ITV_plot(itv_output)
-  )
+    command = make_ITV_analysis(trait_mean))
 
 )
 
