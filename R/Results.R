@@ -22,16 +22,3 @@ bind_rows(Birdcliff = tidy(trait_pca_B[[4]]),
           .id = "Gradient") %>%
   write_csv(., file = "output/adonis_pca.csv")
 
-
-
-
-
-tar_load(top_site)
-fancy_trait_name_dictionary(top_site) |>
-  ungroup() |>
-  mutate(term = if_else(npar == 4, "Site", "Null"),
-         AIC = round(AIC, digits = 1),
-         `Pr(>Chisq)` = round(`Pr(>Chisq)`, digits = 3)) |>
-  select(trait_fancy, term, AIC, df = Df, "p value" = `Pr(>Chisq)`) %>%
-  write_csv(., file = "output/top_site.csv")
-

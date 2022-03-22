@@ -44,6 +44,14 @@ test_top_site <- function(trait_mean){
         })) %>%
     unnest(best)
 
+  fancy_trait_name_dictionary(top_site) |>
+    ungroup() |>
+    mutate(term = if_else(npar == 4, "Site", "Null"),
+           AIC = round(AIC, digits = 1),
+           `Pr(>Chisq)` = round(`Pr(>Chisq)`, digits = 3)) |>
+    select(trait_fancy, term, AIC, df = Df, "p value" = `Pr(>Chisq)`) %>%
+    write_csv(., file = "output/top_site.csv")
+
   return(top_site)
 }
 
