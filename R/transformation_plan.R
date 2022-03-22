@@ -58,7 +58,9 @@ transformation_plan <- list(
           "Dry_Mass_g" = "Dry_Mass_g_log",
           "Leaf_Area_cm2" = "Leaf_Area_cm2_log",
           "Leaf_Thickness_mm" = "Thickness_mm_log"
-        ))
+        )) |>
+      # order traits
+      mutate(trait_trans = factor(trait_trans, levels = c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")))
   ),
 
   # import bryophyte traits
@@ -87,7 +89,9 @@ transformation_plan <- list(
       select(-c(Elevation_m:Longitude_E)) %>%
       left_join(coordinates %>%
                   group_by(Gradient, Site) %>%
-                  summarise(Elevation_m = mean(Elevation_m)), by = c("Gradient", "Site"))
+                  summarise(Elevation_m = mean(Elevation_m)), by = c("Gradient", "Site")) |>
+      # order traits
+      mutate(trait_trans = factor(trait_trans, levels = c("Shoot_Length_cm_log", "Shoot_Length_Green_cm_log", "Shoot_ratio", "WHC_g_g", "SSL_cm_g", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")))
   ),
 
   # import climate
@@ -96,23 +100,28 @@ transformation_plan <- list(
     command = read_csv(climate)
   ),
 
-  # make bootstrap
+  # make trait impute
   tar_target(
-    name = trait_mean,
-    command = make_bootstrapping(comm_raw, traits_raw)  %>%
-      left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
-      mutate(GS = paste0(Gradient, Site)) %>%
-      # centre elevation
-      mutate(Elevation_cent = scale(Elevation_m, center = TRUE, scale = FALSE) %>% as.vector())
+    name = trait_impute,
+    command = make_trait_impute(comm_raw, traits_raw)
 
   ),
 
-  # extract centering factor
   tar_target(
-    name = c_factor,
-    command = attributes(scale(trait_mean$Elevation_m, center = TRUE, scale = FALSE))$`scaled:center`
-    )
+    name = trait_null_impute,
+    command = make_trait_null_impute(comm_raw, traits_raw)
+
+  ),
+
+  # make bootstrap
+  tar_target(
+    name = trait_mean,
+    command = make_bootstrapping(trait_impute, trait_null_impute) %>%
+      left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
+      mutate(GS = paste0(Gradient, Site)) |>
+      # join climate data
+      left_join(climate_data |>
+                  pivot_wider(names_from = Variable, values_from = Value),
+                by = c("Gradient", "Site", "PlotID")))
 
 )
-
-

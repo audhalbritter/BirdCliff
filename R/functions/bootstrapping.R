@@ -1,23 +1,14 @@
 #### TRAIT BOOTSTRAPPING ####
 
 
-make_bootstrapping <- function(comm_raw, traits_raw){
+make_trait_impute <- function(comm_raw, traits_raw){
 
   #prepare community data
   comm <- comm_raw
 
   #prepare trait data
-  trait <- traits_raw %>%
-    select(Gradient, Site, PlotID, Taxon, trait_trans, value_trans)
-
-  #prepare trait data without intraspecific variation
-  trait.null <- traits_raw %>%
-    select(Gradient, Site, PlotID, Taxon, trait_trans, value_trans) %>%
-    # do we want to have fixed traits per gradient or across all the gradients???
-    group_by(Taxon, trait_trans) %>%
-    summarise(value_trans = mean(as.numeric(value_trans), na.rm = TRUE)) %>%
-    right_join(trait, by = c("Taxon", "trait_trans")) %>%
-    select(-value_trans.y, "value_trans" = value_trans.x)
+  trait <- fancy_trait_name_dictionary(traits_raw) %>%
+    select(Gradient, Site, PlotID, Taxon, trait_trans, value_trans, trait_fancy)
 
   #set seed for bootstrapping repeatability
   set.seed(2525)
@@ -29,30 +20,49 @@ make_bootstrapping <- function(comm_raw, traits_raw){
                             trait_col = "trait_trans",
                             value_col = "value_trans",
                             abundance_col = "Cover",
-                            min_n_in_sample = 2
-  )
+                            min_n_in_sample = 2)
 
+
+  return(trait_imp)
+}
+
+
+make_trait_null_impute <- function(comm_raw, traits_raw){
+  #prepare community data
+  comm <- comm_raw
+
+  #prepare trait data
+  trait <- fancy_trait_name_dictionary(traits_raw) %>%
+    select(Gradient, Site, PlotID, Taxon, trait_trans, value_trans, trait_fancy)
+
+  #prepare trait data without intraspecific variation
+  trait.null <- traits_raw %>%
+    select(Gradient, Site, PlotID, Taxon, trait_trans, value_trans) %>%
+    # do we want to have fixed traits per gradient or across all the gradients???
+    group_by(Taxon, trait_trans) %>%
+    summarise(value_trans = mean(as.numeric(value_trans), na.rm = TRUE)) %>%
+    right_join(trait, by = c("Taxon", "trait_trans")) %>%
+    select(-value_trans.y, "value_trans" = value_trans.x)
+
+  set.seed(2626)
   trait_imp_null <- trait_impute(comm = comm,
-                                 traits = trait.null,
-                                 scale_hierarchy = c("Gradient", "Site", "PlotID"),
-                                 global = F,
-                                 taxon_col = "Taxon",
-                                 trait_col = "trait_trans",
-                                 value_col = "value_trans",
-                                 abundance_col = "Cover",
-                                 min_n_in_sample = 2
-  )
+                               traits = trait.null,
+                               scale_hierarchy = c("Gradient", "Site", "PlotID"),
+                               global = F,
+                               taxon_col = "Taxon",
+                               trait_col = "trait_trans",
+                               value_col = "value_trans",
+                               abundance_col = "Cover",
+                               min_n_in_sample = 2)
 
-  #check trait coverage
-  trait_imp %>%
-    autoplot(.) +
-    theme(axis.text.x = element_text(angle = 90))
+  return(trait_imp_null)
 
-  trait_imp_null %>%
-    autoplot(.) +
-    theme(axis.text.x = element_text(angle = 90))
+}
 
-  #do the bootstrapping
+
+#do the bootstrapping
+make_bootstrapping <- function(trait_imp, trait_imp_null){
+
   CWM <- trait_np_bootstrap(trait_imp, nrep = 100, sample_size = 200)
   CWM_notiv <- trait_np_bootstrap(trait_imp_null, nrep = 100, sample_size = 200)
 

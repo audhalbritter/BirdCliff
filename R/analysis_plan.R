@@ -78,12 +78,6 @@ analysis_plan <- list(
         unnest(model.set)
     }),
 
-  # check the nr of dimensions for NMDS
-  tar_target(
-    name = stress_plot,
-    command = check_dimensions_NMDS(comm_raw)
-  ),
-
   # make species ordination
   tar_target(
     name = sp_ordination,
@@ -127,18 +121,19 @@ analysis_plan <- list(
         mutate(model = c("", "G", "GxE", "", "G+E", "G+E", "G", "", "", "E", "G+E", ""))
     }),
 
+  # Trait regression output
   tar_target(
-    name = model_output,
+    name = regression_model_output,
     command = make_trait_output(trait_mean)
+    ),
+
+  # test top site
+  tar_target(
+    name = top_site,
+    command = test_top_site(trait_mean)
   ),
 
 
-  # FIGURE 2a: trait change along gradients
-  tar_target(
-    name = trait_plot,
-    command = {
-      make_trait_figure(trait_mean)
-    }),
 
 
   # make trait ordination
@@ -152,15 +147,30 @@ analysis_plan <- list(
     command = make_trait_pca(trait_mean %>% filter(Gradient == "C"))
   ),
 
+  # pca output
   tar_target(
-    name = trait_pca,
-    command = make_trait_pca(trait_mean)
-  ),
+    name = trait_pca_output,
+    command = {
 
-  # FIGURE 2B: trait ordination
-  tar_target(
-    name = trait_ordination_plot,
-    command = make_trait_pca_plot(trait_pca_B, trait_pca_C, trait_pca)
+      bind_rows(Birdcliff = trait_pca_B[[2]],
+                Reference = trait_pca_C[[2]] %>%
+                  mutate(PC1 = PC1 * -1,
+                         PC2 = PC2 * -1,
+                         PC3 = PC3 * -1,
+                         PC4 = PC4 * -1),
+                .id = "Gradient") %>%
+        select(Gradient, Trait = trait_fancy, PC1:PC4) %>%
+        mutate(PC1 = round(PC1, digits = 2),
+               PC2 = round(PC2, digits = 2),
+               PC3 = round(PC3, digits = 2),
+               PC4 = round(PC4, digits = 2)) %>%
+        mutate(Gradient = recode(Gradient, Birdcliff = "Bird cliff"),
+               Gradient = factor(Gradient, levels = c("Bird cliff", "Reference"))) %>%
+        arrange(Gradient, -PC1) %>%
+        # order traits
+        write_csv(., file = "output/Loadings_trait_PCA.csv")
+
+    }
   ),
 
   tar_target(
@@ -180,33 +190,26 @@ analysis_plan <- list(
     name = ind_traits,
     command = combine_traits(traits_raw, bryo_traits_raw)),
 
+  # Vascular Plants
   # run model selection
   # does not work yet!
 
   # vascular: model output
   tar_target(
-    name = ind_traits_output,
-    command = run_ind_models(ind_traits)),
+    name = ind_vascular_traits_output,
+    command = run_vascular_plant_models(ind_traits)),
 
-  tar_target(
-    name = ind_species_figure,
-    command = make_ind_sp_plot(ind_traits)),
 
-  # bryophytes
+  # BRYOPHYTES
   tar_target(
     name = bryo_trait_output,
-    command = make_ind_sp_plot(ind_traits)),
+    command = make_bryo_trait_model(ind_traits)),
 
 
   ### ITV
   tar_target(
     name = itv_output,
-    command = make_ITV_analysis(trait_mean)),
-
-  tar_target(
-    name = ITV_plot,
-    command = make_ITV_plot(itv_output)
-  )
+    command = make_ITV_analysis(trait_mean))
 
 )
 

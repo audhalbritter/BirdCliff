@@ -17,7 +17,7 @@ download_plan <- list(
     name = traits,
     command = get_file(node = "smbqh",
                        file = "PFTC4_Svalbard_2018_Gradient_Traits.csv",
-                       path = "clean_data/traits",
+                       path = "clean_data/traits/",
                        remote_path = "Traits"),
     format = "file"
     ),

@@ -24,13 +24,16 @@ tar_load(trait_plot)
 ggsave("output/trait_plot.jpg", trait_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
 tar_load(trait_ordination_plot)
-ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 8, width = 6, bg = "white")
-
-tar_load(ind_species_figure)
-ggsave("output/ind_species_figure.jpg", ind_species_figure, dpi = 300, height = 6, width = 10, bg = "white")
+ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
 
 tar_load(ITV_plot)
-ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 6, width = 6, bg = "white")
+ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 6, width = 10, bg = "white")
+
+tar_load(vascular_plot)
+ggsave("output/vascular_plot.jpg", vascular_plot, dpi = 300, height = 6, width = 10, bg = "white")
+
+tar_load(bryo_plot)
+ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 10, bg = "white")
 
 
 # SI figures
@@ -44,6 +47,9 @@ ggsave("output/ordination_plot.jpg", ordination_plot, dpi = 300, height = 6, wid
 tar_load(diversity_plot)
 ggsave("output/diversity_plot.jpg", diversity_plot, dpi = 300, height = 4, width = 6, bg = "white")
 
-tar_load(correlation_plot)
-ggsave("output/correlation_plot.jpg", correlation_plot, dpi = 300, height = 10, width = 7, bg = "white")
+tar_load(imputation_plot)
+ggsave("output/imputation_plot.jpg", imputation_plot, dpi = 300, height = 6, width = 8, bg = "white")
+
+# tar_load(correlation_plot)
+# ggsave("output/correlation_plot.jpg", correlation_plot, dpi = 300, height = 10, width = 7, bg = "white")
 

@@ -19,7 +19,7 @@ make_ITV_analysis <- function(trait_mean){
     nest() %>%
     # anova for each mean (3x)
     mutate(estimate = map(data, ~{
-      mod <- aov(value ~ Site, data =  .x)
+      mod <- aov(value ~ 1, data =  .x)
       # output tidy results
       estimates = tidy(mod)
     })) %>%
@@ -30,42 +30,72 @@ make_ITV_analysis <- function(trait_mean){
 }
 
 
-
 make_ITV_plot <- function(itv_output){
 
   variance_part <- itv_output %>%
     # select important columns: sumsq = SS
-    select(Gradient, trait_trans, mean, term, sumsq) %>%
+    select(trait_trans, mean, term, sumsq) %>%
     # make wide table
     pivot_wider(names_from = mean, values_from = sumsq) %>%
     # rename columns
-    rename("total" = mean, "turnover" = mean_noitv, "intraspecific" = diff) %>%
-    # calculate total SS for total variation
-    group_by(Gradient, trait_trans) %>%
-    mutate(total_var = sum(total)) %>%
-    ungroup() %>%
-    # calculate covariation
-    mutate(covariation = total - turnover - intraspecific,
-           # calculate proportion explained variation
-           total_p = total/total_var,
-           turnover_p = turnover/total_var,
-           intra_p = intraspecific/total_var,
-           covariation_p = covariation/total_var) %>%
+    rename("total_ss" = mean, "turnover_ss" = mean_noitv, "intraspecific_ss" = diff) %>%
+    # calculate covariation SS
+    mutate(covariation_ss = total_ss- turnover_ss - intraspecific_ss) |>
+
+    # calculate proportion explained variation (divide ss by total_ss)
+    mutate(total_p = total_ss/total_ss,
+           turnover_p = turnover_ss/total_ss,
+           intraspecific_p = intraspecific_ss/total_ss,
+           covariation_p = covariation_ss/total_ss) %>%
+
     # make long table
-    pivot_longer(cols = c(total_p:covariation_p), names_to = "process", values_to = "value")
+    pivot_longer(cols = c(total_ss:covariation_p), names_to = c("process", "variable"), names_sep = "_",values_to = "value") |>
+    mutate(variable = recode(variable, "ss" = "sumsq", "p" = "proportion")) |>
+    pivot_wider(names_from = variable, values_from = value)
+
+  # write table with results
+  variance_part |>
+    mutate(sumsq = round(sumsq, digits = 1),
+           proportion = round(proportion, digits = 1)) |>
+    write_csv(, file = "output/ITV_output.csv")
+
+  # test difference
+  dd <- variance_part |>
+    filter(process %in% c("turnover", "intraspecific")) |>
+    select(Gradient, trait_trans, process, proportion) |>
+    #pivot_wider(names_from = process, values_from = proportion) |>
+    mutate(type = if_else(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g"), "size", "nutrient"))
+
+
+  dd |>
+    ungroup() |>
+    group_by(Gradient, type) %>%
+    nest() %>%
+    mutate(test = map(data, ~{
+      mod = aov(proportion ~ process, data = .)
+      result = tidy(mod)
+    })) |>
+    unnest(test)
+
+
 
 
   ITV_plot <- fancy_trait_name_dictionary(variance_part) %>%
-    # filter only turnover and ITV
-    filter(process %in% c("turnover_p", "intra_p"),
-           # remove residuals
-           term == "Site") %>%
-    mutate(process = recode(process, turnover_p = "turnover", intra_p = "ITV")) %>%
-    ggplot(aes(x = Gradient, y = value, fill = process)) +
+    # filter for processes (turnover and ITV) we are interested in and standardize to 1
+    filter(process %in% c("turnover", "intraspecific")) |>
+    group_by(Gradient, trait_trans) |>
+    mutate(sum = sum(proportion),
+           proportion_standardized = proportion / sum) |>
+    mutate(process = recode(process, intraspecific = "ITV"),
+           Gradient = recode(Gradient, B = "Bird cliff", C = "Reference")) %>%
+    ggplot(aes(x = trait_fancy, y = proportion_standardized, fill = process)) +
     geom_col() +
-    scale_fill_viridis_d(begin = 0.2, end = 0.8, option = "inferno") +
-    labs(x = "", y = "Variation explained") +
-    facet_wrap(~trait_fancy, scales = "free_y") +
+    geom_hline(yintercept = 0.5, colour = "grey", linetype = "dashed") +
+    scale_x_discrete(limits = rev) +
+    coord_flip() +
+    scale_fill_viridis_d(begin = 0.25, end = 1, option = "viridis") +
+    labs(x = "", y = "relative contribution") +
+    facet_wrap(~ Gradient, scales = "free_x") +
     theme_minimal()
 
   return(ITV_plot)
@@ -74,48 +104,3 @@ make_ITV_plot <- function(itv_output){
 
 
 
-
-
-
-
-
-# test code with one trait
-# m <- trait_mean %>%
-#   filter(trait_trans %in% c("LDMC"),
-#          Gradient == "B") %>%
-#   # specific - constant
-#   mutate(diff = mean - mean_noitv)
-#
-# # With effect of Site
-# # specific
-# fit_specific <- aov(mean ~ Site, data = m)
-#
-# # constant
-# fit_constant <- aov(mean_noitv ~ Site, data = m)
-#
-# # diff
-# fit_diff <- aov(diff ~ Site, data = m)
-#
-# out <- bind_rows(
-#   total = tidy(fit_specific),
-#   turnover = tidy(fit_constant),
-#   intraspecific = tidy(fit_diff),
-#   .id = "model"
-# )
-#
-# out %>%
-#   select(model, term, sumsq) %>%
-#   pivot_wider(names_from = model, values_from = sumsq) %>%
-#   mutate(covariation = total - turnover - intraspecific) %>%
-#   pivot_longer(cols = c(total:covariation), names_to = "process", values_to = "value") %>%
-#   filter(process %in% c("turnover", "intraspecific")) %>%
-#   ggplot(aes(x = term, y = value, fill = process)) +
-#   geom_col() +
-#   scale_fill_viridis_d(begin = 0.2, end = 0.8, option = "inferno") +
-#   labs(x = "", y = "Variation explained")
-
-
-
-
-# PCAs do rda test
-# could also use PCA for species composition, square root/tranform species data
