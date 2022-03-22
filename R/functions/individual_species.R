@@ -476,6 +476,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
 
 # bryophyte models
 make_bryo_trait_model <- function(ind_traits){
+
   bryo_trait_output <- fancy_trait_name_dictionary(ind_traits) %>%
     filter(Functional_group == "bryophyte") %>%
     group_by(Taxon, trait_fancy) %>%
@@ -492,6 +493,8 @@ make_bryo_trait_model <- function(ind_traits){
            p.value = round(p.value, digits = 3)) %>%
     select(Taxon, Trait = trait_fancy, Term = term, "Std. error" = std.error, "t value" = statistic, "p value" = p.value) %>%
     arrange(Taxon, Trait)
+
+  write_csv(bryo_trait_output, file = "output/bryo_trait_output.csv")
 
   return(bryo_trait_output)
 
