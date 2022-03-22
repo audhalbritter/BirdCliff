@@ -12,30 +12,7 @@ trait_mean %>%
 
 
 
-
-
-
-
-# trait ordination output
-tar_load(trait_pca_B)
-tar_load(trait_pca_C)
-bind_rows(Birdcliff = trait_pca_B[[2]],
-          Reference = trait_pca_C[[2]] %>%
-            mutate(PC1 = PC1 * -1,
-                   PC2 = PC2 * -1,
-                   PC3 = PC3 * -1,
-                   PC4 = PC4 * -1),
-          Both = trait_pca[[2]],
-          .id = "Gradient") %>%
-  select(Gradient, Trait = trait_fancy, PC1:PC4) %>%
-  mutate(PC1 = round(PC1, digits = 2),
-         PC2 = round(PC2, digits = 2),
-         PC3 = round(PC3, digits = 2),
-         PC4 = round(PC4, digits = 2)) %>%
-  mutate(Gradient = recode(Gradient, Birdcliff = "Bird cliff"),
-         Gradient = factor(Gradient, levels = c("Bird cliff", "Reference", "Both"))) %>%
-  arrange(Gradient, -PC1) %>%
-  write_csv(., file = "output/Loadings_trait_PCA.csv")
+mutate(Trait = factor(Trait, levels = c("Height cm", "Dry mass g", "Area cm2", "Thickness mm", "LDMC", "SLA cm2/g", "C %", "N %", "CN", "P %", "NP", "δC13 ‰", "δN15 ‰"))) |>
 
 
 

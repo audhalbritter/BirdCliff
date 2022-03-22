@@ -147,6 +147,32 @@ analysis_plan <- list(
     command = make_trait_pca(trait_mean %>% filter(Gradient == "C"))
   ),
 
+  # pca output
+  tar_target(
+    name = trait_pca_output,
+    command = {
+
+      bind_rows(Birdcliff = trait_pca_B[[2]],
+                Reference = trait_pca_C[[2]] %>%
+                  mutate(PC1 = PC1 * -1,
+                         PC2 = PC2 * -1,
+                         PC3 = PC3 * -1,
+                         PC4 = PC4 * -1),
+                .id = "Gradient") %>%
+        select(Gradient, Trait = trait_fancy, PC1:PC4) %>%
+        mutate(PC1 = round(PC1, digits = 2),
+               PC2 = round(PC2, digits = 2),
+               PC3 = round(PC3, digits = 2),
+               PC4 = round(PC4, digits = 2)) %>%
+        mutate(Gradient = recode(Gradient, Birdcliff = "Bird cliff"),
+               Gradient = factor(Gradient, levels = c("Bird cliff", "Reference"))) %>%
+        arrange(Gradient, -PC1) %>%
+        # order traits
+        write_csv(., file = "output/Loadings_trait_PCA.csv")
+
+    }
+  ),
+
   tar_target(
     name = trait_ord_expl_var,
     command = {
