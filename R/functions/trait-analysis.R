@@ -35,7 +35,7 @@ make_trait_figure <- function(trait_mean){
     theme(legend.position = "none",
           aspect.ratio = 0.7,
           plot.margin = margin(t = 0.5, r = 0.5, b = 0.5, l = 0.5),
-          plot.tag.position = c(0,1),
+          plot.tag.position = c(0, 1),
           plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
   gc <- g0 +
