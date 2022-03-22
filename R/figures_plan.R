@@ -9,26 +9,25 @@ figures_plan <- list(
       make_trait_figure(trait_mean)
     }),
 
-  # FIGURE 2B: trait ordination
+  # FIGURE 3: trait ordination
   tar_target(
     name = trait_ordination_plot,
     command = make_trait_pca_plot(trait_pca_B, trait_pca_C)
   ),
 
-  # VASCULAR PLANTS
+  # FIGURE 5: VASCULAR PLANTS
   # figure
   tar_target(
     name = vascular_plot,
     command = make_ind_vascular_plant_plot(ind_traits)),
 
-  # BRYOPHYTES
-
+  # FIGURE 6: BRYOPHYTES
   # figure
   tar_target(
     name = bryo_plot,
     command = make_bryo_figure(ind_traits, bryo_trait_output)),
 
-  # ITV PLOT
+  # FIGURE 4: ITV PLOT
   tar_target(
     name = ITV_plot,
     command = make_ITV_plot(itv_output)
