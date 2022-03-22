@@ -56,6 +56,9 @@ make_ITV_plot <- function(itv_output){
     mutate(sum = sum(value),
            proportion = value / sum)
 
+  # fancy_trait_name_dictionary(variance_part) |>
+  #   select(Gadient, trait_fancy, total)
+
 
   ITV_plot <- fancy_trait_name_dictionary(variance_part) %>%
     # filter only turnover and ITV
