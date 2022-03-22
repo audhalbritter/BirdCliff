@@ -123,7 +123,57 @@ si_figures_plan <- list(
     name = ordination_plot,
     command = make_ordination_plot(comm_raw,
                                    NMDS = sp_ordination[[1]],
-                                   fNMDS = sp_ordination[[2]]))#,
+                                   fNMDS = sp_ordination[[2]])),
+
+
+  # check the nr of dimensions for NMDS
+  tar_target(
+    name = stress_plot,
+    command = check_dimensions_NMDS(comm_raw)
+  ),
+
+
+  # check the nr of dimensions for NMDS
+  tar_target(
+    name = imputation_plot,
+    command = {
+
+      gradient <- c(
+        B = "Bird cliff",
+        C = "Reference")
+
+      trait_names <- c(
+        "Plant_Height_cm_log" = "Height cm",
+        "Dry_Mass_g_log" = "Dry mass g",
+        "Thickness_mm_log" = "Thickness mm",
+        "Leaf_Area_cm2_log" = "Area cm2",
+        "SLA_cm2_g" = "SLA cm2/g",
+        "LDMC" = "LDMC",
+        "C_percent" = "C %",
+        "N_percent" = "N % ",
+        "CN_ratio" = "CN",
+        "dN15_permil" = "δN15 ‰",
+        "dC13_permil" = "δC13 ‰",
+        "P_percent" = "P %",
+        "NP_ratio" = "NP")
+
+      #check trait coverage
+      imputation_plot <- trait_impute %>%
+        autoplot(.) +
+        scale_y_continuous(breaks = c(0, 0.5, 1)) +
+        scale_x_discrete(breaks = c("B_1_D", "B_2_D", "B_3_D", "B_4_D", "B_5_D", "C_1_D", "C_2_D", "C_3_D", "C_4_D", "C_5_D", "C_6_D", "C_7_D"),
+                         labels = c("1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "6", "7")) +
+        facet_grid(trait_trans ~ Gradient, scales = "free_x",
+                   labeller = labeller(Gradient = gradient, trait_trans = trait_names)) +
+        labs(x = "Site") +
+        theme_minimal() +
+        theme(strip.text.y = element_text(angle = 0))
+
+      return(imputation_plot)
+
+    }
+  )
+
 
 
   # correlation plot
