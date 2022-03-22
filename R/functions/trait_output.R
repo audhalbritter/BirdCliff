@@ -68,13 +68,6 @@ test_top_site <- function(trait_mean){
 # performance::check_model(fit)
 
 
-
-# to do
-# non parametric test for proportions, is mean trait value iTV different N traits vs growth traits
-
-
-
-
 make_trait_output <- function(trait_mean){
 
   # NULL MODEL
@@ -239,7 +232,7 @@ make_trait_output <- function(trait_mean){
     ungroup() %>%
     select(-trait_trans, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
     arrange(Trait) %>%
-    write_csv(., file = "output/Regression_output.csv")
+    write_csv(., file = "output/Community_trait_regression_output.csv")
 
 
   return(list(estimate, r_squared))
