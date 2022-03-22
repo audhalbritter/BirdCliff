@@ -96,19 +96,28 @@ transformation_plan <- list(
     command = read_csv(climate)
   ),
 
+  # make trait impute
+  tar_target(
+    name = trait_impute,
+    command = make_trait_impute(comm_raw, traits_raw)
+
+  ),
+
+  tar_target(
+    name = trait_null_impute,
+    command = make_trait_null_impute(comm_raw, traits_raw)
+
+  ),
+
   # make bootstrap
   tar_target(
     name = trait_mean,
-    command = make_bootstrapping(comm_raw, traits_raw)  %>%
+    command = make_bootstrapping(trait_impute, trait_null_impute) %>%
       left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
       mutate(GS = paste0(Gradient, Site)) |>
       # join climate data
       left_join(climate_data |>
                   pivot_wider(names_from = Variable, values_from = Value),
-                by = c("Gradient", "Site", "PlotID"))
-
-  )
+                by = c("Gradient", "Site", "PlotID")))
 
 )
-
-
