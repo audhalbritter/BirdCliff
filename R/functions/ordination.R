@@ -274,7 +274,9 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
 
 
 
-  wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom')
+  trait_ordination_plot <- wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom')
+
+  return(trait_ordination_plot)
 
 }
 
