@@ -8,14 +8,7 @@ trait_mean %>%
 
 0.328/0.158 # times higher
 
-fancy_trait_name_dictionary(trait_mean) %>%
-  group_by(Gradient, trait_fancy) %>%
-  summarise(se = round(sd(mean)/sqrt(n()), 2),
-            mean = round(mean(mean), 2),
-            se_var = round(sd(var)/sqrt(n()), 2),
-            var = round(mean(var), 2)) %>%
-  select(Trait = trait_fancy, Gradient, Mean = mean, se, Variance = var, se_var) %>%
-  write_csv(file = "output/Mean_var.csv")
+
 
 
 
@@ -96,4 +89,12 @@ fancy_trait_name_dictionary(ind_traits_output[[1]]) %>%
   write_csv(., file = "output/Ind_sp_regression_output.csv")
 
 
+tar_load(top_site)
+fancy_trait_name_dictionary(top_site) |>
+  ungroup() |>
+  mutate(term = if_else(npar == 4, "Site", "Null"),
+         AIC = round(AIC, digits = 1),
+         `Pr(>Chisq)` = round(`Pr(>Chisq)`, digits = 3)) |>
+  select(trait_fancy, term, AIC, df = Df, "p value" = `Pr(>Chisq)`) %>%
+  write_csv(., file = "output/top_site.csv")
 

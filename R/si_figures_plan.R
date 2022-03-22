@@ -1,6 +1,7 @@
 si_figures_plan <- list(
 
-  # climate data
+  # CLIMATE DATA
+  # analysis
   tar_target(
     name = climate_analysis,
     command = {
@@ -36,6 +37,7 @@ si_figures_plan <- list(
     }
   ),
 
+  # climate figure
   tar_target(
     name = climate_plot,
     command = {
@@ -118,6 +120,7 @@ si_figures_plan <- list(
     }),
 
 
+  # COMMUNITY DATA
   # species ordination
   tar_target(
     name = ordination_plot,
@@ -133,7 +136,8 @@ si_figures_plan <- list(
   ),
 
 
-  # check the nr of dimensions for NMDS
+  # TRAIT DATA
+  # trait imputation plot
   tar_target(
     name = imputation_plot,
     command = {
@@ -172,7 +176,26 @@ si_figures_plan <- list(
       return(imputation_plot)
 
     }
-  )
+  ),
+
+  # trait mean and variance output
+  tar_target(
+    name = trait_mean_var,
+    command = {
+
+      fancy_trait_name_dictionary(trait_mean) %>%
+        group_by(Gradient, trait_fancy) %>%
+        summarise(se = round(sd(mean)/sqrt(n()), 2),
+                  mean = round(mean(mean), 2),
+                  se_var = round(sd(var)/sqrt(n()), 2),
+                  var = round(mean(var), 2)) %>%
+        select(Trait = trait_fancy, Gradient, Mean = mean, "SE Mean" = se, Variance = var, "SE Variance" = se_var) %>%
+        write_csv(file = "output/Mean_var.csv")
+
+    })
+
+
+
 
 
 
