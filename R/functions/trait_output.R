@@ -29,32 +29,45 @@ make_trait_model_selection <- function(trait_mean){
 # model.sel %>% filter(trait_trans == "Thickness_mm_log")
 
 
-# model.sel <- trait_mean %>%
+test_top_site <- function(trait_mean){
+
+  top_site <- trait_mean %>%
+    filter(Gradient == "B") %>%
+    mutate(Site2 = if_else(Site == "5", "high", "low"),
+           Site2 = factor(Site2, levels = c("low", "high"))) %>%
+    group_by(trait_trans) %>%
+    nest(data = -c(trait_trans)) %>%
+    mutate(best = map(data, ~{
+      mod1 = lmer(mean ~  Site2 + (1|GS), data = .)
+      mod2 = lmer(mean ~  1 + (1|GS), data = .)
+      best = anova(mod1, mod2)
+        })) %>%
+    unnest(best)
+
+  return(top_site)
+}
+
+
+# dd <- trait_mean %>%
 #   filter(Gradient == "B") %>%
-#   mutate(Site2 = if_else(Site == "5", "high", "low")) |>
-#   group_by(trait_trans) %>%
-#   nest(data = -c(trait_trans)) %>%
-#   mutate(model = map(data, ~{
-#     mod <- lmer(mean ~  Site2 + (1|GS), data = .x)
-#   })) %>%
-#   unnest(model)
+#   mutate(Site2 = if_else(Site == "5", "high", "low"),
+#          Site2 = factor(Site2, levels = c("low", "high"))) %>%
+#   filter(trait_trans == "CN_ratio")
+# fit <- lmer(mean ~  Site2 + (1|GS), data = dd)
+# fit2 <- lmer(mean ~  1 + (1|GS), data = dd)
+# best <- anova(fit, fit2)
+# tidy(best)
+# performance::check_model(fit)
+
 
 
 # to do
-#sum total divide each blue and yellow by 100
-# x axis title: relative contribution
-# table with all values
-# split ind specie figure in 2
 # non parametric test for proportions, is mean trait value iTV different N traits vs growth traits
-# Climate figure: soil temp lines with G model
-# check shoot length log transformation
-
 
 
 
 
 make_trait_output <- function(trait_mean){
-
 
   # NULL MODEL
   # estimate
@@ -203,11 +216,25 @@ make_trait_output <- function(trait_mean){
     .id = "Model"
   )
 
+  # save regression model outputs
+  fancy_trait_name_dictionary(estimate) %>%
+    filter(effect == "fixed") %>%
+    select(Trait = trait_fancy, Model, term, estimate:statistic) %>%
+    mutate(term = recode(term, "(Intercept)" = "Intercept", "Elevation_m" = "E", "GradientC" = "G", "GradientC:Elevation_m" = "GxE")) %>%
+    left_join(r_squared %>%
+                select(trait_trans, Rm, Rc), by = "trait_trans") %>%
+    mutate(estimate = round(estimate, digits = 2),
+           std.error = round(std.error, digits = 2),
+           statistic = round(statistic, digits = 2),
+           Rm = round(Rm, digits = 2),
+           Rc = round(Rc, digits = 2)) %>%
+    ungroup() %>%
+    select(-trait_trans, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
+    arrange(Trait) %>%
+    write_csv(., file = "output/Regression_output.csv")
+
+
   return(list(estimate, r_squared))
 
 }
-
-
-
-
 

@@ -121,10 +121,11 @@ analysis_plan <- list(
         mutate(model = c("", "G", "GxE", "", "G+E", "G+E", "G", "", "", "E", "G+E", ""))
     }),
 
+  # Trait regression output
   tar_target(
-    name = model_output,
+    name = regression_model_output,
     command = make_trait_output(trait_mean)
-  ),
+    ),
 
   # test top site
   tar_target(
