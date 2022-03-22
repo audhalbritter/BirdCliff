@@ -165,6 +165,30 @@ run_vascular_plant_models <- function(ind_traits){
     .id = "Best_model"
   )
 
+  # save output
+  # best model
+  best_ind_model <- ind_traits %>%
+    filter(Functional_group == "vascular") %>%
+    distinct(Taxon, trait_trans) %>%
+    mutate(best = c("NA", "Null", "G+E", "Null", "G", "G+E", "G+E", "GxE", "G", "Gx"))
+
+  fancy_trait_name_dictionary(estimate) %>%
+    filter(effect == "fixed") %>%
+    left_join(best_ind_model, by = c("Taxon", "trait_trans")) %>%
+    select(Trait = trait_fancy, Model = best, term, estimate:statistic) %>%
+    mutate(term = recode(term, "(Intercept)" = "Intercept", "Elevation_m" = "E", "GradientC" = "G", "GradientC:Elevation_m" = "GxE")) %>%
+    left_join(r %>%
+                select(trait_trans, Rm, Rc), by = c("trait_trans", "Taxon")) %>%
+    mutate(estimate = round(estimate, digits = 2),
+           std.error = round(std.error, digits = 2),
+           statistic = round(statistic, digits = 2),
+           Rm = round(Rm, digits = 2),
+           Rc = round(Rc, digits = 2)) %>%
+    ungroup() %>%
+    select(-trait_trans, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
+    arrange(Taxon, Trait) %>%
+    write_csv(., file = "output/Ind_sp_regression_output.csv")
+
   return(list(estimate, r))
 }
 
