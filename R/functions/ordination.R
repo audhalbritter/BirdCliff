@@ -1,5 +1,6 @@
-# Ordination
+# ORDINATIONS
 
+# COMMUNITY
 check_dimensions_NMDS <- function(comm_raw){
 
   set.seed(32)
@@ -88,7 +89,7 @@ test_ordination <- function(comm_raw){
 
 
 
-
+# figure
 make_ordination_plot <- function(comm_raw, NMDS, fNMDS){
 
   # env <- comm_raw %>%
@@ -141,7 +142,7 @@ make_ordination_plot <- function(comm_raw, NMDS, fNMDS){
 
 
 
-## trait ordinations
+## TRAITS (PCA)
 make_trait_pca <- function(trait_mean){
 
   # make wide trait table
