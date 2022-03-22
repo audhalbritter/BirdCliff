@@ -60,11 +60,24 @@ make_ITV_plot <- function(itv_output){
     write_csv(, file = "output/ITV_output.csv")
 
   # test difference
-  # dd <- variance_part |>
-  #   select(Gradient, trait_trans, process, proportion) |>
-  #   mutate(proportion = 1000 * proportion) |>
-  #   pivot_wider(names_from = process, values_from = proportion)
-  # prop.test(dd$turnover_p, dd$intra_p)
+  dd <- variance_part |>
+    filter(process %in% c("turnover", "intraspecific")) |>
+    select(Gradient, trait_trans, process, proportion) |>
+    #pivot_wider(names_from = process, values_from = proportion) |>
+    mutate(type = if_else(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g"), "size", "nutrient"))
+
+
+  dd |>
+    ungroup() |>
+    group_by(Gradient, type) %>%
+    nest() %>%
+    mutate(test = map(data, ~{
+      mod = aov(proportion ~ process, data = .)
+      result = tidy(mod)
+    })) |>
+    unnest(test)
+
+
 
 
   ITV_plot <- fancy_trait_name_dictionary(variance_part) %>%
