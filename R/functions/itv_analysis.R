@@ -38,35 +38,44 @@ make_ITV_plot <- function(itv_output){
     # make wide table
     pivot_wider(names_from = mean, values_from = sumsq) %>%
     # rename columns
-    rename("total" = mean, "turnover" = mean_noitv, "intraspecific" = diff) %>%
-    # calculate total SS for total variation
-    group_by(Gradient, trait_trans) %>%
-    mutate(total_var = sum(total),
-           total_turnover = sum(turnover),
-           total_ITV = sum(intraspecific)) %>%
-    ungroup() %>%
-    # calculate covariation
-    mutate(covariation = total - turnover - intraspecific,
-           # calculate proportion explained variation
-           turnover_p = turnover/total,
-           intra_p = intraspecific/total) %>%
-    # make long table
-    pivot_longer(cols = c(turnover_p:intra_p), names_to = "process", values_to = "value") |>
-    group_by(Gradient, trait_trans) |>
-    mutate(sum = sum(value),
-           proportion = value / sum)
+    rename("total_ss" = mean, "turnover_ss" = mean_noitv, "intraspecific_ss" = diff) %>%
+    # calculate covariation SS
+    mutate(covariation_ss = total_ss- turnover_ss - intraspecific_ss) |>
 
-  # fancy_trait_name_dictionary(variance_part) |>
-  #   select(Gadient, trait_fancy, total)
+    # calculate proportion explained variation (divide ss by total_ss)
+    mutate(total_p = total_ss/total_ss,
+           turnover_p = turnover_ss/total_ss,
+           intraspecific_p = intraspecific_ss/total_ss,
+           covariation_p = covariation_ss/total_ss) %>%
+
+    # make long table
+    pivot_longer(cols = c(total_ss:covariation_p), names_to = c("process", "variable"), names_sep = "_",values_to = "value") |>
+    mutate(variable = recode(variable, "ss" = "sumsq", "p" = "proportion")) |>
+    pivot_wider(names_from = variable, values_from = value)
+
+  # write table with results
+  variance_part |>
+    mutate(sumsq = round(sumsq, digits = 1),
+           proportion = round(proportion, digits = 1)) |>
+    write_csv(, file = "output/ITV_output.csv")
+
+  # test difference
+  # dd <- variance_part |>
+  #   select(Gradient, trait_trans, process, proportion) |>
+  #   mutate(proportion = 1000 * proportion) |>
+  #   pivot_wider(names_from = process, values_from = proportion)
+  # prop.test(dd$turnover_p, dd$intra_p)
 
 
   ITV_plot <- fancy_trait_name_dictionary(variance_part) %>%
-    # filter only turnover and ITV
-    #filter(process %in% c("turnover_p", "intra_p")) %>%
-    mutate(process = recode(process, turnover_p = "turnover", intra_p = "ITV"),
-           Gradient = recode(Gradient, B = "Bird cliff", C = "Reference")
-           ) %>%
-    ggplot(aes(x = trait_fancy, y = proportion, fill = process)) +
+    # filter for processes (turnover and ITV) we are interested in and standardize to 1
+    filter(process %in% c("turnover", "intraspecific")) |>
+    group_by(Gradient, trait_trans) |>
+    mutate(sum = sum(proportion),
+           proportion_standardized = proportion / sum) |>
+    mutate(process = recode(process, intraspecific = "ITV"),
+           Gradient = recode(Gradient, B = "Bird cliff", C = "Reference")) %>%
+    ggplot(aes(x = trait_fancy, y = proportion_standardized, fill = process)) +
     geom_col() +
     geom_hline(yintercept = 0.5, colour = "grey", linetype = "dashed") +
     scale_x_discrete(limits = rev) +
@@ -79,4 +88,6 @@ make_ITV_plot <- function(itv_output){
   return(ITV_plot)
 
 }
+
+
 
