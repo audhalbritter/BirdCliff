@@ -72,7 +72,7 @@ run_vascular_plant_models <- function(ind_traits){
       r = as.numeric(r.squaredGLMM(mod))
     })) %>%
     unnest_wider(col = r) %>%
-    select(trait_trans, "Rm" = "...1", "Rc" = "...2")
+    select(Taxon, trait_trans, "Rm" = "...1", "Rc" = "...2")
 
 
   ### GRADIENT MODEL
@@ -97,7 +97,7 @@ run_vascular_plant_models <- function(ind_traits){
       r = as.numeric(r.squaredGLMM(mod))
     })) %>%
     unnest_wider(col = r) %>%
-    select(trait_trans, "Rm" = "...1", "Rc" = "...2")
+    select(Taxon, trait_trans, "Rm" = "...1", "Rc" = "...2")
 
 
   ### GRADIENT + ELEVATION MODEL
@@ -122,7 +122,7 @@ run_vascular_plant_models <- function(ind_traits){
       r = as.numeric(r.squaredGLMM(mod))
     })) %>%
     unnest_wider(col = r) %>%
-    select(trait_trans, "Rm" = "...1", "Rc" = "...2")
+    select(Taxon, trait_trans, "Rm" = "...1", "Rc" = "...2")
 
 
   ### GRADIENT * ELEVATION MODEL
@@ -146,7 +146,7 @@ run_vascular_plant_models <- function(ind_traits){
       r = as.numeric(r.squaredGLMM(mod))
     })) %>%
     unnest_wider(col = r) %>%
-    select(trait_trans, "Rm" = "...1", "Rc" = "...2")
+    select(Taxon, trait_trans, "Rm" = "...1", "Rc" = "...2")
 
 
   estimate <- bind_rows(
@@ -491,7 +491,7 @@ make_bryo_trait_model <- function(ind_traits){
            std.error = round(std.error, digits = 2),
            statistic = round(statistic, digits = 2),
            p.value = round(p.value, digits = 3)) %>%
-    select(Taxon, Trait = trait_fancy, Term = term, "Std. error" = std.error, "t value" = statistic, "p value" = p.value) %>%
+    select(Taxon, Trait = trait_fancy, Term = term, Estimate = estimate, "Std. error" = std.error, "t value" = statistic, "p value" = p.value) %>%
     arrange(Taxon, Trait)
 
   write_csv(bryo_trait_output, file = "output/bryo_trait_output.csv")
