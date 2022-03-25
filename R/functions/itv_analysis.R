@@ -54,9 +54,11 @@ make_ITV_plot <- function(itv_output){
     pivot_wider(names_from = variable, values_from = value)
 
   # write table with results
-  variance_part |>
+  fancy_trait_name_dictionary(variance_part) |>
     mutate(sumsq = round(sumsq, digits = 1),
            proportion = round(proportion, digits = 1)) |>
+    ungroup() |>
+    select(Gradient, trait_fancy, term:proportion) |>
     write_csv(, file = "output/ITV_output.csv")
 
   # test difference
