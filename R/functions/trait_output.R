@@ -52,8 +52,22 @@ test_top_site <- function(trait_mean){
     select(trait_fancy, term, AIC, df = Df, "p value" = `Pr(>Chisq)`) %>%
     write_csv(., file = "output/top_site.csv")
 
+  # calculate how many times higher or lower
+  trait_mean %>%
+    filter(Gradient == "B") %>%
+    mutate(Site2 = if_else(Site == "5", "high", "low"),
+           Site2 = factor(Site2, levels = c("low", "high"))) %>%
+    group_by(trait_trans, Site2) |>
+    summarise(mean = mean(mean)) |>
+    mutate(mean = if_else(str_detect(trait_trans, "log"), exp(mean), mean)) |>
+    pivot_wider(names_from = Site2, values_from = mean) |>
+    mutate(prop = high/low)
+
   return(top_site)
 }
+
+
+
 
 
 # dd <- trait_mean %>%

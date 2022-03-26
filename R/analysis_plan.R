@@ -153,11 +153,11 @@ analysis_plan <- list(
     command = {
 
       bind_rows(Birdcliff = trait_pca_B[[2]],
-                Reference = trait_pca_C[[2]] %>%
-                  mutate(PC1 = PC1 * -1,
-                         PC2 = PC2 * -1,
-                         PC3 = PC3 * -1,
-                         PC4 = PC4 * -1),
+                Reference = trait_pca_C[[2]], #%>%
+                  # mutate(PC1 = PC1 * -1,
+                  #        PC2 = PC2 * -1,
+                  #        PC3 = PC3 * -1,
+                  #        PC4 = PC4 * -1),
                 .id = "Gradient") %>%
         select(Gradient, Trait = trait_fancy, PC1:PC4) %>%
         mutate(PC1 = round(PC1, digits = 2),
