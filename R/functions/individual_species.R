@@ -301,6 +301,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
   gs_dN15 <- g0 %+% subset(v_dat, trait_trans == "dN15_permil") +
     geom_line(data = s_dN15) +
     geom_ribbon(data = s_dN15, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
+    labs(x = "Elevation in m a.s.l.") +
     annotate("text", x = Inf, y = Inf, label = "G", size = 3, hjust = 1, vjust = 1)
 
 
@@ -455,7 +456,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
   gl_dN15 <- g0 %+% subset(v_dat, trait_trans == "dN15_permil") +
     geom_line(data = l_dN15) +
     geom_ribbon(data = l_dN15, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    labs(y = "δN15 ‰") +
+    labs(y = "δN15 ‰", x = "Elevation in m a.s.l.") +
   annotate("text", x = Inf, y = Inf, label = "GxE", size = 3, hjust = 1, vjust = 1)
 
 
@@ -506,12 +507,12 @@ make_bryo_figure <- function(ind_traits, bryo_trait_output){
 
   ### BRYO FIGURE
 
-  term = tibble(term = c("E", "Null", "GxE", "GxE", "GxE", "Null", "Null", "G", "Null", "GxE", "Null", "Null", "Null", "Null", "Null"))
+  term = tibble(term = c("E", " ", "GxE", "GxE", "GxE", " ", " ", "G", " ", "GxE", " ", " ", " ", " ", " "))
 
   result <- bryo_trait_output |>
     distinct(Taxon, Trait) |>
    bind_cols(term = term) |>
-    mutate(pvalue = if_else(term == "Null", "non-sign", "sign"))
+    mutate(pvalue = if_else(term == " ", "non-sign", "sign"))
 
   b_dat <- fancy_trait_name_dictionary(ind_traits) %>%
     filter(Functional_group == "bryophyte") |>
