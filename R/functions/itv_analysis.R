@@ -66,7 +66,7 @@ make_ITV_plot <- function(itv_output){
     filter(process %in% c("turnover", "intraspecific")) |>
     select(Gradient, trait_trans, process, proportion) |>
     #pivot_wider(names_from = process, values_from = proportion) |>
-    mutate(type = if_else(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g"), "size", "nutrient"))
+    mutate(type = if_else(trait_trans %in% c("Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g"), "size", "nutrient"))
 
 
   dd |>
