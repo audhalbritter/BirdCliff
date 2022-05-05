@@ -98,7 +98,8 @@ make_ITV_plot <- function(itv_output){
     scale_fill_viridis_d(begin = 0.25, end = 1, option = "viridis") +
     labs(x = "", y = "relative contribution") +
     facet_wrap(~ Gradient, scales = "free_x") +
-    theme_minimal()
+    theme_minimal() +
+    theme(text = element_text(size = 18))
 
   return(ITV_plot)
 
