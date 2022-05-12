@@ -195,6 +195,10 @@ make_trait_pca <- function(trait_mean){
 
 make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
 
+  bird <- grid::rasterGrob(png::readPNG("bird.png"), interpolate = TRUE)
+  ref <- grid::rasterGrob(png::readPNG("ref.png"), interpolate = TRUE)
+
+
   # elevational range
   range <- range(trait_pca_C[[1]]$Mean_elevation)
 
@@ -204,12 +208,14 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
   plot_B <- trait_pca_B[[1]] %>%
     ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, group = Site)) +
     geom_point(size = 2) +
-    coord_equal() +
+    #annotate("text", x = -3.8, y = 0, angle = 90, size = 5, label = "Bird Cliff") +
+    annotation_custom(bird, xmin = -2.5, xmax = -3.8, ymin = 1.3, ymax = 2.6) +
+    coord_equal(clip = "off", xlim = c(-1.5, 3)) +
     stat_ellipse(aes(colour = Mean_elevation)) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
     labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
          y = glue("PCA1 ({round(e_B[2] * 100, 1)}%)"),
-         tag = "(a) Bird cliff") +
+         tag = "(a)") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 0.9),
@@ -240,12 +246,14 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
   plot_C <- trait_pca_C[[1]] %>%
     ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, group = Site)) +
     geom_point(size = 2, shape = 2) +
-    coord_equal() +
+    #annotate("text", x = -5, y = 0, angle = 90, size = 5, label = "Reference") +
+    annotation_custom(ref, xmin = -3.5, xmax = -5.3, ymin = 1.5, ymax = 2.8) +
+    coord_equal(clip = "off", xlim = c(-2.5, 3)) +
     stat_ellipse(aes(colour = Mean_elevation), linetype = 2) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
     labs(x = glue("PCA1 ({round(e_C[1] * 100, 1)}%)"),
          y = glue("PCA1 ({round(e_C[2] * 100, 1)}%)"),
-         tag = "(c) Reference") +
+         tag = "(c)") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 0.9),
@@ -272,8 +280,6 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 1),
           plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
-
-
 
   trait_ordination_plot <- wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom')
 

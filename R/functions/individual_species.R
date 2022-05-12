@@ -523,7 +523,7 @@ make_bryo_figure <- function(ind_traits, bryo_trait_output){
   bryo_plot <- b_dat |>
     ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient, linetype = pvalue)) +
     geom_point(alpha = 0.5) +
-    geom_smooth(method = "lm", se = TRUE, aes(fill = Gradient)) +
+    geom_smooth(mapping = aes(fill = Gradient), b_dat |> filter(pvalue == "sign"), method = "lm", se = TRUE) +
     scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
     labs(x = "Elevation in m a.s.l.", y = "Trait value") +
@@ -537,10 +537,6 @@ make_bryo_figure <- function(ind_traits, bryo_trait_output){
 
   return(bryo_plot)
 }
-
-
-
-
 
 
 # ind_traits %>% distinct(Taxon)

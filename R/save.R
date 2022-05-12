@@ -33,7 +33,7 @@ tar_load(vascular_plot)
 ggsave("output/vascular_plot.jpg", vascular_plot, dpi = 300, height = 6, width = 10, bg = "white")
 
 tar_load(bryo_plot)
-ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 10, bg = "white")
+ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 6, bg = "white")
 
 
 # SI figures

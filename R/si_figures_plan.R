@@ -192,10 +192,48 @@ si_figures_plan <- list(
         select(Trait = trait_fancy, Gradient, Mean = mean, "SE Mean" = se, Variance = var, "SE Variance" = se_var) %>%
         write_csv(file = "output/Mean_var.csv")
 
+    }),
+
+
+  # make species list
+  tar_target(
+    name = species_list,
+    command = {
+
+      bind_rows(vascular = comm_raw |>
+                  distinct(Gradient, Taxon),
+                bryophyte = bryo_traits_raw |>
+                  distinct(Gradient, Taxon),
+                .id = "Functionalgroup") |>
+        mutate(presence = "x") |>
+        pivot_wider(names_from = Gradient, values_from = presence) |>
+        arrange(Functionalgroup, Taxon) |>
+        rename("Bird cliff" = "B", "Reference" = "C", "Functional group" = "Functionalgroup") |>
+        filter(Taxon != "unknown sp") |>
+        write_csv(file = "output/species_list.csv")
+
     })
 
 
 
+#     comm_raw |>
+#       distinct(Gradient, Taxon) |>
+#       mutate(presence = "x") |>
+#       pivot_wider(names_from = Gradient, values_from = presence) |>
+#       arrange(Taxon) |>
+#       filter(is.na(B) | is.na(C)) |>
+#       print(n = Inf)
+#
+#       comm_raw |> group_by(Gradient, Taxon) |> summarise(m_c = mean(Cover)) |> pivot_wider(names_from = Gradient, values_from = m_c) |>
+#         arrange(Taxon) |>View()
+#
+# traits_raw |>
+#   distinct(Gradient, Taxon) |>
+#   mutate(presence = "x") |>
+#   pivot_wider(names_from = Gradient, values_from = presence) |>
+#   arrange(Taxon) |>
+#   #filter(is.na(B) | is.na(C)) |>
+#   print(n = Inf)
 
 
 
