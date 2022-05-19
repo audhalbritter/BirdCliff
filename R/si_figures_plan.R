@@ -201,12 +201,14 @@ si_figures_plan <- list(
     command = {
 
       bind_rows(vascular = comm_raw |>
-                  distinct(Gradient, Taxon),
+                  group_by(Gradient, Taxon) |>
+                  summarise(Cover = round(mean(Cover), 1),
+                            Cover = as.factor(Cover)),
                 bryophyte = bryo_traits_raw |>
-                  distinct(Gradient, Taxon),
+                  distinct(Gradient, Taxon) |>
+                  mutate(Cover = "x"),
                 .id = "Functionalgroup") |>
-        mutate(presence = "x") |>
-        pivot_wider(names_from = Gradient, values_from = presence) |>
+        pivot_wider(names_from = Gradient, values_from = Cover) |>
         arrange(Functionalgroup, Taxon) |>
         rename("Bird cliff" = "B", "Reference" = "C", "Functional group" = "Functionalgroup") |>
         filter(Taxon != "unknown sp") |>
