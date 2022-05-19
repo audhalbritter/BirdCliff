@@ -95,11 +95,13 @@ make_ITV_plot <- function(itv_output){
     geom_hline(yintercept = 0.5, colour = "grey", linetype = "dashed") +
     scale_x_discrete(limits = rev) +
     coord_flip() +
-    scale_fill_viridis_d(begin = 0.25, end = 1, option = "viridis") +
-    labs(x = "", y = "relative contribution") +
+    scale_fill_manual(name = "Process", values = c("#005BBB", "#FFD500")) +
+    #scale_fill_viridis_d(name = "Process", begin = 0.25, end = 1, option = "viridis") +
+    labs(x = "", y = "Relative contribution") +
     facet_wrap(~ Gradient, scales = "free_x") +
     theme_minimal() +
-    theme(text = element_text(size = 18))
+    theme(text = element_text(size = 18),
+          panel.spacing = unit(1, "cm"))
 
   return(ITV_plot)
 
