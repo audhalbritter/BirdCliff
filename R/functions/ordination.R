@@ -128,8 +128,8 @@ make_ordination_plot <- function(comm_raw, NMDS, fNMDS){
                            end = 0.8,
                            option = "inferno",
                            direction = -1) +
-    scale_linetype_manual(values = c(1, 2), , labels = c("Bird cliff", "Reference")) +
-    scale_shape_manual(values = c(16, 2), , labels = c("Bird cliff", "Reference")) +
+    scale_linetype_manual(name = "", values = c(1, 2), , labels = c("Nutrient input", "Reference")) +
+    scale_shape_manual(name = "", values = c(16, 2), , labels = c("Nutrient input", "Reference")) +
     labs(x = "NMDS axis 1", y = "NMDS axis 2") +
     theme_minimal()
 
