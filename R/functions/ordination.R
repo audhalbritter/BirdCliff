@@ -208,7 +208,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
   plot_B <- trait_pca_B[[1]] %>%
     ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, group = Site)) +
     geom_point(size = 2) +
-    #annotate("text", x = -3.8, y = 0, angle = 90, size = 5, label = "Bird Cliff") +
+    annotate("text", x = -3.2, y = -1, angle = 90, size = 5, label = "Nutrient input") +
     annotation_custom(bird, xmin = -2.5, xmax = -3.8, ymin = 1.3, ymax = 2.6) +
     coord_equal(clip = "off", xlim = c(-1.5, 3)) +
     stat_ellipse(aes(colour = Mean_elevation)) +
@@ -246,7 +246,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
   plot_C <- trait_pca_C[[1]] %>%
     ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, group = Site)) +
     geom_point(size = 2, shape = 2) +
-    #annotate("text", x = -5, y = 0, angle = 90, size = 5, label = "Reference") +
+    annotate("text", x = -4.5, y = -1, angle = 90, size = 5, label = "Reference") +
     annotation_custom(ref, xmin = -3.5, xmax = -5.3, ymin = 1.5, ymax = 2.8) +
     coord_equal(clip = "off", xlim = c(-2.5, 3)) +
     stat_ellipse(aes(colour = Mean_elevation), linetype = 2) +
