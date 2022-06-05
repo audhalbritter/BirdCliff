@@ -170,13 +170,13 @@ run_vascular_plant_models <- function(ind_traits){
   best_ind_model <- ind_traits %>%
     filter(Functional_group == "vascular") %>%
     distinct(Taxon, trait_trans) %>%
-    mutate(best = c("NA", "Null", "G+E", "Null", "G", "G+E", "G+E", "GxE", "G", "Gx"))
+    mutate(best = c("NA", "Null", "N+E", "Null", "N", "N+E", "N+E", "NxE", "N", "NxE"))
 
   fancy_trait_name_dictionary(estimate) %>%
     filter(effect == "fixed") %>%
     left_join(best_ind_model, by = c("Taxon", "trait_trans")) %>%
     select(Trait = trait_fancy, Model = best, term, estimate:statistic) %>%
-    mutate(term = recode(term, "(Intercept)" = "Intercept", "Elevation_m" = "E", "GradientC" = "G", "GradientC:Elevation_m" = "GxE")) %>%
+    mutate(term = recode(term, "(Intercept)" = "Intercept", "Elevation_m" = "E", "GradientC" = "N", "GradientC:Elevation_m" = "NxE")) %>%
     left_join(r %>%
                 select(trait_trans, Rm, Rc), by = c("trait_trans", "Taxon")) %>%
     mutate(estimate = round(estimate, digits = 2),
@@ -228,8 +228,8 @@ make_ind_vascular_plant_plot <- function(ind_traits){
            trait_trans == "LDMC") |>
     ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient, fill = Gradient)) +
     geom_point(alpha = 0.5) +
-    scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(x = "", y = "") +
     theme_minimal() +
     theme(legend.position = "bottom",
@@ -240,7 +240,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
   gs_ldmc <- g0 +
     geom_line(data = s_ldmc) +
     geom_ribbon(data = s_ldmc, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    annotate("text", x = Inf, y = Inf, label = "G+E", size = 3, hjust = 1, vjust = 1) +
+    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
 
@@ -302,7 +302,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
     geom_line(data = s_dN15) +
     geom_ribbon(data = s_dN15, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
     labs(x = "Elevation in m a.s.l.") +
-    annotate("text", x = Inf, y = Inf, label = "G", size = 3, hjust = 1, vjust = 1)
+    annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1)
 
 
   ### LUZULA - Plant_Height_cm_log
@@ -332,7 +332,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
     geom_line(data = l_height) +
     geom_ribbon(data = l_height, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
     labs(y = "Height cm", title = expression(italic("Luzula confusa"))) +
-    annotate("text", x = Inf, y = Inf, label = "G+E", size = 3, hjust = 1, vjust = 1) +
+    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
 
@@ -363,7 +363,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
     geom_line(data = l_area) +
     geom_ribbon(data = l_area, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
     labs(y = "Area cm2") +
-    annotate("text", x = Inf, y = Inf, label = "G+E", size = 3, hjust = 1, vjust = 1) +
+    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
 
@@ -395,7 +395,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
     geom_line(data = l_ldmc) +
     geom_ribbon(data = l_ldmc, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
     labs(y = "LDMC") +
-    annotate("text", x = Inf, y = Inf, label = "GxE", size = 3, hjust = 1, vjust = 1) +
+    annotate("text", x = Inf, y = Inf, label = "NxE", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
 
@@ -426,7 +426,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
     geom_line(data = l_N) +
     geom_ribbon(data = l_N, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
     labs(y = "N %") +
-    annotate("text", x = Inf, y = Inf, label = "G", size = 3, hjust = 1, vjust = 1) +
+    annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
 
@@ -457,7 +457,7 @@ make_ind_vascular_plant_plot <- function(ind_traits){
     geom_line(data = l_dN15) +
     geom_ribbon(data = l_dN15, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
     labs(y = "δN15 ‰", x = "Elevation in m a.s.l.") +
-  annotate("text", x = Inf, y = Inf, label = "GxE", size = 3, hjust = 1, vjust = 1)
+  annotate("text", x = Inf, y = Inf, label = "NxE", size = 3, hjust = 1, vjust = 1)
 
 
   ind_sp_traits <- wrap_plots(gl_height, gs_height,
@@ -507,7 +507,7 @@ make_bryo_figure <- function(ind_traits, bryo_trait_output){
 
   ### BRYO FIGURE
 
-  term = tibble(term = c("E", " ", "GxE", "GxE", "GxE", " ", " ", "G", " ", "GxE", " ", " ", " ", " ", " "))
+  term = tibble(term = c("E", " ", "NxE", "NxE", "NxE", " ", " ", "N", " ", "NxE", " ", " ", " ", " ", " "))
 
   result <- bryo_trait_output |>
     distinct(Taxon, Trait) |>
@@ -524,13 +524,14 @@ make_bryo_figure <- function(ind_traits, bryo_trait_output){
     ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient, linetype = pvalue)) +
     geom_point(alpha = 0.5) +
     geom_smooth(mapping = aes(fill = Gradient), b_dat |> filter(pvalue == "sign"), method = "lm", se = TRUE) +
-    scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(x = "Elevation in m a.s.l.", y = "Trait value") +
     geom_text(ata = b_dat |> distinct(Taxon, trait_fancy, term) , aes(x = Inf, y = Inf, label = term), size = 3, colour = "black", hjust = 1, vjust = 1) +
     facet_grid(trait_fancy ~ Taxon, scales = "free_y") +
     theme_minimal() +
-    theme(plot.title = element_text(size = 10),
+    theme(legend.position = "top",
+          plot.title = element_text(size = 10),
           strip.text.x = element_text(face = "italic"),
           aspect.ratio = 0.7) +
     guides(linetype = "none")
