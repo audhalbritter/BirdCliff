@@ -3,32 +3,13 @@ make_trait_figure <- function(trait_mean){
   dat <- fancy_trait_name_dictionary(trait_mean)
 
   #C_percent
-  # dd <- dat %>%
-  #   filter(trait_trans == "C_percent")
-  # fit <- lmer(mean ~ Gradient * Elevation_m + (1|Site), data = dd)
-  #
-  # newdat <- dd %>%
-  #   distinct(Elevation_m, Gradient) %>%
-  #   mutate(mean = 0)
-  # newdat$mean <-  predict(fit, newdat, re.form = NA)
-  #
-  # mm <- model.matrix(terms(fit), newdat)
-  #
-  # c <- newdat %>%
-  #   mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-  #          tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-  #          cmult = 1.96) %>%
-  #   mutate(plo = mean - cmult*sqrt(pvar1),
-  #          phi = mean + cmult*sqrt(pvar1),
-  #          tlo = mean - cmult*sqrt(tvar1),
-  #          thi = mean + cmult*sqrt(tvar1))
 
   #plot confidence
   g0 <-  dat %>%
     filter(trait_trans == "C_percent") %>%
     ggplot(aes(x = Elevation_m, y = mean, colour = Gradient)) +
     geom_point(alpha = 0.5) +
-    scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     facet_wrap(~ trait_fancy, scales = "free_y") +
     labs(x = "", y = "", tag = "(g)") +
     theme_minimal() +
@@ -41,7 +22,7 @@ make_trait_figure <- function(trait_mean){
   gc <- g0 +
     #geom_line(data = c) +
     #geom_ribbon(data = c, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
@@ -70,9 +51,9 @@ make_trait_figure <- function(trait_mean){
   gcn <- g0 %+% subset(dat, trait_trans == "CN_ratio") +
     geom_line(data = cn) +
     geom_ribbon(data = cn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(tag = "(j)") +
-    annotate("text", x = Inf, y = Inf, label = "G", size = 3, hjust = 1, vjust = 1)
+    annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1)
 
 
 
@@ -101,9 +82,9 @@ make_trait_figure <- function(trait_mean){
   gdn <- g0 %+% subset(dat, trait_trans == "dN15_permil") +
     geom_line(data = dn) +
     geom_ribbon(data = dn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(tag = "(m)") +
-    annotate("text", x = Inf, y = Inf, label = "GxE", size = 3, hjust = 1, vjust = 1)
+    annotate("text", x = Inf, y = Inf, label = "NxE", size = 3, hjust = 1, vjust = 1)
 
 
 
@@ -131,7 +112,7 @@ make_trait_figure <- function(trait_mean){
   gdry <- g0 %+% subset(dat, trait_trans == "Dry_Mass_g_log") +
     #geom_line(data = dry) +
     #geom_ribbon(data = dry, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
     labs(tag = "(b)") +
     theme(axis.text.x = element_blank())
@@ -161,9 +142,9 @@ make_trait_figure <- function(trait_mean){
   gldmc <- g0 %+% subset(dat, trait_trans == "LDMC") +
     geom_line(data = ldmc) +
     geom_ribbon(data = ldmc, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(tag = "(f)") +
-    annotate("text", x = Inf, y = Inf, label = "G+E", size = 3, hjust = 1, vjust = 1) +
+    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
 
@@ -191,9 +172,9 @@ make_trait_figure <- function(trait_mean){
   garea <- g0 %+% subset(dat, trait_trans == "Leaf_Area_cm2_log") +
     geom_line(data = area) +
     geom_ribbon(data = area, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(tag = "(c)") +
-    annotate("text", x = Inf, y = Inf, label = "G+E", size = 3, hjust = 1, vjust = 1) +
+    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
 
@@ -221,9 +202,9 @@ make_trait_figure <- function(trait_mean){
   gn <- g0 %+% subset(dat, trait_trans == "N_percent") +
     geom_line(data = n) +
     geom_ribbon(data = n, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(tag = "(i)") +
-    annotate("text", x = Inf, y = Inf, label = "G", size = 3, hjust = 1, vjust = 1) +
+    annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
 
 
@@ -251,7 +232,7 @@ make_trait_figure <- function(trait_mean){
   gnp <- g0 %+% subset(dat, trait_trans == "NP_ratio") +
     #geom_line(data = np) +
     #geom_ribbon(data = np, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
     labs(tag = "(l)")
 
@@ -280,7 +261,7 @@ make_trait_figure <- function(trait_mean){
   gp <- g0 %+% subset(dat, trait_trans == "P_percent") +
     #geom_line(data = p) +
     #geom_ribbon(data = p, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
     labs(tag = "(k)")
 
@@ -309,7 +290,7 @@ make_trait_figure <- function(trait_mean){
   gheight <- g0 %+% subset(dat, trait_trans == "Plant_Height_cm_log") +
     geom_line(data = height) +
     geom_ribbon(data = height, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(tag = "(a)") +
     annotate("text", x = Inf, y = Inf, label = "E", size = 3, hjust = 1, vjust = 1) +
     theme(axis.text.x = element_blank())
@@ -318,7 +299,7 @@ make_trait_figure <- function(trait_mean){
   #SLA_cm2_g
   gsla <- g0 %+% subset(dat, trait_trans == "SLA_cm2_g") +
     #geom_smooth(method = "lm", linetype = "dashed", size = 0.5, aes(fill = Gradient)) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(y = "Bootstrapped trait mean", tag = "(e)") +
     theme(axis.text.x = element_blank(),
           axis.title.y = element_text(margin = margin(r = 20)))
@@ -326,7 +307,7 @@ make_trait_figure <- function(trait_mean){
   #dC13_permil
   gdC13 <- g0 %+% subset(dat, trait_trans == "dC13_permil") +
     #geom_smooth(method = "lm", linetype = "dashed", size = 0.5, aes(fill = Gradient)) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     labs(tag = "(h)") +
     theme(axis.text.x = element_blank(),
           axis.title.y = element_text(margin = margin(r = 20)))
@@ -356,7 +337,7 @@ make_trait_figure <- function(trait_mean){
   gthick <- g0 %+% subset(dat, trait_trans == "Thickness_mm_log") +
     #geom_line(data = thick) +
     #geom_ribbon(data = thick, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
     labs(tag = "(d)") +
     theme(axis.text.x = element_blank())
