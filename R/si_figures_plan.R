@@ -73,7 +73,7 @@ si_figures_plan <- list(
         filter(Variable == "soil moisture in %") |>
         ggplot(aes(x = Elevation_m, y = Value, colour = Gradient, fill = Gradient)) +
         geom_point(alpha = 0.5) +
-        scale_colour_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
+        scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
         labs(x = "Elevation in m a.s.l.", y = "") +
         theme_minimal() +
         theme(legend.position = "bottom")
@@ -81,8 +81,8 @@ si_figures_plan <- list(
         soil_m_plot <- g0 +
         geom_line(data = soil_m) +
         geom_ribbon(data = soil_m, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-        scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-        annotate("text", x = Inf, y = Inf, label = "GxE", size = 3, hjust = 1, vjust = 1) +
+        scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+        annotate("text", x = Inf, y = Inf, label = "NxE", size = 3, hjust = 1, vjust = 1) +
         labs(y = "Soil moisture in %")
 
 
@@ -111,8 +111,8 @@ si_figures_plan <- list(
       soil_t_plot <- g0 %+% subset(dat, Variable == "soil temperature in °C") +
         geom_line(data = soil_t) +
         geom_ribbon(data = soil_t, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-        scale_fill_manual(values = c("green4", "grey"), labels = c("Bird cliff", "Reference")) +
-        annotate("text", x = Inf, y = Inf, label = "G", size = 3, hjust = 1, vjust = 1) +
+        scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+        annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1) +
         labs(y = "Soil temperature in °C")
 
       climate_plot <- soil_m_plot + soil_t_plot + plot_layout(guides = 'collect') & theme(legend.position = 'bottom')
@@ -143,7 +143,7 @@ si_figures_plan <- list(
     command = {
 
       gradient <- c(
-        B = "Bird cliff",
+        B = "Nutrient input",
         C = "Reference")
 
       trait_names <- c(
