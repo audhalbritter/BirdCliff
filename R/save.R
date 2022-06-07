@@ -27,10 +27,10 @@ tar_load(trait_ordination_plot)
 ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
 
 tar_load(ITV_plot)
-ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 6, width = 10, bg = "white")
+ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
 
 tar_load(vascular_plot)
-ggsave("output/vascular_plot.jpg", vascular_plot, dpi = 300, height = 6, width = 10, bg = "white")
+ggsave("output/vascular_plot.jpg", vascular_plot, dpi = 300, height = 6, width = 4, bg = "white")
 
 tar_load(bryo_plot)
 ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 6, bg = "white")
@@ -42,7 +42,7 @@ tar_load(climate_plot)
 ggsave("output/climate_plot.jpg", climate_plot, dpi = 300, height = 4, width = 6, bg = "white")
 
 tar_load(ordination_plot)
-ggsave("output/ordination_plot.jpg", ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
+ggsave("output/ordination_plot.jpg", ordination_plot, dpi = 300, height = 4, width = 6, bg = "white")
 
 tar_load(diversity_plot)
 ggsave("output/diversity_plot.jpg", diversity_plot, dpi = 300, height = 4, width = 6, bg = "white")
