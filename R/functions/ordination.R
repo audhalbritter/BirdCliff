@@ -178,11 +178,10 @@ make_trait_pca <- function(trait_mean){
 
   # adonis test
   if(meta %>% distinct(Gradient) %>% count() == 2){
-    adonis_result <- adonis2(raw ~ Site*Gradient, data = meta, permutations = 999, method = "euclidean")
+    adonis_result <- adonis(raw ~ Gradient*Mean_elevation , data = meta, permutations = 999, method = "euclidean")
   } else {
-    adonis_result <- adonis2(raw ~ Site, data = meta, permutations = 999, method = "euclidean")
+    adonis_result <- adonis(raw ~ Mean_elevation, data = meta, permutations = 999, method = "euclidean")
   }
-
 
   outputList <- list(pca_sites, pca_traits, pca_output, adonis_result)
 
