@@ -107,6 +107,19 @@ transformation_plan <- list(
 
   ),
 
+  # trait coverage
+  tar_target(
+    name = trait_coverage,
+    command = fortify(trait_impute) |>
+      ungroup() |>
+      #filter(Trait == "CN_ratio") |>
+      complete(.id, level, trait_trans, fill = list(s = 0)) |>
+      filter(level == "PlotID") |>
+      group_by(Gradient, trait_trans) |>
+      summarise(q = quantile(s, prob = 0.25)) |>
+
+  ),
+
   tar_target(
     name = trait_null_impute,
     command = make_trait_null_impute(comm_raw, traits_raw)
