@@ -63,22 +63,22 @@ make_ITV_plot <- function(itv_output){
     write_csv(, file = "output/ITV_output.csv")
 
   # test difference
-  dd <- variance_part |>
-    filter(process %in% c("turnover", "intraspecific")) |>
-    select(Gradient, trait_trans, process, proportion) |>
-    #pivot_wider(names_from = process, values_from = proportion) |>
-    mutate(type = if_else(trait_trans %in% c("Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g"), "size", "nutrient"))
-
-
-  dd |>
-    ungroup() |>
-    group_by(Gradient, type) %>%
-    nest() %>%
-    mutate(test = map(data, ~{
-      mod = aov(proportion ~ process, data = .)
-      result = tidy(mod)
-    })) |>
-    unnest(test)
+  # dd <- variance_part |>
+  #   filter(process %in% c("turnover", "intraspecific")) |>
+  #   select(Gradient, trait_trans, process, proportion) |>
+  #   #pivot_wider(names_from = process, values_from = proportion) |>
+  #   mutate(type = if_else(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g"), "size", "nutrient"))
+  #
+  #
+  # dd |>
+  #   ungroup() |>
+  #   group_by(Gradient, type) %>%
+  #   nest() %>%
+  #   mutate(test = map(data, ~{
+  #     mod = aov(proportion ~ process, data = .)
+  #     result = tidy(mod)
+  #   })) |>
+  #   unnest(test)
 
 
   Group_plot <- fancy_trait_name_dictionary(variance_part) %>%
@@ -88,10 +88,9 @@ make_ITV_plot <- function(itv_output){
     mutate(sum = sum(proportion),
            proportion_standardized = proportion / sum) |>
     ungroup() |>
-    mutate(Group = case_when(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log") ~ "Size",
-                             trait_trans %in% c("SLA_cm2_g", "LDMC") ~ "Function",
+    mutate(Group = case_when(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "SLA_cm2_g", "LDMC") ~ "Morphology",
                              TRUE ~ "Nutrient"),
-           Group = factor(Group, levels = c("Size", "Function", "Nutrient"))) |>
+           Group = factor(Group, levels = c("Morphology", "Nutrient"))) |>
     group_by(Gradient, Group, process) |>
     summarise(proportion_standardized = mean(proportion_standardized)) |>
     mutate(process = recode(process, intraspecific = "ITV"),
@@ -118,8 +117,14 @@ make_ITV_plot <- function(itv_output){
     group_by(Gradient, trait_trans) |>
     mutate(sum = sum(proportion),
            proportion_standardized = proportion / sum) |>
+    ungroup() |>
     mutate(process = recode(process, intraspecific = "ITV"),
-           Gradient = recode(Gradient, B = "Nutrient input", C = "Reference")) %>%
+           Gradient = recode(Gradient, B = "Nutrient input", C = "Reference")) |>
+    # add * to size traits
+    mutate(trait_fancy = as.character(trait_fancy),
+           trait_fancy = if_else(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "SLA_cm2_g", "LDMC"), paste0(trait_fancy, "*"), trait_fancy)) |>
+    # make factor again and sort
+    mutate(trait_fancy = factor(trait_fancy, levels = c("Height cm*", "Dry mass g*", "Area cm2*", "Thickness mm*", "LDMC*", "SLA cm2/g*", "C %", "N %", "CN", "P %", "NP", "δC13 ‰", "δN15 ‰"))) |>
     ggplot(aes(x = trait_fancy, y = proportion_standardized, fill = process)) +
     geom_col() +
     geom_hline(yintercept = 0.5, colour = "grey", linetype = "dashed") +
