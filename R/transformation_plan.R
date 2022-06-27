@@ -116,7 +116,7 @@ transformation_plan <- list(
       complete(.id, level, trait_trans, fill = list(s = 0)) |>
       filter(level == "PlotID") |>
       group_by(Gradient, trait_trans) |>
-      summarise(q = quantile(s, prob = 0.25)) |>
+      summarise(q = quantile(s, prob = 0.25))
 
   ),
 
