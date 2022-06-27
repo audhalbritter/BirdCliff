@@ -164,9 +164,12 @@ si_figures_plan <- list(
       #check trait coverage
       imputation_plot <- trait_impute %>%
         autoplot(.) +
+        scale_fill_manual(labels = c("Plot", "Site", "Locality"),
+                          values = c("#56B4E9", "#009E73", "#E69F00")) +
         scale_y_continuous(breaks = c(0, 0.5, 1)) +
         scale_x_discrete(breaks = c("B_1_D", "B_2_D", "B_3_D", "B_4_D", "B_5_D", "C_1_D", "C_2_D", "C_3_D", "C_4_D", "C_5_D", "C_6_D", "C_7_D"),
                          labels = c("1", "2", "3", "4", "5", "1", "2", "3", "4", "5", "6", "7")) +
+
         facet_grid(trait_trans ~ Gradient, scales = "free_x",
                    labeller = labeller(Gradient = gradient, trait_trans = trait_names)) +
         labs(x = "Site") +
