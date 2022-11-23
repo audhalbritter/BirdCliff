@@ -231,7 +231,8 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     geom_text(data = trait_pca_B[[2]],
               aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy, colour = class),
               size = 2.5,
-              inherit.aes = FALSE) +
+              inherit.aes = FALSE,
+              show.legend = FALSE) +
     labs(x = "PC 1", y = "PC 2", tag = "(b)") +
     scale_x_continuous(expand = c(.2, 0)) +
     scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
@@ -274,7 +275,8 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
                        PC2 = PC2 *-1),
               aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy, colour = class),
               size = 2.5,
-              inherit.aes = FALSE) +
+              inherit.aes = FALSE,
+              show.legend = FALSE) +
     labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     scale_x_continuous(expand = c(.2, 0)) +
     scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
@@ -284,7 +286,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
           plot.tag.position = c(0, 1),
           plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
-  trait_ordination_plot <- wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom')
+  trait_ordination_plot <- wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom', legend.box="vertical")
 
   return(trait_ordination_plot)
 
