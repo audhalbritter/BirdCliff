@@ -147,6 +147,8 @@ make_trait_pca <- function(trait_mean){
 
   # make wide trait table
   cwm_fat <- trait_mean %>%
+    # remove nutrient ratio traits
+    filter(!trait_trans %in% c("CN_ratio", "NP_ratio")) |>
     group_by(Site) %>%
     mutate(Mean_elevation = mean(Elevation_m),
            GS = paste0(Gradient, Site)) %>%
@@ -223,16 +225,17 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
   arrow_B <- trait_pca_B[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
     geom_segment(data = trait_pca_B[[2]],
-                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2, colour = class),
                  arrow = arrow(length = unit(0.2, "cm")),
-                 colour = "grey50",
                  inherit.aes = FALSE) +
     geom_text(data = trait_pca_B[[2]],
-              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy),
+              aes(x = PC1 * 1.1,y = PC2 * 1.1, label = trait_fancy, colour = class),
               size = 2.5,
-              inherit.aes = FALSE, colour = "black") +
+              inherit.aes = FALSE) +
     labs(x = "PC 1", y = "PC 2", tag = "(b)") +
     scale_x_continuous(expand = c(.2, 0)) +
+    scale_colour_manual(name = "", values = c("#E69F00", "#56B4E9", "#009E73")) +
+    #guides(colour = "none") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 1),
@@ -262,19 +265,20 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     ggplot(aes(x = PC1, y = PC2)) +
     geom_segment(data = trait_pca_C[[2]] %>%
                    mutate(PC1 = PC1, #*-1,
-                          PC2 = PC2), #*-1),
-                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                          PC2 = PC2 *-1),
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2, color = class),
                  arrow = arrow(length = unit(0.2, "cm")),
-                 colour = "grey50",
                  inherit.aes = FALSE) +
     geom_text(data = trait_pca_C[[2]] %>%
                 mutate(PC1 = PC1, #*-1,
-                       PC2 = PC2), #*-1),
-              aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy),
+                       PC2 = PC2 *-1),
+              aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy, colour = class),
               size = 2.5,
-              inherit.aes = FALSE, colour = "black") +
+              inherit.aes = FALSE) +
     labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     scale_x_continuous(expand = c(.2, 0)) +
+    scale_colour_manual(name = "", values = c("#E69F00", "#56B4E9", "#009E73")) +
+    #guides(colour = "none") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 1),
