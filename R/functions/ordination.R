@@ -225,7 +225,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
   arrow_B <- trait_pca_B[[1]] %>%
     ggplot(aes(x = PC1, y = PC2)) +
     geom_segment(data = trait_pca_B[[2]],
-                 aes(x = 0, y = 0, xend = PC1, yend = PC2, colour = class),
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2, colour = class, linetype = class),
                  arrow = arrow(length = unit(0.2, "cm")),
                  inherit.aes = FALSE) +
     geom_text(data = trait_pca_B[[2]],
@@ -234,8 +234,8 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
               inherit.aes = FALSE) +
     labs(x = "PC 1", y = "PC 2", tag = "(b)") +
     scale_x_continuous(expand = c(.2, 0)) +
-    scale_colour_manual(name = "", values = c("#E69F00", "#56B4E9", "#009E73")) +
-    #guides(colour = "none") +
+    scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
+    scale_colour_manual(name = "", values = c("black", "grey40", "grey40")) +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 1),
@@ -266,20 +266,19 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     geom_segment(data = trait_pca_C[[2]] %>%
                    mutate(PC1 = PC1, #*-1,
                           PC2 = PC2 *-1),
-                 aes(x = 0, y = 0, xend = PC1, yend = PC2, linetype = class),
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2, colour = class, linetype = class),
                  arrow = arrow(length = unit(0.2, "cm")),
                  inherit.aes = FALSE) +
     geom_text(data = trait_pca_C[[2]] %>%
                 mutate(PC1 = PC1, #*-1,
                        PC2 = PC2 *-1),
-              aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy),
+              aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy, colour = class),
               size = 2.5,
               inherit.aes = FALSE) +
     labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     scale_x_continuous(expand = c(.2, 0)) +
-    scale_linetype_manual(name = "", values = c("solid", "dashed", "dotted")) +
-    #scale_colour_manual(name = "", values = c("#E69F00", "#56B4E9", "#009E73")) +
-    #guides(colour = "none") +
+    scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
+    scale_colour_manual(name = "", values = c("black", "grey40", "grey40")) +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 1),
