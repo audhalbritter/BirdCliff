@@ -266,18 +266,19 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     geom_segment(data = trait_pca_C[[2]] %>%
                    mutate(PC1 = PC1, #*-1,
                           PC2 = PC2 *-1),
-                 aes(x = 0, y = 0, xend = PC1, yend = PC2, color = class),
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2, linetype = class),
                  arrow = arrow(length = unit(0.2, "cm")),
                  inherit.aes = FALSE) +
     geom_text(data = trait_pca_C[[2]] %>%
                 mutate(PC1 = PC1, #*-1,
                        PC2 = PC2 *-1),
-              aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy, colour = class),
+              aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy),
               size = 2.5,
               inherit.aes = FALSE) +
     labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     scale_x_continuous(expand = c(.2, 0)) +
-    scale_colour_manual(name = "", values = c("#E69F00", "#56B4E9", "#009E73")) +
+    scale_linetype_manual(name = "", values = c("solid", "dashed", "dotted")) +
+    #scale_colour_manual(name = "", values = c("#E69F00", "#56B4E9", "#009E73")) +
     #guides(colour = "none") +
     theme_minimal() +
     theme(aspect.ratio = 1,
