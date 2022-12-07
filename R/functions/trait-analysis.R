@@ -1,375 +1,166 @@
-make_trait_figure <- function(trait_mean){
-
-  dat <- fancy_trait_name_dictionary(trait_mean)
-
-  #C_percent
-
-  #plot confidence
-  g0 <-  dat %>%
-    filter(trait_trans == "C_percent") %>%
-    ggplot(aes(x = Elevation_m, y = mean, colour = Gradient)) +
-    geom_point(alpha = 0.5) +
-    scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    facet_wrap(~ trait_fancy, scales = "free_y") +
-    labs(x = "", y = "", tag = "(g)") +
-    theme_minimal() +
-    theme(legend.position = "none",
-          aspect.ratio = 0.7,
-          plot.margin = margin(t = 0.5, r = 0.5, b = 0.5, l = 0.5),
-          plot.tag.position = c(0, 1),
-          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
-
-  gc <- g0 +
-    #geom_line(data = c) +
-    #geom_ribbon(data = c, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  #CN_ratio
-  dd <- dat %>%
-    filter(trait_trans == "CN_ratio")
-  fit <- lmer(mean ~ Gradient + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(mean = 0)
-  newdat$mean <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  cn <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = mean - cmult*sqrt(pvar1),
-           phi = mean + cmult*sqrt(pvar1),
-           tlo = mean - cmult*sqrt(tvar1),
-           thi = mean + cmult*sqrt(tvar1))
-
-  gcn <- g0 %+% subset(dat, trait_trans == "CN_ratio") +
-    geom_line(data = cn) +
-    geom_ribbon(data = cn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(tag = "(j)") +
-    annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1)
-
-
-
-
-  #dN15_permil
-  dd <- dat %>%
-    filter(trait_trans == "dN15_permil")
-  fit <- lmer(mean ~ Gradient * Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(mean = 0)
-  newdat$mean <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  dn <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = mean - cmult*sqrt(pvar1),
-           phi = mean + cmult*sqrt(pvar1),
-           tlo = mean - cmult*sqrt(tvar1),
-           thi = mean + cmult*sqrt(tvar1))
-
-  gdn <- g0 %+% subset(dat, trait_trans == "dN15_permil") +
-    geom_line(data = dn) +
-    geom_ribbon(data = dn, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(tag = "(m)") +
-    annotate("text", x = Inf, y = Inf, label = "NxE", size = 3, hjust = 1, vjust = 1)
-
-
-
-  #Dry_Mass_g_log
-  # dd <- dat %>%
-  #   filter(trait_trans == "Dry_Mass_g_log")
-  # fit <- lmer(mean ~ Gradient * Elevation_m + (1|Site), data = dd)
-  #
-  # newdat <- dd %>%
-  #   distinct(Elevation_m, Gradient) %>%
-  #   mutate(mean = 0)
-  # newdat$mean <-  predict(fit, newdat, re.form = NA)
-  #
-  # mm <- model.matrix(terms(fit), newdat)
-  #
-  # dry <- newdat %>%
-  #   mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-  #          tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-  #          cmult = 1.96) %>%
-  #   mutate(plo = mean - cmult*sqrt(pvar1),
-  #          phi = mean + cmult*sqrt(pvar1),
-  #          tlo = mean - cmult*sqrt(tvar1),
-  #          thi = mean + cmult*sqrt(tvar1))
-
-  gdry <- g0 %+% subset(dat, trait_trans == "Dry_Mass_g_log") +
-    #geom_line(data = dry) +
-    #geom_ribbon(data = dry, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
-    labs(tag = "(b)") +
-    theme(axis.text.x = element_blank())
-
-
-  #LDMC
-  dd <- dat %>%
-    filter(trait_trans == "LDMC")
-  fit <- lmer(mean ~ Gradient + Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(mean = 0)
-  newdat$mean <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  ldmc <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = mean - cmult*sqrt(pvar1),
-           phi = mean + cmult*sqrt(pvar1),
-           tlo = mean - cmult*sqrt(tvar1),
-           thi = mean + cmult*sqrt(tvar1))
-
-  gldmc <- g0 %+% subset(dat, trait_trans == "LDMC") +
-    geom_line(data = ldmc) +
-    geom_ribbon(data = ldmc, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(tag = "(f)") +
-    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  #Leaf_Area_cm2_log
-  dd <- dat %>%
-    filter(trait_trans == "Leaf_Area_cm2_log")
-  fit <- lmer(mean ~ Gradient + Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(mean = 0)
-  newdat$mean <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  area <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = mean - cmult*sqrt(pvar1),
-           phi = mean + cmult*sqrt(pvar1),
-           tlo = mean - cmult*sqrt(tvar1),
-           thi = mean + cmult*sqrt(tvar1))
-
-  garea <- g0 %+% subset(dat, trait_trans == "Leaf_Area_cm2_log") +
-    geom_line(data = area) +
-    geom_ribbon(data = area, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(tag = "(c)") +
-    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  #N_percent
-  dd <- dat %>%
-    filter(trait_trans == "N_percent")
-  fit <- lmer(mean ~ Gradient + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(mean = 0)
-  newdat$mean <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  n <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = mean - cmult*sqrt(pvar1),
-           phi = mean + cmult*sqrt(pvar1),
-           tlo = mean - cmult*sqrt(tvar1),
-           thi = mean + cmult*sqrt(tvar1))
-
-  gn <- g0 %+% subset(dat, trait_trans == "N_percent") +
-    geom_line(data = n) +
-    geom_ribbon(data = n, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(tag = "(i)") +
-    annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  #NP_ratio
-  # dd <- dat %>%
-  #   filter(trait_trans == "NP_ratio")
-  # fit <- lmer(mean ~ Gradient * Elevation_m + (1|Site), data = dd)
-  #
-  # newdat <- dd %>%
-  #   distinct(Elevation_m, Gradient) %>%
-  #   mutate(mean = 0)
-  # newdat$mean <-  predict(fit, newdat, re.form = NA)
-  #
-  # mm <- model.matrix(terms(fit), newdat)
-  #
-  # np <- newdat %>%
-  #   mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-  #          tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-  #          cmult = 1.96) %>%
-  #   mutate(plo = mean - cmult*sqrt(pvar1),
-  #          phi = mean + cmult*sqrt(pvar1),
-  #          tlo = mean - cmult*sqrt(tvar1),
-  #          thi = mean + cmult*sqrt(tvar1))
-
-  gnp <- g0 %+% subset(dat, trait_trans == "NP_ratio") +
-    #geom_line(data = np) +
-    #geom_ribbon(data = np, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
-    labs(tag = "(l)")
-
-
-  #P_percent
-  # dd <- dat %>%
-  #   filter(trait_trans == "P_percent")
-  # fit <- lmer(mean ~ Gradient * Elevation_m + (1|Site), data = dd)
-  #
-  # newdat <- dd %>%
-  #   distinct(Elevation_m, Gradient) %>%
-  #   mutate(mean = 0)
-  # newdat$mean <-  predict(fit, newdat, re.form = NA)
-  #
-  # mm <- model.matrix(terms(fit), newdat)
-  #
-  # p <- newdat %>%
-  #   mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-  #          tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-  #          cmult = 1.96) %>%
-  #   mutate(plo = mean - cmult*sqrt(pvar1),
-  #          phi = mean + cmult*sqrt(pvar1),
-  #          tlo = mean - cmult*sqrt(tvar1),
-  #          thi = mean + cmult*sqrt(tvar1))
-
-  gp <- g0 %+% subset(dat, trait_trans == "P_percent") +
-    #geom_line(data = p) +
-    #geom_ribbon(data = p, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
-    labs(tag = "(k)")
-
-
-  #Plant_Height_cm_log
-  dd <- dat %>%
-    filter(trait_trans == "Plant_Height_cm_log")
-  fit <- lmer(mean ~ Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(mean = 0)
-  newdat$mean <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  height <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = mean - cmult*sqrt(pvar1),
-           phi = mean + cmult*sqrt(pvar1),
-           tlo = mean - cmult*sqrt(tvar1),
-           thi = mean + cmult*sqrt(tvar1))
-
-  gheight <- g0 %+% subset(dat, trait_trans == "Plant_Height_cm_log") +
-    geom_line(data = height) +
-    geom_ribbon(data = height, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(tag = "(a)") +
-    annotate("text", x = Inf, y = Inf, label = "E", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  #SLA_cm2_g
-  gsla <- g0 %+% subset(dat, trait_trans == "SLA_cm2_g") +
-    #geom_smooth(method = "lm", linetype = "dashed", size = 0.5, aes(fill = Gradient)) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(y = "Bootstrapped trait mean", tag = "(e)") +
-    theme(axis.text.x = element_blank(),
-          axis.title.y = element_text(margin = margin(r = 20)))
-
-  #dC13_permil
-  gdC13 <- g0 %+% subset(dat, trait_trans == "dC13_permil") +
-    #geom_smooth(method = "lm", linetype = "dashed", size = 0.5, aes(fill = Gradient)) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(tag = "(h)") +
-    theme(axis.text.x = element_blank(),
-          axis.title.y = element_text(margin = margin(r = 20)))
-
-
-  #Thickness_mm_log
-  # dd <- dat %>%
-  #   filter(trait_trans == "Thickness_mm_log")
-  # fit <- lmer(mean ~ Gradient * Elevation_m + (1|Site), data = dd)
-  #
-  # newdat <- dd %>%
-  #   distinct(Elevation_m, Gradient) %>%
-  #   mutate(mean = 0)
-  # newdat$mean <-  predict(fit, newdat, re.form = NA)
-  #
-  # mm <- model.matrix(terms(fit), newdat)
-  #
-  # thick <- newdat %>%
-  #   mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-  #          tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-  #          cmult = 1.96) %>%
-  #   mutate(plo = mean - cmult*sqrt(pvar1),
-  #          phi = mean + cmult*sqrt(pvar1),
-  #          tlo = mean - cmult*sqrt(tvar1),
-  #          thi = mean + cmult*sqrt(tvar1))
-
-  gthick <- g0 %+% subset(dat, trait_trans == "Thickness_mm_log") +
-    #geom_line(data = thick) +
-    #geom_ribbon(data = thick, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
-    labs(tag = "(d)") +
-    theme(axis.text.x = element_blank())
-
-
-
-  # patchwork
-  p2 <- ggplot() +
-    annotate("text", x = 1, y = 2, label = "Elevation m a.s.l.") +
-    theme_void()
-
-  library(cowplot)
-  legend <- gheight + theme(legend.position = "right")
-  legend <- cowplot::get_legend(legend)
-
-
-  layout <- "
-  ABCD
-  ABCD
-  EFGH
-  EFGH
-  IJKL
-  IJKL
-  MNNN
-  MNNN
-  OOOO
-"
-
-  trait_plot <- wrap_plots(gheight, gdry, garea, gthick, gsla, gldmc, gc, gdC13, gn, gcn, gp, gnp, gdn) + legend + p2  + plot_layout(design = layout)
-
-  return(trait_plot)
+### TRAIT ANALYSIS
+
+# test linear vs polynomial model
+lin_vs_poly_model <- function(trait_mean){
+
+  trait_mean |>
+    group_by(trait_trans) |>
+    nest() |>
+    mutate(lin_mod = map(data, ~ safely(lmer)(mean ~  Gradient * Elevation_m + (1|GS), data = .x)$result),
+           poly_mod = map(data, ~ safely(lmer)(mean ~  Gradient * poly(Elevation_m, 2) + (1|GS), data = .x)$result),
+           mod_aic = map2(.x = lin_mod, .y = poly_mod, .f = AIC)) |>
+    unnest(col = mod_aic)
+}
+
+likelihood_ratio_test <- function(trait_mean){
+
+  trait_mean |>
+    filter(trait_trans != "SLA_cm2_g") |>
+    group_by(trait_trans) |>
+    nest() |>
+    mutate(LTR = map(data, ~{
+      # models
+      ExN = lmer(mean ~  Gradient * poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+      EplusN = lmer(mean ~  Gradient + poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+      N = lmer(mean ~  Gradient + (1|GS), REML=FALSE, data = .x)
+      E = lmer(mean ~  poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+      Null = lmer(mean ~  1 + (1|GS), REML=FALSE, data = .x)
+      # ltr
+      test = anova(ExN, EplusN, N, E, Null)
+      })) |>
+    unnest(LTR) |> print(n = Inf)
+
+}
+
+#singular fit issue: LDMC, Dry mass, LA, dC13,
+# dat <- trait_mean |>
+#   filter(trait_trans == "dN15_permil")
+# ExN = lmer(mean ~  Gradient * poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = dat)
+# EplusN = lmer(mean ~  Gradient + poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = dat)
+# N = lmer(mean ~  Gradient + (1|GS), REML=FALSE, data = dat)
+# E = lmer(mean ~  poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = dat)
+# Null = lmer(mean ~  1 + (1|GS), REML=FALSE, data = dat)
+#test = anova(ExN, EplusN, N, E, Null)
+
+
+# run full model
+# trait_mean %>%
+#   group_by(trait_trans) %>%
+#   nest(data = -c(trait_trans)) %>%
+#   mutate(model = map(data, ~ safely(lmer)(mean ~  Gradient * Elevation_m + (1|GS), data = .)$result),
+#          # add performance
+#          tidy_result = map(model, tidy)) %>%
+#   unnest(tidy_result)
+
+# make model selection to find
+make_trait_model_selection <- function(trait_mean){
+
+  model.sel <- trait_mean %>%
+    group_by(trait_trans) %>%
+    nest(data = -c(trait_trans)) %>%
+    mutate(model.set = map(data, ~{
+      mod <- lmer(mean ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
+      model.set = dredge(mod, rank = "AICc", extra = "R^2")
+    })) %>%
+    unnest(model.set)
+
+  return(model.sel)
 
 }
 
 
+# make prediction for lmer
+lmer_prediction <- function(dat, fit){
+
+  newdat <- dat %>%
+    select(Gradient, Elevation_m) %>%
+    mutate(mean = 0)
+  newdat$mean <- predict(fit, newdat, re.form = NA)
+
+  mm <- model.matrix(terms(fit), newdat)
+
+  prediction <- newdat %>%
+    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
+           tvar1 = pvar1 + VarCorr(fit)$GS[1],  ## must be adapted for more complex models
+           cmult = 1.96) %>%
+    mutate(plo = mean - cmult*sqrt(pvar1),
+           phi = mean + cmult*sqrt(pvar1),
+           tlo = mean - cmult*sqrt(tvar1),
+           thi = mean + cmult*sqrt(tvar1))
+
+  return(prediction)
+}
+
+
+run_best_model_for_prediction <- function(trait_mean){
+
+  #best_model
+  out <- fancy_trait_name_dictionary(trait_mean) |>
+    # add best model (info from model selection)
+    mutate(best_model = case_when(trait_trans == "Plant_Height_cm_log" ~ "mean ~ Elevation_m + (1|GS)",
+                                  trait_trans %in% c("CN_ratio", "N_percent", "dC13_permil") ~ "mean ~ Gradient + (1|GS)",
+                                  trait_trans %in% c("Leaf_Area_cm2_log", "LDMC") ~ "mean ~ Gradient + Elevation_m + (1|GS)",
+                                  trait_trans %in% c("SLA_cm2_g", "dN15_permil") ~ "mean ~ Gradient * Elevation_m + (1|GS)",
+                                  TRUE ~ "mean ~ 1 + (1|GS)"),
+           # text for model selection
+           # text = case_when(trait_trans == "Plant_Height_cm_log" ~ "E",
+           #                        trait_trans %in% c("CN_ratio", "N_percent", "dC13_permil") ~ "N",
+           #                        trait_trans %in% c("Leaf_Area_cm2_log", "LDMC") ~ "N+E",
+           #                        trait_trans %in% c("SLA_cm2_g", "dN15_permil") ~ "NxE",
+           #                        TRUE ~ "NULL")
+           # text for full LRT
+           text = case_when(trait_trans %in% c("NP_ratio", "dC13_permil") ~ "Null",
+                            trait_trans %in% c("CN_ratio", "N_percent") ~ "N",
+                            TRUE ~ "NxE")
+           ) |>
+    # run model
+    group_by(trait_trans, best_model, text) |>
+    nest() |>
+    mutate(
+      # run best model
+      #model = map(data, ~ safely(lmer)(formula = best_model, data = .)$result),
+      # run full model
+      model = map(data, ~ safely(lmer)(mean ~  Gradient * poly(Elevation_m, 2) + (1|GS), data = .x)$result),
+           # model output
+           model_output = map(model, tidy),
+           r = map(model, r.squaredGLMM),
+           r = map(r, as.numeric),
+           # make model prediction
+           prediction = map2(.x = data, .y = model, ~ safely(lmer_prediction)(.x, .y)$result))
+
+  return(out)
+
+}
+
+
+
+# trait output: model output and r2
+make_trait_output <- function(community_trait_model){
+
+  community_trait_model |>
+    select(-data, -model, -prediction, -r) |>
+    unnest(model_output) %>%
+    fancy_trait_name_dictionary(.) %>%
+    filter(effect == "fixed") %>%
+    ungroup() |>
+    select(Trait = trait_fancy, text, term, estimate:statistic, class) %>%
+    mutate(term = recode(term, "(Intercept)" = "Intercept", "Elevation_m" = "E", "GradientC" = "G", "GradientC:Elevation_m" = "GxE")) %>%
+    # join R squared
+    left_join(community_trait_model |>
+                select(-data, -model, -prediction, -model_output) |>
+                unnest_wider(col = r) |>
+                rename(Rm = ...1, Rc = ...2) |>
+                ungroup() %>%
+                fancy_trait_name_dictionary(.) %>%
+                select(trait_fancy, Rm, Rc),
+              by = c("Trait" = "trait_fancy")) %>%
+    mutate(estimate = round(estimate, digits = 2),
+           std.error = round(std.error, digits = 2),
+           statistic = round(statistic, digits = 2),
+           Rm = round(Rm, digits = 2),
+           Rc = round(Rc, digits = 2)) %>%
+    select(Class = class, Trait, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
+    arrange(Trait) %>%
+    write_csv(., file = "output/Community_trait_regression_output.csv")
+
+}
