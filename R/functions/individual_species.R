@@ -1,21 +1,9 @@
-# traits_raw %>% distinct(Taxon)
-#
-# # choosing species and traits
-# traits_raw %>%
-#   distinct(Gradient, Site, Taxon) %>%
-#   group_by(Gradient, Taxon) %>%
-#   count() %>%
-#   filter(n > 3)
-#
-# bryo_traits_raw %>%
-#   distinct(Gradient, Site, Taxon) %>%
-#   group_by(Gradient, Taxon) %>%
-#   count()
+#### INDIVIDUAL LEVEL TRAITS
 
-
+# combine vascular and bryo traits
 combine_traits <- function(traits_raw, bryo_traits_raw){
 
-  # cobmine species vascular and bryophytes
+  # combine species vascular and bryophytes
   ind_traits <- bind_rows(traits_raw %>%
                             filter(Taxon %in% c("luzula confusa", "salix polaris"),
                                    trait_trans %in% c("Plant_Height_cm_log", "Leaf_Area_cm2_log", "LDMC", "N_percent", "dN15_permil")),
@@ -33,446 +21,96 @@ combine_traits <- function(traits_raw, bryo_traits_raw){
 
 #### VASCULAR PLANTS
 
-# Model selection (DOES NOT RUN!!!)
-# run_ind_model_sel <- function(ind_traits){
-#
-#   ind_traits %>%
-#     filter(Functional_group == "vascular", Taxon == "salix polaris") %>%
-#     group_by(Taxon, trait_trans) %>%
-#     mutate(model.set = map(data, ~{
-#       mod <- lmer(Value ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
-#       model.set = dredge(mod, rank = "AICc", extra = "R^2")
-#     })) %>%
-#     unnest(model.set)
-#
-# }
+likelihood_ratio_test_vasc <- function(ind_traits){
 
+  ind_traits |>
+    filter(Functional_group == "vascular") |>
+    group_by(Taxon, trait_trans) |>
+    nest() |>
+    mutate(LTR = map(data, ~{
 
-# Run models for single species
-run_vascular_plant_models <- function(ind_traits){
+      if (Taxon == "salix polaris" & trait_trans == "dN15_permil") {
 
-  ### NULL MODEL
-  dat <- ind_traits %>%
-    filter(Taxon == "salix polaris" &  trait_trans %in% c("Leaf_Area_cm2_log", "N_percent"))
+        # linear model
+        ExN = lmer(Value ~  Gradient * Elevation_m + (1|GS), REML=FALSE, data = .x)
+        EplusN = lmer(Value ~  Gradient + Elevation_m + (1|GS), REML=FALSE, data = .x)
+        N = lmer(Value ~  Gradient + (1|GS), REML=FALSE, data = .x)
+        E = lmer(Value ~  Elevation_m + (1|GS), REML=FALSE, data = .x)
+        Null = lmer(Value ~  1 + (1|GS), REML=FALSE, data = .x)
+        # lr test
+        test = anova(ExN, EplusN, N, E, Null)
 
-  estimate_n <- dat %>%
-    group_by(Taxon, trait_trans) %>%
-    nest(data = -c(Taxon, trait_trans)) %>%
-    mutate(estimate = map(data, ~{
-      mod <- lmer(value_trans ~ 1 + (1|GS), data =  .x)
-      estimates = broom.mixed::tidy(mod)
-    })) %>%
-    unnest(estimate)
+      } else {
 
-  r_square_n <- dat %>%
-    group_by(Taxon, trait_trans) %>%
-    nest(data = -c(Taxon, trait_trans)) %>%
-    mutate(r = map(data, ~{
-      mod <- lmer(value_trans ~ 1 + (1|GS), data =  .x)
-      r = as.numeric(r.squaredGLMM(mod))
-    })) %>%
-    unnest_wider(col = r) %>%
-    select(Taxon, trait_trans, "Rm" = "...1", "Rc" = "...2")
+        # quadratic model
+        ExN = lmer(Value ~  Gradient * poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+        EplusN = lmer(Value ~  Gradient + poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+        N = lmer(Value ~  Gradient + (1|GS), REML=FALSE, data = .x)
+        E = lmer(Value ~  poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+        Null = lmer(Value ~  1 + (1|GS), REML=FALSE, data = .x)
+        # lr test
+        test = anova(ExN, EplusN, N, E, Null)
 
+      }
+    })) |>
+    unnest(LTR)
 
-  ### GRADIENT MODEL
-  dat <- ind_traits %>%
-    filter(Taxon == "salix polaris" &  trait_trans == "dN15_permil" |
-             Taxon == "luzula confusa" & trait_trans == "N_percent")
-
-  estimate_g <- dat %>%
-    group_by(Taxon, trait_trans) %>%
-    nest(data = -c(Taxon, trait_trans)) %>%
-    mutate(estimate = map(data, ~{
-      mod <- lmer(value_trans ~ Gradient + (1|GS), data =  .x)
-      estimates = broom.mixed::tidy(mod)
-    })) %>%
-    unnest(estimate)
-
-  r_square_g <- dat %>%
-    group_by(Taxon, trait_trans) %>%
-    nest(data = -c(Taxon, trait_trans)) %>%
-    mutate(r = map(data, ~{
-      mod <- lmer(value_trans ~ Gradient + (1|GS), data =  .x)
-      r = as.numeric(r.squaredGLMM(mod))
-    })) %>%
-    unnest_wider(col = r) %>%
-    select(Taxon, trait_trans, "Rm" = "...1", "Rc" = "...2")
-
-
-  ### GRADIENT + ELEVATION MODEL
-  dat <- ind_traits %>%
-    filter(Taxon == "salix polaris" & trait_trans == "LDMC" |
-             Taxon == "luzula confusa"  & trait_trans %in% c("Plant_Height_cm_log", "Leaf_Area_cm2_log"))
-
-  estimate_ge <- dat %>%
-    group_by(Taxon, trait_trans) %>%
-    nest(data = -c(Taxon, trait_trans)) %>%
-    mutate(estimate = map(data, ~{
-      mod <- lmer(value_trans ~ Gradient + Elevation_m + (1|GS), data =  .x)
-      estimates = broom.mixed::tidy(mod)
-    })) %>%
-    unnest(estimate)
-
-  r_square_ge <- dat %>%
-    group_by(Taxon, trait_trans) %>%
-    nest(data = -c(Taxon, trait_trans)) %>%
-    mutate(r = map(data, ~{
-      mod <- lmer(value_trans ~ Gradient + Elevation_m + (1|GS), data =  .x)
-      r = as.numeric(r.squaredGLMM(mod))
-    })) %>%
-    unnest_wider(col = r) %>%
-    select(Taxon, trait_trans, "Rm" = "...1", "Rc" = "...2")
-
-
-  ### GRADIENT * ELEVATION MODEL
-  dat <- ind_traits %>%
-    filter(Taxon %in% c("luzula confusa")  & trait_trans %in% c("LDMC", "dN15_permil"))
-
-  estimate_gxe <- dat %>%
-    group_by(Taxon, trait_trans) %>%
-    nest(data = -c(Taxon, trait_trans)) %>%
-    mutate(estimate = map(data, ~{
-      mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
-      estimates = broom.mixed::tidy(mod)
-    })) %>%
-    unnest(estimate)
-
-  r_square_gxe <- dat %>%
-    group_by(Taxon, trait_trans) %>%
-    nest(data = -c(Taxon, trait_trans)) %>%
-    mutate(r = map(data, ~{
-      mod <- lmer(value_trans ~ Gradient * Elevation_m + (1|GS), data =  .x)
-      r = as.numeric(r.squaredGLMM(mod))
-    })) %>%
-    unnest_wider(col = r) %>%
-    select(Taxon, trait_trans, "Rm" = "...1", "Rc" = "...2")
-
-
-  estimate <- bind_rows(
-    Null = estimate_n,
-    G = estimate_g,
-    GE = estimate_ge,
-    GxE = estimate_gxe,
-    .id = "Best_model"
-  )
-
-  r <- bind_rows(
-    Null = r_square_n,
-    G = r_square_g,
-    GE = r_square_ge,
-    GxE = r_square_gxe,
-    .id = "Best_model"
-  )
-
-  # save output
-  # best model
-  best_ind_model <- ind_traits %>%
-    filter(Functional_group == "vascular") %>%
-    distinct(Taxon, trait_trans) %>%
-    mutate(best = c("NA", "Null", "N+E", "Null", "N", "N+E", "N+E", "NxE", "N", "NxE"))
-
-  fancy_trait_name_dictionary(estimate) %>%
-    filter(effect == "fixed") %>%
-    left_join(best_ind_model, by = c("Taxon", "trait_trans")) %>%
-    select(Trait = trait_fancy, Model = best, term, estimate:statistic) %>%
-    mutate(term = recode(term, "(Intercept)" = "Intercept", "Elevation_m" = "E", "GradientC" = "N", "GradientC:Elevation_m" = "NxE")) %>%
-    left_join(r %>%
-                select(trait_trans, Rm, Rc), by = c("trait_trans", "Taxon")) %>%
-    mutate(estimate = round(estimate, digits = 2),
-           std.error = round(std.error, digits = 2),
-           statistic = round(statistic, digits = 2),
-           Rm = round(Rm, digits = 2),
-           Rc = round(Rc, digits = 2)) %>%
-    ungroup() %>%
-    select(-trait_trans, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
-    arrange(Taxon, Trait) %>%
-    write_csv(., file = "output/Ind_sp_regression_output.csv")
-
-  return(list(estimate, r))
 }
 
 
+# trait figure
+make_vascular_figure <- function(vascular_model_output){
 
+  out <- vascular_model_output |>
+    # merge data and prediction
+    mutate(output = map2(.x = data, .y = prediction, ~ bind_cols(.x, .y))) |>
+    select(-data, -singular, -aic, -prediction, -mod, -model_output, -r) |>
+    unnest(output) |>
+    rename(Value = .response...11, fitted = .response...19, Gradient = Gradient...4, Elevation_m = .continous_predictor...12) |>
+    select(-.continous_predictor...18, -Gradient...17) %>%
+    fancy_trait_name_dictionary(.) |>
+    mutate(Taxon = recode(Taxon,
+                          "luzula confusa" = "Luzula confusa",
+                          "salix polaris" = "Salix polaris"))
 
-make_ind_vascular_plant_plot <- function(ind_traits){
-
-  #### VASCULAR PLANTS PLOT
-  v_dat <- fancy_trait_name_dictionary(ind_traits) %>%
-    filter(Functional_group == "vascular")
-
-  ### Salix - LDMC
-  dd <- v_dat %>%
-    filter(Taxon == "salix polaris",
-           trait_trans == "LDMC")
-  fit <- lmer(value_trans ~ Gradient + Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(value_trans = 0)
-  newdat$value_trans <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  s_ldmc <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = value_trans - cmult*sqrt(pvar1),
-           phi = value_trans + cmult*sqrt(pvar1),
-           tlo = value_trans - cmult*sqrt(tvar1),
-           thi = value_trans + cmult*sqrt(tvar1))
-
-  g0 <- v_dat |>
-    filter(Taxon == "salix polaris",
-           trait_trans == "LDMC") |>
-    ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient, fill = Gradient)) +
+  out |>
+    ggplot(aes(x = Elevation_m, y = Value, colour = Gradient)) +
     geom_point(alpha = 0.5) +
-    scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    labs(x = "", y = "") +
+    geom_line(aes(y = fitted, colour = Gradient)) +
+    geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
+    scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+    scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+    labs(x = "Elevation m a.s.l.", y = "Trait mean") +
+    # add label
+    geom_text(data = out |>
+                ungroup() |>
+                distinct(Taxon, trait_trans, trait_fancy, text),
+              aes(x = Inf, y = Inf, label = text),
+              size = 3, colour = "black", hjust = 1, vjust = 1) +
+    facet_grid(trait_fancy ~ Taxon, scales = "free") +
     theme_minimal() +
-    theme(legend.position = "bottom",
-          plot.title = element_text(size = 10),
-          text = element_text(size = 8),
-          aspect.ratio = 0.7)
-
-  gs_ldmc <- g0 +
-    geom_line(data = s_ldmc) +
-    geom_ribbon(data = s_ldmc, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  ### Salix - height
-  fake_data <- s_ldmc |>
-    slice(0)
-
-  gs_height <- g0 %+% subset(v_dat, trait_trans == "Plant_Height_cm_log") +
-    geom_line(data = fake_data) +
-    geom_ribbon(data = fake_data, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    labs(title = expression(italic("Salix polaris"))) +
-    #annotate("text", x = -Inf, y = Inf, label = "(b)", size = 3, hjust = 0, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  ### Salix - area
-  gs_area <- g0 %+% subset(v_dat, trait_trans == "Leaf_Area_cm2_log") +
-    geom_line(data = fake_data) +
-    geom_ribbon(data = fake_data, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    #annotate("text", x = -Inf, y = Inf, label = "(d)", size = 3, hjust = 0, vjust = 1) +
-    annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-
-  ### Salix - N_percent
-  gs_N <- g0 %+% subset(v_dat, trait_trans == "N_percent") +
-    geom_line(data = fake_data) +
-    geom_ribbon(data = fake_data, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    annotate("text", x = Inf, y = Inf, label = "Null", size = 3, hjust = 1, vjust = 1)
-    #annotate("text", x = -Inf, y = Inf, label = "(h)", size = 3, hjust = 0, vjust = 1)
-
-
-
-  ### Salix - dN15
-  dd <- v_dat %>%
-    filter(Taxon == "salix polaris",
-           trait_trans == "dN15_permil")
-  fit <- lmer(value_trans ~ Gradient + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Gradient, Elevation_m) %>%
-    mutate(value_trans = 0)
-  newdat$value_trans <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  s_dN15 <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = value_trans - cmult*sqrt(pvar1),
-           phi = value_trans + cmult*sqrt(pvar1),
-           tlo = value_trans - cmult*sqrt(tvar1),
-           thi = value_trans + cmult*sqrt(tvar1))
-
-
-  gs_dN15 <- g0 %+% subset(v_dat, trait_trans == "dN15_permil") +
-    geom_line(data = s_dN15) +
-    geom_ribbon(data = s_dN15, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    labs(x = "Elevation in m a.s.l.") +
-    annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1)
-
-
-  ### LUZULA - Plant_Height_cm_log
-  dd <- v_dat %>%
-    filter(Taxon == "luzula confusa",
-           trait_trans == "Plant_Height_cm_log")
-  fit <- lmer(value_trans ~ Gradient + Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(value_trans = 0)
-  newdat$value_trans <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  l_height <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = value_trans - cmult*sqrt(pvar1),
-           phi = value_trans + cmult*sqrt(pvar1),
-           tlo = value_trans - cmult*sqrt(tvar1),
-           thi = value_trans + cmult*sqrt(tvar1))
-
-
-  gl_height <- g0 %+% subset(v_dat, trait_trans == "Plant_Height_cm_log") +
-    geom_line(data = l_height) +
-    geom_ribbon(data = l_height, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    labs(y = "Height cm", title = expression(italic("Luzula confusa"))) +
-    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  ### luzula - Leaf_Area_cm2_log
-  dd <- v_dat %>%
-    filter(Taxon == "luzula confusa",
-           trait_trans == "Leaf_Area_cm2_log")
-  fit <- lmer(value_trans ~ Gradient + Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(value_trans = 0)
-  newdat$value_trans <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  l_area <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = value_trans - cmult*sqrt(pvar1),
-           phi = value_trans + cmult*sqrt(pvar1),
-           tlo = value_trans - cmult*sqrt(tvar1),
-           thi = value_trans + cmult*sqrt(tvar1))
-
-
-  gl_area <- g0 %+% subset(v_dat, trait_trans == "Leaf_Area_cm2_log") +
-    geom_line(data = l_area) +
-    geom_ribbon(data = l_area, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    labs(y = "Area cm2") +
-    annotate("text", x = Inf, y = Inf, label = "N+E", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-
-  ### luzula - LDMC
-  dd <- v_dat %>%
-    filter(Taxon == "luzula confusa",
-           trait_trans == "LDMC")
-  fit <- lmer(value_trans ~ Gradient * Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(value_trans = 0)
-  newdat$value_trans <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  l_ldmc <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = value_trans - cmult*sqrt(pvar1),
-           phi = value_trans + cmult*sqrt(pvar1),
-           tlo = value_trans - cmult*sqrt(tvar1),
-           thi = value_trans + cmult*sqrt(tvar1))
-
-
-  gl_ldmc <- g0 %+% subset(v_dat, trait_trans == "LDMC") +
-    geom_line(data = l_ldmc) +
-    geom_ribbon(data = l_ldmc, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    labs(y = "LDMC") +
-    annotate("text", x = Inf, y = Inf, label = "NxE", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  ### luzula - N
-  dd <- v_dat %>%
-    filter(Taxon == "luzula confusa",
-           trait_trans == "N_percent")
-  fit <- lmer(value_trans ~ Gradient + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(value_trans = 0)
-  newdat$value_trans <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  l_N <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = value_trans - cmult*sqrt(pvar1),
-           phi = value_trans + cmult*sqrt(pvar1),
-           tlo = value_trans - cmult*sqrt(tvar1),
-           thi = value_trans + cmult*sqrt(tvar1))
-
-
-  gl_N <- g0 %+% subset(v_dat, trait_trans == "N_percent") +
-    geom_line(data = l_N) +
-    geom_ribbon(data = l_N, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    labs(y = "N %") +
-    annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1) +
-    theme(axis.text.x = element_blank())
-
-
-  ### luzula - dN15_permil
-  dd <- v_dat %>%
-    filter(Taxon == "luzula confusa",
-           trait_trans == "dN15_permil")
-  fit <- lmer(value_trans ~ Gradient * Elevation_m + (1|Site), data = dd)
-
-  newdat <- dd %>%
-    distinct(Elevation_m, Gradient) %>%
-    mutate(value_trans = 0)
-  newdat$value_trans <-  predict(fit, newdat, re.form = NA)
-
-  mm <- model.matrix(terms(fit), newdat)
-
-  l_dN15 <- newdat %>%
-    mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-           tvar1 = pvar1 + VarCorr(fit)$Site[1],  ## must be adapted for more complex models
-           cmult = 1.96) %>%
-    mutate(plo = value_trans - cmult*sqrt(pvar1),
-           phi = value_trans + cmult*sqrt(pvar1),
-           tlo = value_trans - cmult*sqrt(tvar1),
-           thi = value_trans + cmult*sqrt(tvar1))
-
-
-  gl_dN15 <- g0 %+% subset(v_dat, trait_trans == "dN15_permil") +
-    geom_line(data = l_dN15) +
-    geom_ribbon(data = l_dN15, aes(ymin = plo, ymax = phi), alpha = 0.3, linetype = 0) +
-    labs(y = "δN15 ‰", x = "Elevation in m a.s.l.") +
-  annotate("text", x = Inf, y = Inf, label = "NxE", size = 3, hjust = 1, vjust = 1)
-
-
-  ind_sp_traits <- wrap_plots(gl_height, gs_height,
-             gl_area, gs_area,
-             gl_ldmc, gs_ldmc,
-             gl_N, gs_N,
-             gl_dN15, gs_dN15, ncol = 2) +
-    plot_layout(guides = 'collect') & theme(legend.position = 'bottom')
-
-  return(ind_sp_traits)
+    theme(legend.position = "top",
+          strip.text.x = element_text(face = "italic"))
 
 }
 
 
-### BROPHYTES
+### BRYOPHYTES
+
+lin_poly_bryophytes <- function(ind_traits){
+
+  ind_traits |>
+    filter(Functional_group == "bryophyte") |>
+    group_by(Taxon, trait_trans) |>
+    nest() |>
+    mutate(lin_mod = map(data, ~ safely(lm)(value_trans ~  Gradient * Elevation_m, data = .x)$result),
+           poly_mod = map(data, ~ safely(lm)(value_trans ~  Gradient * poly(Elevation_m, 2), data = .x)$result),
+           mod_aic = map2(.x = lin_mod, .y = poly_mod, .f = AIC)) |>
+    unnest(col = mod_aic) |>
+    mutate(Model = c("linear", "quadratic")) |>
+    filter(AIC == min(AIC))
+
+}
 
 
 # bryophyte models
@@ -521,11 +159,12 @@ make_bryo_figure <- function(ind_traits, bryo_trait_output){
            Taxon = recode(Taxon, "sanionia sp" = "Sanionia sp", "hylocomium splendens" = "Hylocomium splendens", "aulacomnium turgidum" = "Aulacomnium turgidum"))
 
   bryo_plot <- b_dat |>
-    ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient, linetype = pvalue)) +
+    ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient, linetype = pvalue, shape = class)) +
     geom_point(alpha = 0.5) +
     geom_smooth(mapping = aes(fill = Gradient), b_dat |> filter(pvalue == "sign"), method = "lm", se = TRUE) +
     scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
     scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+    scale_shape_manual(values = c(16, 17)) +
     labs(x = "Elevation in m a.s.l.", y = "Trait value") +
     geom_text(ata = b_dat |> distinct(Taxon, trait_fancy, term) , aes(x = Inf, y = Inf, label = term), size = 3, colour = "black", hjust = 1, vjust = 1) +
     facet_grid(trait_fancy ~ Taxon, scales = "free_y") +
@@ -535,6 +174,29 @@ make_bryo_figure <- function(ind_traits, bryo_trait_output){
           strip.text.x = element_text(face = "italic"),
           aspect.ratio = 0.7) +
     guides(linetype = "none")
+
+  # bryo_plot_leaf_eco <- b_dat |>
+  #   filter(class == "Leaf economic") |>
+  #   ggplot(aes(x = Elevation_m, y = value_trans, colour = Gradient, linetype = pvalue)) +
+  #   geom_point(alpha = 0.5) +
+  #   geom_smooth(mapping = aes(fill = Gradient), b_dat |> filter(class == "Leaf economic", pvalue == "sign"), method = "lm", se = TRUE) +
+  #   scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+  #   scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+  #   labs(x = "Elevation in m a.s.l.", y = "Trait value") +
+  #   geom_text(ata = b_dat |> distinct(Taxon, trait_fancy, term) , aes(x = Inf, y = Inf, label = term), size = 3, colour = "black", hjust = 1, vjust = 1) +
+  #   facet_grid(trait_fancy ~ Taxon, scales = "free_y") +
+  #   theme_minimal() +
+  #   theme(legend.position = "top",
+  #         plot.title = element_text(size = 10),
+  #         strip.text.x = element_text(face = "italic"),
+  #         aspect.ratio = 0.7) +
+  #   guides(linetype = "none")
+  #
+  # bryo_plot_size / bryo_plot_leaf_eco +
+  #   plot_layout(guides = 'collect',
+  #               widths = c(1, 5),
+  #               heights = c(1, 4)) &
+  #   theme(legend.position = 'top')
 
   return(bryo_plot)
 }
