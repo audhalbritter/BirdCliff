@@ -2,12 +2,14 @@ figures_plan <- list(
 
   ### TRAITS
 
-  # FIGURE 2a: trait change along gradients
+  # FIGURE 2: trait change along gradients
   tar_target(
-    name = trait_plot,
-    command = {
-      make_trait_figure(trait_mean)
-    }),
+    name = community_trait_plot,
+    command = community_model_output |>
+        # remove ratios
+        filter(!trait_trans %in% c("CN_ratio", "NP_ratio")) %>%
+        make_trait_figure(.)
+  ),
 
   # FIGURE 3: trait ordination
   tar_target(
@@ -16,10 +18,10 @@ figures_plan <- list(
   ),
 
   # FIGURE 5: VASCULAR PLANTS
-  # figure
   tar_target(
     name = vascular_plot,
-    command = make_ind_vascular_plant_plot(ind_traits)),
+    command = make_vascular_figure(vascular_model_output)),
+
 
   # FIGURE 6: BRYOPHYTES
   # figure
