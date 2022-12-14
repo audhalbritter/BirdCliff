@@ -2,41 +2,53 @@ si_figures_plan <- list(
 
   # CLIMATE DATA
   # analysis
-  # tar_target(
-  #   name = climate_analysis,
-  #   command = make_climate_analysis(climate_data, coordinate)
-  # ),
+  tar_target(
+    name = run_climate_model,
+    command = run_trait_model(dat = climate_data,
+                              group = "Variable",
+                              response = Value,
+                              continous_predictor = Elevation_m) |>
+      pivot_longer(cols = -c(Variable, data),
+                   names_sep = "_",
+                   names_to = c(".value", "names"))
+  ),
+
+  # select best model
+  tar_target(
+    name = climate_model,
+    command = run_climate_model |>
+      # remove models that have singular fit
+      filter(singular == FALSE) |>
+      filter(aic == min(aic))
+  ),
+
+  # lrt
+  tar_target(
+    name = climate_lrt_output,
+    command = climate_lrt(climate_data)
+  ),
+
+  # Produce model output and prediction
+  tar_target(
+    name = climate_model_output,
+    command = model_output_prediction(climate_model)
+  ),
+
 
   # model output
-  # tar_target(
-  #   name = climate_analysis_output,
-  #   command = climate_analysis[[1]] |>
-  #     select(Variable, model_output) |>
-  #     unnest(model_output) |>
-  #     filter(effect == "fixed")
-  # ),
+  tar_target(
+    name = climate_table,
+    command = make_climate_table(climate_model_output)
+  ),
 
   # climate figure
-  # tar_target(
-  #   name = climate_plot,
-  #   command = make_climate_figure(climate_analysis[[1]])
-  # ),
+  tar_target(
+    name = climate_plot,
+    command = make_climate_figure(climate_model_output)
+  ),
 
   # COMMUNITY DATA
-  # species ordination
-  # tar_target(
-  #   name = ordination_plot,
-  #   command = make_ordination_plot(comm_raw,
-  #                                  NMDS = sp_ordination[[1]],
-  #                                  fNMDS = sp_ordination[[2]])),
-
-  # check the nr of dimensions for NMDS
-  # tar_target(
-  #   name = stress_plot,
-  #   command = check_dimensions_NMDS(comm_raw)
-  #   ),
-
-  # community pca
+  # PCA
   tar_target(
     name = community_pca_plot,
     command = make_sp_pca_figure(comm_pca_B, comm_pca_C)
@@ -88,27 +100,14 @@ si_figures_plan <- list(
     }
   ),
 
-  # linear or polynomial model
-  # tar_target(
-  #   name = lin_poly_model_output,
-  #   command = lin_poly_model %>%
-  #     fancy_trait_name_dictionary(.) |>
-  #     mutate(Model = c("linear", "quadratic")) |>
-  #     ungroup() |>
-  #     select(Class = class, Trait = trait_fancy, Model, df, AIC)
-  #
-  # ),
-
-  # trait ratios
+  # # trait ratios
   # tar_target(
   #   name = trait_plot_appendix,
-  #   command = {
-  #     trait_fig_prep(community_trait_model) |>
+  #   command = community_model_output |>
   #       # remove ratios
   #       filter(trait_trans %in% c("CN_ratio", "NP_ratio")) %>%
   #       make_trait_figure(.)
   #
-  #   }
   # ),
 
   # trait mean and variance output

@@ -1,21 +1,19 @@
 #
 analysis_plan <- list(
 
-  # COMMUNITY
-  # make species ordination
-  # tar_target(
-  #   name = sp_ordination,
-  #   command = make_ordination(comm_raw)
-  # ),
-  #
-  # # test species ordination
-  # tar_target(
-  #   name = output_sp_ordination,
-  #   command = test_ordination(comm_raw)
-  # ),
+  # CLIMATE
+  tar_target(
+    name = climate_result,
+    command = climate_data |>
+      group_by(Variable, Gradient) |>
+      summarise(mean = mean(Value),
+                se = sd(Value)/sqrt(n()))
+  ),
 
-  # community pca
-  # make species ordination
+
+  # COMMUNITY
+  # Species community PCA
+  # make species ordination (separate by Gradient)
   tar_target(
     name = comm_pca_B,
     command = make_community_pca(comm_raw |>
@@ -30,8 +28,7 @@ analysis_plan <- list(
 
 
   # FUNCTIONAL TRAITS
-
-  # Community traits
+  # Community trait mean
   # run linear and quadratic model
   tar_target(
     name = trait_community_model,
@@ -40,7 +37,6 @@ analysis_plan <- list(
                                response = mean,
                                continous_predictor = Elevation_m) |>
       pivot_longer(cols = -c(trait_trans, data),
-                   #names_pattern = "(.*)(linear|quadratic)$",
                    names_sep = "_",
                    names_to = c(".value", "names"))
   ),
@@ -76,17 +72,48 @@ analysis_plan <- list(
     command = make_trait_table(community_model_output)
     ),
 
-  # PROBABLY NOT NEEDED ANYMORE!!!
-  # test top site
-  # tar_target(
-  #   name = top_site,
-  #   command = test_top_site(trait_mean)
-  # ),
+  # Community trait variance
+  # run linear and quadratic model
+  # NP ratio, both models are singular fit
+  tar_target(
+    name = trait_variance_model,
+    command = run_trait_model(dat = trait_mean,
+                              group = "trait_trans",
+                              response = var,
+                              continous_predictor = Elevation_m) |>
+      pivot_longer(cols = -c(trait_trans, data),
+                   names_sep = "_",
+                   names_to = c(".value", "names"))
+  ),
+
+  # select best model
+  tar_target(
+    name = community_variance_model,
+    command = trait_variance_model |>
+      # remove models that have singular fit
+      filter(singular == FALSE) |>
+      filter(aic == min(aic))
+  ),
+
+  # LRT for variance
+  tar_target(
+    name = ltr_variance,
+    command = likelihood_ratio_test_variance(trait_mean |>
+                                               filter(trait_trans != "NP_ratio"))
+  ),
+
+  # Produce model output and prediction
+  tar_target(
+    name = community_variance_output,
+    command = model_output_prediction(community_variance_model) |>
+      # add LRT text
+      mutate(text = case_when(trait_trans %in% c("SLA_cm2_g", "dC13_permil") ~ "Null",
+                              trait_trans %in% c("Plant_Height_cm_log") ~ "E",
+                              TRUE ~ "NxE"))
+  ),
 
 
-
-
-  # make trait ordination
+  # Trait ordination (PCA)
   tar_target(
     name = trait_pca_B,
     command = make_trait_pca(trait_mean %>% filter(Gradient == "B"))
@@ -114,8 +141,6 @@ analysis_plan <- list(
                PC2 = round(PC2, digits = 2),
                PC3 = round(PC3, digits = 2),
                PC4 = round(PC4, digits = 2)) %>%
-        mutate(Gradient = recode(Gradient, Birdcliff = "Bird cliff"),
-               Gradient = factor(Gradient, levels = c("Bird cliff", "Reference"))) %>%
         arrange(Gradient, -PC1) %>%
         # order traits
         write_csv(., file = "output/Loadings_trait_PCA.csv")
@@ -132,6 +157,12 @@ analysis_plan <- list(
         reference = vegan::eigenvals(trait_pca_C[[3]])/sum(vegan::eigenvals(trait_pca_C[[3]])) * 100)
 
     }),
+
+
+  ### ITV
+  tar_target(
+    name = itv_output,
+    command = make_ITV_analysis(trait_mean)),
 
 
   # INDIVIDUAL LEVEL TRAITS
@@ -182,44 +213,53 @@ analysis_plan <- list(
         TRUE ~ "N+E"))
   ),
 
-  ### NEEDS TO BE MADE
   # trait table
-  # tar_target(
-  #   name = vascular_model_table,
-  #   command = make_trait_table(vascular_model_output)
-  # ),
-
-  # vascular: run model
-  # tar_target(
-  #   name = ind_trait_output,
-  #   command = run_vascular_model(ind_traits)
-  # ),
-
-  # vascular: run LRT
-  # tar_target(
-  #   name = vascular_lrt,
-  #   command = likelihood_ratio_test_ind(ind_traits)
-  # ),
-
-  # run model selection
-  # does not work yet!
-
-  # vascular: model output
-  # tar_target(
-  #   name = ind_vascular_traits_output,
-  #   command = run_vascular_plant_models(ind_traits)),
+  tar_target(
+    name = vascular_model_table,
+    command = make_vascular_table(vascular_model_output)
+  ),
 
 
   # BRYOPHYTES
+  # run linear and quadratic model
   tar_target(
-    name = bryo_trait_output,
-    command = make_bryo_trait_model(ind_traits)),
+    name = trait_bryophyte_model,
+    command = run_bryophyte_model(dat = ind_traits |>
+                                filter(Functional_group == "bryophyte"),
+                              group = c("trait_trans", "Taxon"),
+                              response = Value,
+                              continous_predictor = Elevation_m) |>
+      pivot_longer(cols = -c(Taxon, trait_trans, data),
+                   names_sep = "_",
+                   names_to = c(".value", "names"))
+  ),
 
-
-  ### ITV
+  # select best model
   tar_target(
-    name = itv_output,
-    command = make_ITV_analysis(trait_mean))
+    name = bryophyte_model,
+    command = trait_bryophyte_model |>
+      filter(aic == min(aic))
+  ),
+
+  # Produce model output and prediction
+  tar_target(
+    name = bryophyte_model_output,
+    command = bryophyte_model |>
+      # make model output and prediction
+      mutate(model_output = map(mod, tidy),
+             prediction = map2(.x = mod, .y = data,
+                               .f = ~augment(.x, interval = "confidence") |>
+                                 select(.fitted, .lower, .upper) |>
+                                 bind_cols(.y))) #|>
+      #unnest(prediction)
+  ),
+
+  # Produce model output and prediction
+  tar_target(
+    name = bryo_table,
+    command = make_bryo_table(bryophyte_model_output)
+  )
+
 
 )
 

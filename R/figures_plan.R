@@ -5,10 +5,16 @@ figures_plan <- list(
   # FIGURE 2: trait change along gradients
   tar_target(
     name = community_trait_plot,
-    command = community_model_output |>
+    command = community_model_output %>%
         # remove ratios
-        filter(!trait_trans %in% c("CN_ratio", "NP_ratio")) %>%
+        #filter(!trait_trans %in% c("CN_ratio", "NP_ratio")) %>%
         make_trait_figure(.)
+  ),
+
+  # variance
+  tar_target(
+    name = community_trait_variance_plot,
+    command = make_trait_variance_figure(community_variance_output)
   ),
 
   # FIGURE 3: trait ordination
@@ -24,10 +30,9 @@ figures_plan <- list(
 
 
   # FIGURE 6: BRYOPHYTES
-  # figure
   tar_target(
     name = bryo_plot,
-    command = make_bryo_figure(ind_traits, bryo_trait_output)),
+    command = make_bryo_figure(bryophyte_model_output)),
 
   # FIGURE 4: ITV PLOT
   tar_target(
