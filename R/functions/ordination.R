@@ -7,14 +7,15 @@ make_community_pca <- function(comm_raw){
   set.seed(32)
 
   comm_wide <- comm_raw %>%
+    #filter(!c(GS == "B3" & PlotID == "C")) |>
     group_by(Site) %>%
     mutate(Mean_elevation = mean(Elevation_m)) %>%
     ungroup() %>%
-    select(Gradient, Site, GS, Mean_elevation, PlotID, Taxon) %>%
-    mutate(presence = 1,
-           Gradient = recode(Gradient, "B" = "Nutrient input", "C" = "Reference")) %>%
+    mutate(Cover = sqrt(Cover)) |>
+    select(Gradient, Site, GS, Mean_elevation, PlotID, Taxon, Cover) %>%
+    mutate(Gradient = recode(Gradient, "B" = "Nutrient input", "C" = "Reference")) %>%
     pivot_wider(names_from = Taxon,
-                values_from = presence,
+                values_from = Cover,
                 values_fill = 0)
 
   comm_sp <- comm_wide %>%
@@ -62,12 +63,13 @@ make_sp_pca_figure <- function(comm_pca_B, comm_pca_C){
   pca_B <- comm_pca_B[[1]] |>
     ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation)) +
     geom_point(size = 2) +
+    annotate("text", x = -4, y = -1, angle = 90, size = 5, label = "Nutrient input") +
+    annotation_custom(bird, xmin = -3.5, xmax = -4.5, ymin = 1.3, ymax = 2.6) +
     coord_equal(clip = "off", xlim = c(-1.5, 3)) +
     labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
          y = glue("PCA2 ({round(e_B[2] * 100, 1)}%)"),
-         tag = "(a)") +
-    annotate("text", x = -3.2, y = -1, angle = 90, size = 5, label = "Nutrient input") +
-    annotation_custom(bird, xmin = -2.5, xmax = -3.8, ymin = 1.3, ymax = 2.6) +
+         tag = "(c)") +
+
     stat_ellipse(aes(colour = Mean_elevation, group = GS)) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
     scale_shape_manual(values = c(16, 1)) +
@@ -76,7 +78,8 @@ make_sp_pca_figure <- function(comm_pca_B, comm_pca_C){
     theme(text = element_text(size = 13),
           legend.box="vertical",
           panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          aspect.ratio = 1)
 
   # species names
   species_B <- comm_pca_B[[1]] |>
@@ -91,26 +94,30 @@ make_sp_pca_figure <- function(comm_pca_B, comm_pca_C){
     geom_text(data = comm_pca_B[[2]] |>
                 mutate(Label = capitalize(Label)) |>
                 inner_join(important_species_B, by = "Label") |>
-                mutate(PC1 = case_when(Label == "Salix polaris" ~ 0.43,
-                                       Label == "Saxifraga cespitosa" ~ -0.38,
-                                       Label == "Saxifraga cernua" ~ -0.45,
-                                       Label == "Cochleria groenlandica" ~ -0.35,
-                                       Label == "Oxyria digyna" ~ -0.45,
-                                       TRUE ~ PC1),
-                       PC2 = case_when(Label == "Salix polaris" ~ 0.12,
-                                       Label == "Saxifraga cespitosa" ~ 0.05,
-                                       Label == "Saxifraga cernua" ~ 0,
-                                       Label == "Cochleria groenlandica" ~ -0.1,
-                                       Label == "Oxyria digyna" ~ -0.18,
+                mutate(PC1 = case_when(Label == "Salix polaris" ~ -2,
+                                       Label == "Oxyria digyna" ~ 0.06,
+                                       Label == "Saxifraga cernua" ~ 0.3,
+                                       Label == "Cerastium arcticum" ~ 0.2,
+                                       Label == "Alopecurus ovatus" ~ 0.3,
+                                       Label == "Bistorta vivipara" ~ 0.45,
+                                       Label == "Luzula confusa" ~ -1,
+                                        TRUE ~ PC1),
+                       PC2 = case_when(Label == "Cerastium arcticum" ~ 0,
+                                       Label == "Saxifraga cernua" ~ 0.3,
+                                       Label == "Oxyria digyna" ~ 0.2,
+                                       Label == "Alopecurus ovatus" ~ -1.1,
+                                       Label == "Bistorta vivipara" ~ -0.65,
+                                       Label == "Luzula confusa" ~ -0.9,
                                        TRUE ~ PC2)),
               aes(x = PC1*1.1, y = PC2*1.1, label = Label),
               size = 2, col = 'black') +
-    labs(x = "PC 1", y = "PC 2", tag = "(b)") +
+    labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     theme_bw() +
     theme(text = element_text(size = 13),
           legend.box="vertical",
           panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          aspect.ratio = 1)
 
   # Reference gradient
   e_C <- eigenvals(comm_pca_C[[3]])/sum(eigenvals(comm_pca_C[[3]]))
@@ -123,14 +130,17 @@ make_sp_pca_figure <- function(comm_pca_B, comm_pca_C){
 
   # make main figure
   pca_C <- comm_pca_C[[1]] |>
-    ggplot(aes(x = PC1*-1, y = PC2, colour = Mean_elevation)) +
+    ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation)) +
     geom_point(size = 2) +
-    coord_equal(clip = "off", xlim = c(-1.5, 3)) +
-    annotate("text", x = -3.2, y = -1, angle = 90, size = 5, label = "Reference") +
-    annotation_custom(ref, xmin = -2.5, xmax = -3.8, ymin = 1.3, ymax = 2.6) +
+    annotate("text", x = -4.5, y = -1, angle = 90, size = 5, label = "Reference") +
+    annotation_custom(ref, xmin = -3.5, xmax = -5.3, ymin = 1, ymax = 2.1) +
+    coord_equal(clip = "off", xlim = c(-3, 3)) +
+    # annotate("text", x = -6.5, y = -1, angle = 90, size = 5, label = "Reference") +
+    # annotation_custom(ref, xmin = -6, xmax = -7, ymin = 1.1, ymax = 2) +
+    # coord_equal(clip = "off", xlim = c(-7, -1)) +
     labs(x = glue("PCA1 ({round(e_C[1] * 100, 1)}%)"),
          y = glue("PCA2 ({round(e_C[2] * 100, 1)}%)"),
-         tag = "(c)") +
+         tag = "(a)") +
     stat_ellipse(aes(colour = Mean_elevation, group = GS)) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
     scale_shape_manual(values = c(16, 1)) +
@@ -139,60 +149,46 @@ make_sp_pca_figure <- function(comm_pca_B, comm_pca_C){
     theme(text = element_text(size = 13),
           legend.box="vertical",
           panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          aspect.ratio = 1)
 
   # species names
   species_C <- comm_pca_C[[1]] |>
-    ggplot(aes(x = PC1*-1, y = PC2)) +
-    coord_equal(xlim = c(-0.6, 0.4), ylim = c(-0.5, 0.75)) +
+    ggplot(aes(x = PC1, y = PC2)) +
+    coord_equal() +
     geom_segment(data = comm_pca_C[[2]] |>
                    mutate(length = sqrt(PC1^2 + PC2^2)),
-                 aes(x = 0, y = 0, xend = PC1*-1, yend = PC2),
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
                  arrow = arrow(length = unit(0.2,"cm")),
                  alpha = 0.75, color = 'grey70') +
     geom_text(data = comm_pca_C[[2]] |>
                 mutate(Label = capitalize(Label)) |>
                 inner_join(important_species_C, by = "Label") |>
-                mutate(PC1 = case_when(Label == "Cerastium arcticum" ~ 0.4,
-                                       Label == "Saxifraga cespitosa" ~ 0.42,
-                                       Label == "Saxifraga cernua" ~ 0.36,
-                                       Label == "Draba alpina" ~ 0.49,
+                mutate(PC1 = case_when(Label == "Dryas octopetala" ~ 1.2,
+                                       Label == "Salix polaris" ~ 1.7,
+                                       Label == "Oxyria digyna" ~ -0.55,
+                                       Label == "Cerastium arcticum" ~ -0.2,
                                        TRUE ~ PC1),
-                       PC2 = case_when(Label == "Cerastium arcticum" ~ 0.13,
-                                       Label == "Saxifraga cespitosa" ~ -0.16,
-                                       Label == "Saxifraga cernua" ~ -0.08,
-                                       Label == "Draba alpina" ~ 0.02,
+                       PC2 = case_when(Label == "Dryas octopetala" ~ -1.7,
+                                       Label == "Salix polaris" ~ 0.2,
+                                       Label == "Oxyria digyna" ~ -0.15,
+                                       Label == "Calamagrostis neglecta" ~ 0.5,
+                                       Label == "Cerastium arcticum" ~ 0.2,
                                        TRUE ~ PC2)),
-              aes(x = PC1*-1.1, y = PC2*1.1, label = Label),
+              aes(x = PC1*1.1, y = PC2*1.1, label = Label),
               size = 2, col = 'black') +
-    labs(x = "PC 1", y = "PC 2", tag = "(d)") +
+    labs(x = "PC 1", y = "PC 2", tag = "(b)") +
     theme_bw() +
     theme(text = element_text(size = 13),
           legend.box="vertical",
           panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          aspect.ratio = 1)
 
-  wrap_plots(pca_B, species_B, pca_C, species_C) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom', legend.box="vertical")
+  wrap_plots(pca_C, species_C, pca_B, species_B) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom', legend.box="vertical")
 
 }
 
-
-# comm_pca_B[[1]] |>
-#   ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, shape = Gradient, linetype = Gradient, group = GS)) +
-#   geom_point(size = 2) +
-#   coord_equal() +
-#   labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
-#        y = glue("PCA2 ({round(e_B[2] * 100, 1)}%)")) +
-#   stat_ellipse(aes(colour = Mean_elevation)) +
-#   scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
-#   scale_shape_manual(values = c(16, 1)) +
-#   scale_linetype_manual(values = c("solid", "dashed")) +
-#   facet_wrap(~Gradient) +
-#   theme_bw() +
-#   theme(text = element_text(size = 13),
-#         legend.box="vertical",
-#         panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank())
 
 ## TRAITS (PCA)
 make_trait_pca <- function(trait_mean){
@@ -210,7 +206,7 @@ make_trait_pca <- function(trait_mean){
 
   pca_output <- cwm_fat %>%
     select(-(Gradient:SoilTemperature)) %>%
-    rda(scale = TRUE)
+    rda(scale = TRUE, center = TRUE)
 
   pca_sites <- bind_cols(
     cwm_fat %>%
@@ -265,7 +261,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
     labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
          y = glue("PCA1 ({round(e_B[2] * 100, 1)}%)"),
-         tag = "(a)") +
+         tag = "(c)") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 0.9),
@@ -282,7 +278,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
               size = 2.5,
               inherit.aes = FALSE,
               show.legend = FALSE) +
-    labs(x = "PC 1", y = "PC 2", tag = "(b)") +
+    labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     scale_x_continuous(expand = c(.2, 0)) +
     scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
     scale_colour_manual(name = "", values = c("black", "grey40", "grey70")) +
@@ -305,7 +301,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
     labs(x = glue("PCA1 ({round(e_C[1] * 100, 1)}%)"),
          y = glue("PCA1 ({round(e_C[2] * 100, 1)}%)"),
-         tag = "(c)") +
+         tag = "(a)") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 0.9),
@@ -326,7 +322,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
               size = 2.5,
               inherit.aes = FALSE,
               show.legend = FALSE) +
-    labs(x = "PC 1", y = "PC 2", tag = "(d)") +
+    labs(x = "PC 1", y = "PC 2", tag = "(b)") +
     scale_x_continuous(expand = c(.2, 0)) +
     scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
     scale_colour_manual(name = "", values = c("black", "grey40", "grey70")) +
@@ -335,7 +331,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
           plot.tag.position = c(0, 1),
           plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
-  trait_ordination_plot <- wrap_plots(plot_B, arrow_B, plot_C, arrow_C) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom', legend.box="vertical")
+  trait_ordination_plot <- wrap_plots(plot_C, arrow_C, plot_B, arrow_B) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom', legend.box="vertical")
 
   return(trait_ordination_plot)
 
