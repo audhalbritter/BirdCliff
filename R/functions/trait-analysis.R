@@ -111,9 +111,11 @@ model_output_prediction <- function(model){
     mutate(model_output = map(mod, tidy),
            r = map(mod, r.squaredGLMM),
            r = map(r, as.numeric),
-           prediction = map2(.x = data, .y = mod, ~ safely(lmer_prediction)(.x, .y)$result))
+           prediction = map2(.x = data, .y = mod, .f = ~ safely(lmer_prediction)(.x, .y)$result))
 
 }
+
+
 
 # trait output: model output and r2
 make_trait_table <- function(community_model_output){
@@ -127,11 +129,13 @@ make_trait_table <- function(community_model_output){
     select(Trait = trait_fancy, text, term, estimate:statistic, class) %>%
     mutate(term = recode(term,
                          "(Intercept)" = "Intercept",
-                         "GradientB" = "G",
-                         "poly(.continous_predictor, 2)1" = "E1",
+                         "GradientB" = "N",
+                         ".continous_predictor" = "E",
+                         "GradientB:.continous_predictor" = "NxE" ,
+                         "poly(.continous_predictor, 2)1" = "E",
                          "poly(.continous_predictor, 2)2" = "E2",
-                         "GradientB:poly(.continous_predictor, 2)1" = "GxE1",
-                         "GradientB:poly(.continous_predictor, 2)2" = "GxE2")) %>%
+                         "GradientB:poly(.continous_predictor, 2)1" = "NxE",
+                         "GradientB:poly(.continous_predictor, 2)2" = "NxE2")) %>%
     # join R squared
     left_join(community_model_output |>
                 select(-data, -mod, -singular, -aic, -prediction, -model_output) |>
@@ -151,3 +155,26 @@ make_trait_table <- function(community_model_output){
     write_csv(., file = "output/Community_trait_regression_output.csv")
 
 }
+
+
+
+# likelihood ratio test
+likelihood_ratio_test_variance <- function(trait_mean){
+
+  trait_mean |>
+    group_by(trait_trans) |>
+    nest() |>
+    mutate(LTR = map(data, ~{
+        # quadratic model
+        ExN = lmer(var ~  Gradient * poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+        EplusN = lmer(var ~  Gradient + poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+        N = lmer(var ~  Gradient + (1|GS), REML=FALSE, data = .x)
+        E = lmer(var ~  poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+        Null = lmer(var ~  1 + (1|GS), REML=FALSE, data = .x)
+        # lr test
+        test = anova(ExN, EplusN, N, E, Null)
+    })) |>
+    unnest(LTR)
+
+}
+
