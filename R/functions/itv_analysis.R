@@ -61,7 +61,7 @@ make_ITV_plot <- function(itv_output){
     mutate(sumsq = round(sumsq, digits = 1),
            proportion = round(proportion, digits = 1)) |>
     ungroup() |>
-    select(Group = class, Gradient, trait_fancy, term:proportion) |>
+    select(Gradient, trait_fancy, term:proportion) |>
     write_csv(, file = "output/ITV_output.csv")
 
   # test difference
