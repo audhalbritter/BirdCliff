@@ -29,6 +29,8 @@ analysis_plan <- list(
 
   # FUNCTIONAL TRAITS
   # Community trait mean
+
+  # Elevation
   # run linear and quadratic model
   tar_target(
     name = trait_community_model,
@@ -71,6 +73,75 @@ analysis_plan <- list(
     name = trait_model_table,
     command = make_trait_table(community_model_output)
     ),
+
+  # MICROCLIMATE
+  # run linear and quadratic model
+  tar_target(
+    name = trait_soil_temp_model,
+    command = run_trait_model(dat = trait_mean,
+                              group = "trait_trans",
+                              response = mean,
+                              continous_predictor = SoilTemperature) |>
+      pivot_longer(cols = -c(trait_trans, data),
+                   names_sep = "_",
+                   names_to = c(".value", "names")) |>
+      filter(singular == "FALSE") |>
+      filter(aic == min(aic))
+  ),
+
+  # Likelihood ratio test
+  tar_target(
+    name = soiltemp_lrt,
+    command = likelihood_ratio_test_ST(trait_mean)  #|>
+    #filter(`Pr(>Chisq)` <= 0.05)
+  ),
+
+  # Produce model output and prediction
+  # others: NULL
+  # PH, dC13: NxST
+  # N%, CN, dN15: ST
+  tar_target(
+    name = soil_temp_model_output,
+    command = model_output_prediction(trait_soil_temp_model) |>
+      # add LRT text
+      mutate(text = case_when(trait_trans %in% c("Plant_Height_cm_log", "dC13_permil") ~ "Temperature",
+                              trait_trans %in% c("CN_ratio", "N_percent", "dN15_permil") ~ "NxTemperature",
+                              TRUE ~ "Null"))
+  ),
+
+
+  # run linear and quadratic model
+  tar_target(
+    name = trait_soil_moisture_model,
+    command = run_trait_model(dat = trait_mean,
+                              group = "trait_trans",
+                              response = mean,
+                              continous_predictor = SoilMoisture) |>
+      pivot_longer(cols = -c(trait_trans, data),
+                   names_sep = "_",
+                   names_to = c(".value", "names")) |>
+      filter(singular == "FALSE") |>
+      filter(aic == min(aic))
+  ),
+
+  # Likelihood ratio test
+  tar_target(
+    name = soilmoisture_lrt,
+    command = likelihood_ratio_test_SM(trait_mean)  #|>
+    #filter(`Pr(>Chisq)` <= 0.05)
+  ),
+
+  # Produce model output and prediction
+  # others: NULL
+  # N%, CN, dN15: SM
+  tar_target(
+    name = soil_moisture_model_output,
+    command = model_output_prediction(trait_soil_moisture_model) |>
+      # add LRT text
+      mutate(text = case_when(trait_trans %in% c("CN_ratio", "N_percent", "dN15_permil") ~ "Moisture",
+                              TRUE ~ "Null"))
+  ),
+
 
   # Community trait variance
   # run linear and quadratic model

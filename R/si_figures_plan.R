@@ -100,16 +100,6 @@ si_figures_plan <- list(
     }
   ),
 
-  # # trait ratios
-  # tar_target(
-  #   name = trait_plot_appendix,
-  #   command = community_model_output |>
-  #       # remove ratios
-  #       filter(trait_trans %in% c("CN_ratio", "NP_ratio")) %>%
-  #       make_trait_figure(.)
-  #
-  # ),
-
   # trait mean and variance output
   tar_target(
     name = trait_mean_var,
@@ -146,7 +136,19 @@ si_figures_plan <- list(
         filter(Taxon != "unknown sp") |>
         write_csv(file = "output/species_list.csv")
 
-    })
+    }),
+
+  # TRAIT AND CLIMATE
+  # trait table
+  tar_target(
+    name = trait_soil_temp_figure,
+    command = make_trait_soil_temp_figure(soil_temp_model_output)
+  ),
+
+  tar_target(
+    name = trait_soil_moisture_figure,
+    command = make_trait_soil_moisture_figure(soil_moisture_model_output)
+  )
 
 
 
