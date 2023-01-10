@@ -10,7 +10,7 @@ make_ITV_analysis <- function(trait_mean){
 
   trait_long <- trait_mean %>%
     # remove nutrient ratio traits
-    filter(!trait_trans %in% c("CN_ratio", "NP_ratio")) |>
+    #filter(!trait_trans %in% c("CN_ratio", "NP_ratio")) |>
     # calculate ITV = specific - constant mean
     mutate(diff = mean - mean_noitv) %>%
     # make long table
