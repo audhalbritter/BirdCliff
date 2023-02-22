@@ -26,6 +26,10 @@ ggsave("output/community_trait_plot.jpg", community_trait_plot, dpi = 300, heigh
 
 tar_load(community_trait_variance_plot)
 ggsave("output/community_trait_variance_plot.jpg", community_trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
+tar_load(single_trait_variance_plot)
+ggsave("output/single_trait_variance_plot.jpg", single_trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
+tar_load(trait_variance_plot)
+ggsave("output/trait_variance_plot.jpg", trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
 tar_load(full_trait_ordination_plot)
 ggsave("output/trait_ordination_plot1.jpg", full_trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
