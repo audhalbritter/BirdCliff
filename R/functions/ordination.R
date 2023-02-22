@@ -239,14 +239,54 @@ make_trait_pca <- function(trait_mean){
 }
 
 
-make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
+
+make_trait_pca_plot <- function(trait_pca, trait_pca_B, trait_pca_C){
+
+  # elevational range
+  range <- range(trait_pca_C[[1]]$Mean_elevation)
+
+  # both gradients
+  e_B <- eigenvals(trait_pca[[3]])/sum(eigenvals(trait_pca[[3]]))
+
+  pca <- trait_pca[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation, linetype = Gradient, group = GS)) +
+    geom_point(size = 2) +
+    annotate("text", x = -3.2, y = -1, angle = 90, size = 5, label = "Both") +
+    coord_equal(clip = "off", xlim = c(-1.5, 3)) +
+    stat_ellipse(aes(colour = Mean_elevation)) +
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
+    scale_linetype_manual(values = c("dashed", "solid"), labels = c("Reference", "Nutrient input")) +
+    labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
+         y = glue("PCA2 ({round(e_B[2] * 100, 1)}%)"),
+         tag = "(a)") +
+    theme_minimal() +
+    theme(aspect.ratio = 1,
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = -1.5, hjust = -0.5, size = 10))
+
+  arrow <- trait_pca[[1]] %>%
+    ggplot(aes(x = PC1, y = PC2)) +
+    geom_segment(data = trait_pca[[2]],
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2, colour = class, linetype = class),
+                 arrow = arrow(length = unit(0.2, "cm")),
+                 inherit.aes = FALSE) +
+    geom_text(data = trait_pca[[2]],
+              aes(x = PC1 * 1.1, y = PC2 * 1.1, label = trait_fancy, colour = class),
+              size = 2.5,
+              inherit.aes = FALSE,
+              show.legend = FALSE) +
+    labs(x = "PC 1", y = "PC 2", tag = "(b)") +
+    scale_x_continuous(expand = c(.2, 0)) +
+    scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
+    scale_colour_manual(name = "", values = c("black", "grey40", "grey70")) +
+    theme_minimal() +
+    theme(aspect.ratio = 1,
+          plot.tag.position = c(0, 1),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
   bird <- grid::rasterGrob(png::readPNG("bird.png"), interpolate = TRUE)
   ref <- grid::rasterGrob(png::readPNG("ref.png"), interpolate = TRUE)
 
-
-  # elevational range
-  range <- range(trait_pca_C[[1]]$Mean_elevation)
 
   # prop explained
   e_B <- eigenvals(trait_pca_B[[3]])/sum(eigenvals(trait_pca_B[[3]]))
@@ -260,8 +300,8 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     stat_ellipse(aes(colour = Mean_elevation)) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
     labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
-         y = glue("PCA1 ({round(e_B[2] * 100, 1)}%)"),
-         tag = "(c)") +
+         y = glue("PCA2 ({round(e_B[2] * 100, 1)}%)"),
+         tag = "(e)") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 0.9),
@@ -278,7 +318,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
               size = 2.5,
               inherit.aes = FALSE,
               show.legend = FALSE) +
-    labs(x = "PC 1", y = "PC 2", tag = "(d)") +
+    labs(x = "PC 1", y = "PC 2", tag = "(f)") +
     scale_x_continuous(expand = c(.2, 0)) +
     scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
     scale_colour_manual(name = "", values = c("black", "grey40", "grey70")) +
@@ -300,8 +340,8 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
     stat_ellipse(aes(colour = Mean_elevation)) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.") +
     labs(x = glue("PCA1 ({round(e_C[1] * 100, 1)}%)"),
-         y = glue("PCA1 ({round(e_C[2] * 100, 1)}%)"),
-         tag = "(a)") +
+         y = glue("PCA2 ({round(e_C[2] * 100, 1)}%)"),
+         tag = "(c)") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 0.9),
@@ -322,7 +362,7 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
               size = 2.5,
               inherit.aes = FALSE,
               show.legend = FALSE) +
-    labs(x = "PC 1", y = "PC 2", tag = "(b)") +
+    labs(x = "PC 1", y = "PC 2", tag = "(d)") +
     scale_x_continuous(expand = c(.2, 0)) +
     scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
     scale_colour_manual(name = "", values = c("black", "grey40", "grey70")) +
@@ -331,7 +371,8 @@ make_trait_pca_plot <- function(trait_pca_B, trait_pca_C){
           plot.tag.position = c(0, 1),
           plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
 
-  trait_ordination_plot <- wrap_plots(plot_C, arrow_C, plot_B, arrow_B) + plot_layout(guides = 'collect') & theme(legend.position = 'bottom', legend.box="vertical")
+  trait_ordination_plot <- wrap_plots(pca, arrow, plot_C, arrow_C, plot_B, arrow_B, ncol = 2) +
+    plot_layout(guides = 'collect') & theme(legend.position = 'bottom', legend.box="vertical")
 
   return(trait_ordination_plot)
 

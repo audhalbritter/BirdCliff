@@ -185,6 +185,13 @@ analysis_plan <- list(
 
 
   # Trait ordination (PCA)
+  # both localities
+  tar_target(
+    name = trait_pca,
+    command = make_trait_pca(trait_mean)
+  ),
+
+  # separate
   tar_target(
     name = trait_pca_B,
     command = make_trait_pca(trait_mean %>% filter(Gradient == "B"))
@@ -246,49 +253,49 @@ analysis_plan <- list(
     command = combine_traits(traits_raw, bryo_traits_raw)),
 
   # run linear and quadratic model
-  tar_target(
-    name = trait_vascular_model,
-    command = run_trait_model(dat = ind_traits |>
-                                filter(Functional_group == "vascular"),
-                              group = c("trait_trans", "Taxon"),
-                              response = Value,
-                              continous_predictor = Elevation_m) |>
-      pivot_longer(cols = -c(Taxon, trait_trans, data),
-                   names_sep = "_",
-                   names_to = c(".value", "names"))
-  ),
-
-  # select best model
-  tar_target(
-    name = vascular_model,
-    command = trait_vascular_model |>
-      # remove models that have singular fit
-      filter(singular == FALSE) |>
-      filter(aic == min(aic))
-  ),
-
-  # Likelihood ratio test
-  tar_target(
-    name = vascular_lrt,
-    command = likelihood_ratio_test_vasc(ind_traits)
-  ),
-
-  # Produce model output and prediction
-  tar_target(
-    name = vascular_model_output,
-    command = model_output_prediction(vascular_model) |>
-      # add LRT text
-      mutate(text = case_when(
-        Taxon == "salix polaris" & trait_trans %in% c("Leaf_Area_cm2_log", "N_percent") ~ "Null",
-        trait_trans == "dN15_permil" ~ "NxE",
-        TRUE ~ "N+E"))
-  ),
-
-  # trait table
-  tar_target(
-    name = vascular_model_table,
-    command = make_vascular_table(vascular_model_output)
-  ),
+  # tar_target(
+  #   name = trait_vascular_model,
+  #   command = run_trait_model(dat = ind_traits |>
+  #                               filter(Functional_group == "vascular"),
+  #                             group = c("trait_trans", "Taxon"),
+  #                             response = Value,
+  #                             continous_predictor = Elevation_m) |>
+  #     pivot_longer(cols = -c(Taxon, trait_trans, data),
+  #                  names_sep = "_",
+  #                  names_to = c(".value", "names"))
+  # ),
+  #
+  # # select best model
+  # tar_target(
+  #   name = vascular_model,
+  #   command = trait_vascular_model |>
+  #     # remove models that have singular fit
+  #     filter(singular == FALSE) |>
+  #     filter(aic == min(aic))
+  # ),
+  #
+  # # Likelihood ratio test
+  # tar_target(
+  #   name = vascular_lrt,
+  #   command = likelihood_ratio_test_vasc(ind_traits)
+  # ),
+  #
+  # # Produce model output and prediction
+  # tar_target(
+  #   name = vascular_model_output,
+  #   command = model_output_prediction(vascular_model) |>
+  #     # add LRT text
+  #     mutate(text = case_when(
+  #       Taxon == "salix polaris" & trait_trans %in% c("Leaf_Area_cm2_log", "N_percent") ~ "Null",
+  #       trait_trans == "dN15_permil" ~ "NxE",
+  #       TRUE ~ "N+E"))
+  # ),
+  #
+  # # trait table
+  # tar_target(
+  #   name = vascular_model_table,
+  #   command = make_vascular_table(vascular_model_output)
+  # ),
 
 
   # BRYOPHYTES
