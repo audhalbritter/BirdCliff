@@ -181,7 +181,10 @@ out <- soil_moisture_model_output |>
                                                                .y |> select(fitted = .response, plo, phi)))) |>
   select(-data, -prediction, -mod, -model_output, -r) |>
   unnest(output) |>
-  fancy_trait_name_dictionary()
+  fancy_trait_name_dictionary() |>
+  mutate(class = recode(class, "Leaf economics" = "LES", "Isotopes" = "I"),
+         trait_fancy = paste(class, trait_fancy, sep = " - "),
+         trait_fancy = factor(trait_fancy, levels = c("Size - Height cm", "Size - Dry mass g", "Size - Area cm2", "Size - Thickness mm", "LES - SLA cm2/g", "LES - LDMC", "LES - C %", "LES - N %", "LES - CN", "LES - P %", "LES - NP", "I - δC13 ‰", "I - δN15 ‰")))
 
 ggplot(out, aes(x = SoilMoisture, y = mean, colour = Gradient)) +
   geom_point(alpha = 0.5) +
@@ -210,7 +213,10 @@ make_trait_soil_temp_figure <- function(soil_temp_model_output){
                                                                  .y |> select(fitted = .response, plo, phi)))) |>
     select(-data, -prediction, -mod, -model_output, -r) |>
     unnest(output) |>
-    fancy_trait_name_dictionary()
+    fancy_trait_name_dictionary() |>
+    mutate(class = recode(class, "Leaf economics" = "LES", "Isotopes" = "I"),
+           trait_fancy = paste(class, trait_fancy, sep = " - "),
+           trait_fancy = factor(trait_fancy, levels = c("Size - Height cm", "Size - Dry mass g", "Size - Area cm2", "Size - Thickness mm", "LES - SLA cm2/g", "LES - LDMC", "LES - C %", "LES - N %", "LES - CN", "LES - P %", "LES - NP", "I - δC13 ‰", "I - δN15 ‰")))
 
   ggplot(out, aes(x = SoilTemperature, y = mean, colour = Gradient)) +
     geom_point(alpha = 0.5) +

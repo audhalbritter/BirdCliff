@@ -25,9 +25,9 @@ fancy_trait_name_dictionary <- function(dat){
                               WHC_g_g = "WHC g/g")) |>
     # add class
     mutate(class = case_when(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "Shoot_Length_cm_log", "Shoot_Length_Green_cm_log") ~ "Size",
-                             trait_trans %in% c("dC13_permil", "dN15_permil") ~ "Nutrient cycling",
+                             trait_trans %in% c("dC13_permil", "dN15_permil") ~ "Isotopes",
                              TRUE ~ "Leaf economics"),
-           class = factor(class, levels = c("Size", "Leaf economics", "Nutrient cycling")))
+           class = factor(class, levels = c("Size", "Leaf economics", "Isotopes")))
 
   return(dat)
 }

@@ -11,9 +11,9 @@ make_trait_figure <- function(community_model_output){
     rename(Gradient = Gradient...1, mean = .response...4, Elevation_m = .continous_predictor...7, fitted = .response...18) |>
     select(-Gradient...16, -.continous_predictor...17 ) %>%
     fancy_trait_name_dictionary(.) |>
-    mutate(class = recode(class, "Leaf economics" = "LES", "Nutrient cycling" = "NC"),
+    mutate(class = recode(class, "Leaf economics" = "LES", "Isotopes" = "I"),
            trait_fancy = paste(class, trait_fancy, sep = " - "),
-           trait_fancy = factor(trait_fancy, levels = c("Size - Height cm", "Size - Dry mass g", "Size - Area cm2", "Size - Thickness mm", "LES - SLA cm2/g", "LES - LDMC", "LES - C %", "LES - N %", "LES - CN", "LES - P %", "LES - NP", "NC - δC13 ‰", "NC - δN15 ‰")))
+           trait_fancy = factor(trait_fancy, levels = c("Size - Height cm", "Size - Dry mass g", "Size - Area cm2", "Size - Thickness mm", "LES - SLA cm2/g", "LES - LDMC", "LES - C %", "LES - N %", "LES - CN", "LES - P %", "LES - NP", "I - δC13 ‰", "I - δN15 ‰")))
 
   ggplot(dat, aes(x = Elevation_m, y = mean, colour = Gradient)) +
     geom_point(alpha = 0.5) +
