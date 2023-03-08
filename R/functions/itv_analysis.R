@@ -9,6 +9,8 @@
 make_ITV_analysis <- function(trait_mean){
 
   trait_long <- trait_mean %>%
+    # remove nutrient ratio traits
+    #filter(!trait_trans %in% c("CN_ratio", "NP_ratio")) |>
     # calculate ITV = specific - constant mean
     mutate(diff = mean - mean_noitv) %>%
     # make long table
@@ -88,15 +90,12 @@ make_ITV_plot <- function(itv_output){
     mutate(sum = sum(proportion),
            proportion_standardized = proportion / sum) |>
     ungroup() |>
-    mutate(Group = case_when(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "SLA_cm2_g", "LDMC") ~ "Morphology",
-                             TRUE ~ "Nutrient"),
-           Group = factor(Group, levels = c("Morphology", "Nutrient"))) |>
-    group_by(Gradient, Group, process) |>
+    group_by(Gradient, class, process) |>
     summarise(proportion_standardized = mean(proportion_standardized)) |>
     mutate(process = recode(process, intraspecific = "ITV"),
            Gradient = recode(Gradient, B = "Nutrient input", C = "Reference"),
            var = "Total") %>%
-    ggplot(aes(x = Group, y = proportion_standardized, fill = process)) +
+    ggplot(aes(x = class, y = proportion_standardized, fill = process)) +
     geom_col() +
     geom_hline(yintercept = 0.5, colour = "grey", linetype = "dashed") +
     scale_x_discrete(limits = rev) +
@@ -120,11 +119,6 @@ make_ITV_plot <- function(itv_output){
     ungroup() |>
     mutate(process = recode(process, intraspecific = "ITV"),
            Gradient = recode(Gradient, B = "Nutrient input", C = "Reference")) |>
-    # add * to size traits
-    mutate(trait_fancy = as.character(trait_fancy),
-           trait_fancy = if_else(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "SLA_cm2_g", "LDMC"), paste0(trait_fancy, "*"), trait_fancy)) |>
-    # make factor again and sort
-    mutate(trait_fancy = factor(trait_fancy, levels = c("Height cm*", "Dry mass g*", "Area cm2*", "Thickness mm*", "LDMC*", "SLA cm2/g*", "C %", "N %", "CN", "P %", "NP", "δC13 ‰", "δN15 ‰"))) |>
     ggplot(aes(x = trait_fancy, y = proportion_standardized, fill = process)) +
     geom_col() +
     geom_hline(yintercept = 0.5, colour = "grey", linetype = "dashed") +
@@ -134,44 +128,17 @@ make_ITV_plot <- function(itv_output){
     #scale_fill_viridis_d(name = "Process", begin = 0.25, end = 1, option = "viridis") +
     labs(x = "", y = "Relative contribution",
          tag = "(b)") +
-    facet_grid(~ Gradient, scales = "free_x") +
+    facet_grid(class ~ Gradient, scales = "free", space = "free_y") +
     theme_minimal() +
     theme(text = element_text(size = 18),
-          panel.spacing = unit(1, "cm"))
+          panel.spacing = unit(0.3, "cm"),
+          strip.text.y = element_blank())
 
   ITV_plot2 <- Group_plot / ITV_plot + plot_layout(guides = 'collect', heights = c(1, 4)) & theme(legend.position = 'top')
 
   return(ITV_plot2)
 
 }
-
-
-
-# fancy_trait_name_dictionary(variance_part) %>%
-#   # filter for processes (turnover and ITV) we are interested in and standardize to 1
-#   filter(process %in% c("turnover", "intraspecific")) |>
-#   group_by(Gradient, trait_trans) |>
-#   mutate(sum = sum(proportion),
-#          proportion_standardized = proportion / sum) |>
-#   ungroup() |>
-#   group_by(Gradient, process) |>
-#   summarise(proportion_standardized = mean(proportion_standardized)) |>
-#   mutate(process = recode(process, intraspecific = "ITV"),
-#          Gradient = recode(Gradient, B = "Nutrient input", C = "Reference"),
-#          var = "Total") %>%
-#   ggplot(aes(x = var, y = proportion_standardized, fill = process)) +
-#   geom_col() +
-#   geom_hline(yintercept = 0.5, colour = "grey", linetype = "dashed") +
-#   scale_x_discrete(limits = rev) +
-#   coord_flip() +
-#   scale_fill_manual(name = "Process", values = c("#005BBB", "#FFD500")) +
-#   #scale_fill_viridis_d(name = "Process", begin = 0.25, end = 1, option = "viridis") +
-#   labs(x = "", y = "Relative contribution") +
-#   facet_grid(~ Gradient, scales = "free_x") +
-#   theme_minimal() +
-#   theme(text = element_text(size = 18),
-#         panel.spacing = unit(1, "cm"))
-#
 
 
 

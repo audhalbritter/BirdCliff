@@ -8,7 +8,8 @@ transformation_plan <- list(
   tar_target(
     name = coordinates,
     command = read_csv(coords) %>%
-      mutate(Site = as.numeric(Site))
+      mutate(Site = as.numeric(Site),
+             Gradient = factor(Gradient, levels = c("C", "B")))
   ),
 
   # import community
@@ -17,7 +18,8 @@ transformation_plan <- list(
     command = read_csv(community) %>%
       # remove duplicates
       distinct() %>%
-      mutate(GS = paste0(Gradient, Site))
+      mutate(GS = paste0(Gradient, Site),
+             Gradient = factor(Gradient, levels = c("C", "B")))
   ),
 
   # calculate diversity indices
@@ -60,7 +62,8 @@ transformation_plan <- list(
           "Leaf_Thickness_mm" = "Thickness_mm_log"
         )) |>
       # order traits
-      mutate(trait_trans = factor(trait_trans, levels = c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")))
+      mutate(trait_trans = factor(trait_trans, levels = c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "LDMC", "SLA_cm2_g", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")),
+             Gradient = factor(Gradient, levels = c("C", "B")))
   ),
 
   # import bryophyte traits
@@ -91,13 +94,17 @@ transformation_plan <- list(
                   group_by(Gradient, Site) %>%
                   summarise(Elevation_m = mean(Elevation_m)), by = c("Gradient", "Site")) |>
       # order traits
-      mutate(trait_trans = factor(trait_trans, levels = c("Shoot_Length_cm_log", "Shoot_Length_Green_cm_log", "Shoot_ratio", "WHC_g_g", "SSL_cm_g", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")))
+      mutate(trait_trans = factor(trait_trans, levels = c("Shoot_Length_cm_log", "Shoot_Length_Green_cm_log", "Shoot_ratio", "WHC_g_g", "SSL_cm_g", "C_percent", "N_percent", "CN_ratio", "P_percent", "NP_ratio", "dC13_permil", "dN15_permil")),
+             Gradient = factor(Gradient, levels = c("C", "B")))
   ),
 
   # import climate
   tar_target(
     name = climate_data,
-    command = read_csv(climate)
+    command = read_csv(climate) |>
+      mutate(Gradient = factor(Gradient, levels = c("C", "B")),
+             GS = paste0(Gradient, Site)) |>
+      left_join(coordinates, by = c("Gradient", "Site", "PlotID"))
   ),
 
   # make trait impute
@@ -116,6 +123,8 @@ transformation_plan <- list(
       complete(.id, level, trait_trans, fill = list(s = 0)) |>
       filter(level == "PlotID") |>
       group_by(Gradient, trait_trans) |>
+      # prob = 0.25 gives 75% of the plots
+      # also run prob = 0.5 for 50% of the plots
       summarise(q = quantile(s, prob = 0.25))
 
   ),
@@ -131,10 +140,9 @@ transformation_plan <- list(
     name = trait_mean,
     command = make_bootstrapping(trait_impute, trait_null_impute) %>%
       left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
-      mutate(GS = paste0(Gradient, Site)) |>
       # join climate data
       left_join(climate_data |>
                   pivot_wider(names_from = Variable, values_from = Value),
-                by = c("Gradient", "Site", "PlotID")))
+                by = c("Gradient", "Site", "PlotID", "Elevation_m", "Longitude_E", "Latitude_N")))
 
 )

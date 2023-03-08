@@ -12,7 +12,7 @@ make_trait_impute <- function(comm_raw, traits_raw){
 
   #set seed for bootstrapping repeatability
   set.seed(2525)
-  trait_imp <- trait_impute(comm = comm,
+  trait_imp <- trait_fill(comm = comm,
                             traits = trait,
                             scale_hierarchy = c("Gradient", "Site", "PlotID"),
                             global = F,
@@ -45,7 +45,7 @@ make_trait_null_impute <- function(comm_raw, traits_raw){
     select(-value_trans.y, "value_trans" = value_trans.x)
 
   set.seed(2626)
-  trait_imp_null <- trait_impute(comm = comm,
+  trait_imp_null <- trait_fill(comm = comm,
                                traits = trait.null,
                                scale_hierarchy = c("Gradient", "Site", "PlotID"),
                                global = F,

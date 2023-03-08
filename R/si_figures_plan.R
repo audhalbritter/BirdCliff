@@ -3,137 +3,56 @@ si_figures_plan <- list(
   # CLIMATE DATA
   # analysis
   tar_target(
-    name = climate_analysis,
-    command = {
+    name = run_climate_model,
+    command = run_trait_model(dat = climate_data,
+                              group = "Variable",
+                              response = Value,
+                              continous_predictor = Elevation_m) |>
+      pivot_longer(cols = -c(Variable, data),
+                   names_sep = "_",
+                   names_to = c(".value", "names"))
+  ),
 
-      dat <- climate_data %>%
-      mutate(Variable = recode(Variable, "SoilMoisture" = "soil moisture in %", "SoilTemperature" = "soil temperature in °C"),
-             GS = paste0(Gradient, Site)) %>%
-      left_join(coordinates, by = c("Gradient", "Site", "PlotID"))
+  # select best model
+  tar_target(
+    name = climate_model,
+    command = run_climate_model |>
+      # remove models that have singular fit
+      filter(singular == FALSE) |>
+      filter(aic == min(aic))
+  ),
 
-      # model selection
-      dat %>%
-        group_by(Variable) %>%
-        nest() %>%
-        mutate(model.set = map(data, ~{
-          mod <- lmer(Value ~  Gradient * Elevation_m + (1|GS), REML = FALSE, na.action = "na.fail", data = .x)
-          model.set = dredge(mod, rank = "AICc", extra = "R^2")
-        })) %>%
-        unnest(model.set)
+  # lrt
+  tar_target(
+    name = climate_lrt_output,
+    command = climate_lrt(climate_data)
+  ),
 
-      # moisture: GxE, temperature G
-      fit_m <- lmer(Value ~  Gradient * Elevation_m + (1|GS), data = dat %>% filter(Variable == "soil moisture in %"))
+  # Produce model output and prediction
+  tar_target(
+    name = climate_model_output,
+    command = model_output_prediction(climate_model)
+  ),
 
-      fit_t <- lmer(Value ~  Gradient + (1|GS), data = dat %>% filter(Variable == "soil temperature in °C"))
 
-      bind_rows(
-        moisture = tidy(fit_m),
-        temperature = tidy(fit_t),
-        .id = "Variable") %>%
-        left_join(tibble(Rm = r.squaredGLMM(fit_m) %>% as.vector(),
-                               Rc = r.squaredGLMM(fit_t) %>% as.vector(),
-                               Variable = c("moisture", "temperature")),
-                  by = "Variable")
-    }
+  # model output
+  tar_target(
+    name = climate_table,
+    command = make_climate_table(climate_model_output)
   ),
 
   # climate figure
   tar_target(
     name = climate_plot,
-    command = {
-
-      # climate data
-      dat <- climate_data %>%
-        mutate(Variable = recode(Variable, "SoilMoisture" = "soil moisture in %", "SoilTemperature" = "soil temperature in °C"),
-               GS = paste0(Gradient, Site)) %>%
-        left_join(coordinates, by = c("Gradient", "Site", "PlotID"))
-
-      # soil moisture
-      dd <- dat %>%
-        filter(Variable == "soil moisture in %")
-      fit <- lmer(Value ~  Gradient * Elevation_m + (1|GS), data = dd)
-
-      newdat <- dd %>%
-        distinct(Elevation_m, Gradient) %>%
-        mutate(Value = 0)
-      newdat$Value <-  predict(fit, newdat, re.form = NA)
-
-      mm <- model.matrix(terms(fit), newdat)
-
-      soil_m <- newdat %>%
-        mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-               tvar1 = pvar1 + VarCorr(fit)$GS[1],  ## must be adapted for more complex models
-               cmult = 1.96) %>%
-        mutate(plo = Value - cmult*sqrt(pvar1),
-               phi = Value + cmult*sqrt(pvar1),
-               tlo = Value - cmult*sqrt(tvar1),
-               thi = Value + cmult*sqrt(tvar1))
-
-      g0 <- dat |>
-        filter(Variable == "soil moisture in %") |>
-        ggplot(aes(x = Elevation_m, y = Value, colour = Gradient, fill = Gradient)) +
-        geom_point(alpha = 0.5) +
-        scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-        labs(x = "Elevation in m a.s.l.", y = "") +
-        theme_minimal() +
-        theme(legend.position = "bottom")
-
-        soil_m_plot <- g0 +
-        geom_line(data = soil_m) +
-        geom_ribbon(data = soil_m, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-        scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-        annotate("text", x = Inf, y = Inf, label = "NxE", size = 3, hjust = 1, vjust = 1) +
-        labs(y = "Soil moisture in %")
-
-
-
-      # soil temperature
-      dd <- dat %>%
-        filter(Variable == "soil temperature in °C")
-      fit <- lmer(Value ~  Gradient + (1|GS), data = dd)
-
-      newdat <- dd %>%
-        distinct(Elevation_m, Gradient) %>%
-        mutate(Value = 0)
-      newdat$Value <-  predict(fit, newdat, re.form = NA)
-
-      mm <- model.matrix(terms(fit), newdat)
-
-      soil_t <- newdat %>%
-        mutate(pvar1 = diag(mm %*% tcrossprod(vcov(fit), mm)),
-               tvar1 = pvar1 + VarCorr(fit)$GS[1],  ## must be adapted for more complex models
-               cmult = 1.96) %>%
-        mutate(plo = Value - cmult*sqrt(pvar1),
-               phi = Value + cmult*sqrt(pvar1),
-               tlo = Value - cmult*sqrt(tvar1),
-               thi = Value + cmult*sqrt(tvar1))
-
-      soil_t_plot <- g0 %+% subset(dat, Variable == "soil temperature in °C") +
-        geom_line(data = soil_t) +
-        geom_ribbon(data = soil_t, aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-        scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-        annotate("text", x = Inf, y = Inf, label = "N", size = 3, hjust = 1, vjust = 1) +
-        labs(y = "Soil temperature in °C")
-
-      climate_plot <- soil_m_plot + soil_t_plot + plot_layout(guides = 'collect') & theme(legend.position = 'bottom')
-
-    }),
-
+    command = make_climate_figure(climate_model_output)
+  ),
 
   # COMMUNITY DATA
-  # species ordination
+  # PCA
   tar_target(
-    name = ordination_plot,
-    command = make_ordination_plot(comm_raw,
-                                   NMDS = sp_ordination[[1]],
-                                   fNMDS = sp_ordination[[2]])),
-
-
-  # check the nr of dimensions for NMDS
-  tar_target(
-    name = stress_plot,
-    command = check_dimensions_NMDS(comm_raw)
-  ),
+    name = community_pca_plot,
+    command = make_sp_pca_figure(comm_pca_B, comm_pca_C)
+    ),
 
 
   # TRAIT DATA
@@ -217,7 +136,19 @@ si_figures_plan <- list(
         filter(Taxon != "unknown sp") |>
         write_csv(file = "output/species_list.csv")
 
-    })
+    }),
+
+  # TRAIT AND CLIMATE
+  # trait table
+  tar_target(
+    name = trait_soil_temp_figure,
+    command = make_trait_soil_temp_figure(soil_temp_model_output)
+  ),
+
+  tar_target(
+    name = trait_soil_moisture_figure,
+    command = make_trait_soil_moisture_figure(soil_moisture_model_output)
+  )
 
 
 
