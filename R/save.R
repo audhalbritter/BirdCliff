@@ -13,12 +13,11 @@ library("patchwork")
 library("broom")
 library("ape")
 #library("nlme")
-#library("Hmisc")
+library("Hmisc")
 library("lme4")
 library("broom.mixed")
 library("MuMIn")
 library(glue)
-library(egg)
 
 # Main MS
 tar_load(community_trait_plot)
@@ -31,12 +30,9 @@ ggsave("output/single_trait_variance_plot.jpg", single_trait_variance_plot, dpi 
 tar_load(trait_variance_plot)
 ggsave("output/trait_variance_plot.jpg", trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
-tar_load(full_trait_ordination_plot)
-ggsave("output/trait_ordination_plot1.jpg", full_trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
-tar_load(separate_trait_ordination_plot)
-ggsave("output/trait_ordination_plot2.jpg", separate_trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
+
 tar_load(trait_ordination_plot)
-ggsave("output/trait_ordination_plot3.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
+ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
 
 tar_load(ITV_plot)
 ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
@@ -52,9 +48,6 @@ ggsave("output/climate_plot.jpg", climate_plot, dpi = 300, height = 4, width = 6
 
 tar_load(community_pca_plot)
 ggsave("output/community_pca_plot.jpg", community_pca_plot, dpi = 300, height = 6, width = 7, bg = "white")
-
-tar_load(ordination_plot)
-ggsave("output/ordination_plot.jpg", ordination_plot, dpi = 300, height = 4, width = 6, bg = "white")
 
 tar_load(diversity_plot)
 ggsave("output/diversity_plot.jpg", diversity_plot, dpi = 300, height = 4, width = 6, bg = "white")

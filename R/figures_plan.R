@@ -47,20 +47,14 @@ figures_plan <- list(
 
   # FIGURE 3: trait ordination
   tar_target(
-    name = full_trait_ordination_plot,
-    command = make_full_trait_pca_plot(trait_pca)
-  ),
-
-  tar_target(
-    name = separate_trait_ordination_plot,
-    command = make_separate_pca_plot(trait_pca)
-  ),
-
-  # separate ordinations (appendix!!!)
-  tar_target(
     name = trait_ordination_plot,
-    command = make_trait_pca_plot(trait_pca_B, trait_pca_C)
+    command = make_pca_plot(trait_pca, PC1, PC2)
   ),
+
+  # tar_target(
+  #   name = trait_oridination_PC3,
+  #   command = make_pca_plot(trait_pca, PC1, PC3)
+  # ),
 
   # FIGURE 6: BRYOPHYTES
   tar_target(

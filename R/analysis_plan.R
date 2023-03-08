@@ -13,17 +13,9 @@ analysis_plan <- list(
 
   # COMMUNITY
   # Species community PCA
-  # make species ordination (separate by Gradient)
   tar_target(
-    name = comm_pca_B,
-    command = make_community_pca(comm_raw |>
-                                   filter(Gradient == "B"))
-  ),
-
-  tar_target(
-    name = comm_pca_C,
-    command = make_community_pca(comm_raw |>
-                                   filter(Gradient == "C"))
+    name = comm_pca,
+    command = make_community_pca(comm_raw)
   ),
 
 
@@ -191,35 +183,18 @@ analysis_plan <- list(
     command = make_trait_pca(trait_mean)
   ),
 
-  # separate
-  tar_target(
-    name = trait_pca_B,
-    command = make_trait_pca(trait_mean %>% filter(Gradient == "B"))
-  ),
-
-  tar_target(
-    name = trait_pca_C,
-    command = make_trait_pca(trait_mean %>% filter(Gradient == "C"))
-  ),
-
   # pca output
   tar_target(
     name = trait_pca_output,
     command = {
 
-      bind_rows(Birdcliff = trait_pca_B[[2]],
-                Reference = trait_pca_C[[2]], #%>%
-                  # mutate(PC1 = PC1 * -1,
-                  #        PC2 = PC2 * -1,
-                  #        PC3 = PC3 * -1,
-                  #        PC4 = PC4 * -1),
-                .id = "Gradient") %>%
-        select(Gradient, Trait = trait_fancy, PC1:PC4) %>%
+      trait_pca[[2]] %>%
+        select(Trait = trait_fancy, PC1:PC4) %>%
         mutate(PC1 = round(PC1, digits = 2),
                PC2 = round(PC2, digits = 2),
                PC3 = round(PC3, digits = 2),
                PC4 = round(PC4, digits = 2)) %>%
-        arrange(Gradient, -PC1) %>%
+        arrange(-PC1) %>%
         # order traits
         write_csv(., file = "output/Loadings_trait_PCA.csv")
 
@@ -230,9 +205,7 @@ analysis_plan <- list(
     name = trait_ord_expl_var,
     command = {
 
-      bind_cols(
-        bird = vegan::eigenvals(trait_pca_B[[3]])/sum(vegan::eigenvals(trait_pca_B[[3]])) * 100,
-        reference = vegan::eigenvals(trait_pca_C[[3]])/sum(vegan::eigenvals(trait_pca_C[[3]])) * 100)
+      vegan::eigenvals(trait_pca[[3]])/sum(vegan::eigenvals(trait_pca[[3]])) * 100
 
     }),
 

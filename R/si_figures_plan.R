@@ -51,7 +51,7 @@ si_figures_plan <- list(
   # PCA
   tar_target(
     name = community_pca_plot,
-    command = make_sp_pca_figure(comm_pca_B, comm_pca_C)
+    command = make_sp_pca_figure(comm_pca)
     ),
 
 
