@@ -56,6 +56,13 @@ make_ITV_plot <- function(itv_output){
     mutate(variable = recode(variable, "ss" = "sumsq", "p" = "proportion")) |>
     pivot_wider(names_from = variable, values_from = value)
 
+  # proportion ITV
+  # variance_part |>
+  #   filter(process  == "intraspecific") |>
+  #   ungroup() |>
+  #   group_by(Gradient) |>
+  #   summarise(range(proportion))
+
   # write table with results
   fancy_trait_name_dictionary(variance_part) |>
     mutate(sumsq = round(sumsq, digits = 1),
