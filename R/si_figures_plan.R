@@ -138,6 +138,21 @@ si_figures_plan <- list(
 
     }),
 
+  # BRYOPHYTE
+  tar_target(
+    name = bryophyte_density_plot,
+    command = ind_traits |>
+      filter(Functional_group == "bryophyte") |>
+      fancy_trait_name_dictionary() |>
+      mutate(trait_fancy = factor(trait_fancy, levels = c("Shoot length cm", "Shoot ratio", "SSL cm/g", "WHC g/g", "P %"))) |>
+      ggplot(aes(x = value_trans, fill = Gradient)) +
+      geom_density(alpha = 0.5) +
+      labs(x = "Trait value") +
+      scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+      facet_wrap( ~ trait_fancy, scales = "free") +
+      theme_minimal()
+      ),
+
   # TRAIT AND CLIMATE
   # trait table
   tar_target(

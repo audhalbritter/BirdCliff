@@ -55,6 +55,10 @@ ggsave("output/diversity_plot.jpg", diversity_plot, dpi = 300, height = 4, width
 tar_load(imputation_plot)
 ggsave("output/imputation_plot.jpg", imputation_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
+tar_load(bryophyte_density_plot)
+ggsave("output/bryophyte_density_plot.jpg", bryophyte_density_plot, dpi = 300, height = 6, width = 8, bg = "white")
+
+
 # tar_load(correlation_plot)
 # ggsave("output/correlation_plot.jpg", correlation_plot, dpi = 300, height = 10, width = 7, bg = "white")
 
