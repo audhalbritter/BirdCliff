@@ -190,8 +190,8 @@ ggplot(out, aes(x = SoilMoisture, y = mean, colour = Gradient)) +
   geom_point(alpha = 0.5) +
   geom_line(aes(y = fitted, colour = Gradient)) +
   geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-  scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-  scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+  scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+  scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
   labs(x = "Soil moisture in %", y = "Bootstrapped trait mean") +
   # add label
   geom_text(data = out |>
@@ -222,8 +222,8 @@ make_trait_soil_temp_figure <- function(soil_temp_model_output){
     geom_point(alpha = 0.5) +
     geom_line(aes(y = fitted, colour = Gradient)) +
     geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-    scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
+    scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+    scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
     labs(x = "Soil temperature in °C", y = "Bootstrapped trait mean") +
     # add label
     geom_text(data = out |>
