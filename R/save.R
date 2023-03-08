@@ -41,9 +41,6 @@ ggsave("output/trait_ordination_plot3.jpg", trait_ordination_plot, dpi = 300, he
 tar_load(ITV_plot)
 ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
 
-tar_load(vascular_plot)
-ggsave("output/vascular_plot.jpg", vascular_plot, dpi = 300, height = 6, width = 4, bg = "white")
-
 tar_load(bryo_plot)
 ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 6, bg = "white")
 

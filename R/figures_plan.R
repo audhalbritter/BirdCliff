@@ -62,12 +62,6 @@ figures_plan <- list(
     command = make_trait_pca_plot(trait_pca_B, trait_pca_C)
   ),
 
-  # FIGURE 5: VASCULAR PLANTS
-  # tar_target(
-  #   name = vascular_plot,
-  #   command = make_vascular_figure(vascular_model_output)),
-
-
   # FIGURE 6: BRYOPHYTES
   tar_target(
     name = bryo_plot,
