@@ -297,7 +297,7 @@ make_trait_pca <- function(trait_mean){
 
 
 
-make_pca_plot <- function(trait_pca, PC1, PC2){
+make_pca_plot <- function(trait_pca){
 
   # adding pics
   # bird <- grid::rasterGrob(png::readPNG("bird.png"), interpolate = TRUE)
@@ -370,6 +370,93 @@ make_pca_plot <- function(trait_pca, PC1, PC2){
               show.legend = FALSE) +
     coord_equal(clip = "off", xlim = c(PC1_min+0.5, PC1_max-1), ylim = c(PC2_min+1, PC2_max-2)) +
     labs(x = "PCA1", y = "PCA2", tag = "(c)") +
+    scale_x_continuous(expand = c(.2, 0)) +
+    scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
+    scale_colour_manual(name = "", values = c("black", "grey40", "grey70")) +
+    theme_minimal() +
+    theme(aspect.ratio = 1,
+          plot.tag.position = c(0, 1),
+          plot.tag = element_text(vjust = 1.5, hjust = -2.85, size = 10))
+
+  plot_layout <- "
+  12
+  34
+  "
+
+  trait_ordination_plot <- pcaC + pcaN + arrow + guide_area() + plot_layout(design = plot_layout, guides = "collect") &
+    theme(legend.box = "horizontal")
+
+  return(trait_ordination_plot)
+
+}
+
+
+
+make_pca_3_plot <- function(trait_pca){
+
+  # elevational range
+  range <- range(trait_pca[[1]]$Mean_elevation)
+
+  # PC range
+  PC1_min <- min(trait_pca[[1]]$PC1) - 0.5
+  PC1_max <- max(trait_pca[[1]]$PC1) + 1
+  PC3_min <- min(trait_pca[[1]]$PC3) - 1
+  PC3_max <- max(trait_pca[[1]]$PC3) + 1
+
+  # both gradients
+  e_B <- eigenvals(trait_pca[[3]])/sum(eigenvals(trait_pca[[3]]))
+
+  # Reference
+  pcaC <- trait_pca[[1]] %>%
+    filter(Gradient == "C") |>
+    ggplot(aes(x = PC1, y = PC3, colour = Mean_elevation, group = GS)) +
+    geom_point(size = 2) +
+    coord_equal(clip = "off", xlim = c(PC1_min, PC1_max), ylim = c(PC3_min, PC3_max)) +
+    stat_ellipse(aes(colour = Mean_elevation)) +
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
+    labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
+         y = glue("PCA3 ({round(e_B[3] * 100, 1)}%)"),
+         tag = "(a) Reference") +
+    theme_minimal() +
+    theme(aspect.ratio = 1,
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = -1.5, hjust = -0.5, size = 10))
+
+  # Nutrient input
+  pcaN <- trait_pca[[1]] %>%
+    filter(Gradient == "B") |>
+    ggplot(aes(x = PC1, y = PC3, colour = Mean_elevation, group = GS)) +
+    geom_point(size = 2) +
+    coord_equal(clip = "off", xlim = c(PC1_min, PC1_max), ylim = c(PC3_min, PC3_max)) +
+    stat_ellipse(aes(colour = Mean_elevation)) +
+    scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
+    labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
+         y = glue("PCA3 ({round(e_B[3] * 100, 1)}%)"),
+         tag = "(b) Nutrient input") +
+    theme_minimal() +
+    theme(aspect.ratio = 1,
+          plot.tag.position = c(0, 0.9),
+          plot.tag = element_text(vjust = -1.5, hjust = -0.5, size = 10))
+
+  arrow <- trait_pca[[1]] %>%
+    ggplot(aes(x = PC1, y = PC3)) +
+    geom_segment(data = trait_pca[[2]],
+                 aes(x = 0, y = 0, xend = PC1, yend = PC3, colour = class, linetype = class),
+                 arrow = arrow(length = unit(0.2, "cm")),
+                 inherit.aes = FALSE) +
+    geom_text(data = trait_pca[[2]] |>
+                mutate(PC1 = case_when(Label == "P_percent" ~ 1.3,
+                                       TRUE ~ PC1),
+                       PC3 = case_when(Label == "P_percent" ~ -0.16,
+                                       Label == "Thickness_mm_log" ~ 0.02,
+                                       Label == "Leaf_Area_cm2_log" ~ 0.5,
+                                       TRUE ~ PC3)),
+              aes(x = PC1 * 1.1, y = PC3 * 1.1, label = trait_fancy, colour = class),
+              size = 2.5,
+              inherit.aes = FALSE,
+              show.legend = FALSE) +
+    coord_equal(clip = "off", xlim = c(PC1_min+0.5, PC1_max-1.5), ylim = c(PC3_min+1.5, PC3_max-1.5)) +
+    labs(x = "PCA1", y = "PCA3", tag = "(c)") +
     scale_x_continuous(expand = c(.2, 0)) +
     scale_linetype_manual(name = "", values = c("solid", "dashed", "solid")) +
     scale_colour_manual(name = "", values = c("black", "grey40", "grey70")) +

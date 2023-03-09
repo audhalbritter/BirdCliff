@@ -33,6 +33,8 @@ ggsave("output/trait_variance_plot.jpg", trait_variance_plot, dpi = 300, height 
 
 tar_load(trait_ordination_plot)
 ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
+tar_load(trait_oridination_PC3)
+ggsave("output/trait_oridination_PC3.jpg", trait_oridination_PC3, dpi = 300, height = 6, width = 6, bg = "white")
 
 tar_load(ITV_plot)
 ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
