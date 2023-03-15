@@ -89,6 +89,11 @@ transformation_plan <- list(
           "Shoot_Length_cm" = "Shoot_Length_cm_log",
           "Shoot_Length_Green_cm" = "Shoot_Length_Green_cm_log"
         )) %>%
+
+      # merge niphotrichum and polytrichum species
+      mutate(Taxon = case_when(Taxon == "niphotrichum canescens" ~ "niphotrichum sp",
+                               Taxon == "polytrichum piliferum" ~ "polytrichum sp",
+                               TRUE ~ Taxon)) |>
       select(-c(Elevation_m:Longitude_E)) %>%
       left_join(coordinates %>%
                   group_by(Gradient, Site) %>%
