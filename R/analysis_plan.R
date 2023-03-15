@@ -226,6 +226,57 @@ analysis_plan <- list(
     ),
 
 
+  # test PCA1 regression
+  # run linear and quadratic model
+  tar_target(
+    name = PCA1_community_model,
+    command = {
+
+      dat <- trait_pca[[1]] |>
+        rename(Elevation_m = Mean_elevation)
+
+      mod_linear <-  lmer(PC1 ~  Gradient * Elevation_m + (1|GS), data = dat)
+      mod_quadratic <-  lmer(PC1 ~  Gradient * poly(Elevation_m, 2) + (1|GS), data = dat)
+      AIC(mod_linear, mod_quadratic)
+
+      ExN = lmer(PC1 ~  Gradient * poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = dat)
+      EplusN = lmer(PC1 ~  Gradient + poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = dat)
+      N = lmer(PC1 ~  Gradient + (1|GS), REML=FALSE, data = dat)
+      E = lmer(PC1 ~  poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = dat)
+      Null = lmer(PC1 ~  1 + (1|GS), REML=FALSE, data = dat)
+      # lr test
+      test = anova(ExN, EplusN, N, E, Null)
+
+
+      r_squared <- r.squaredGLMM(mod_quadratic) |>
+        as_tibble()
+
+      # best model is NxE
+      tidy(mod_quadratic) |>
+        filter(effect == "fixed") |>
+        mutate(term = recode(term,
+                             "(Intercept)" = "Intercept",
+                             "GradientB" = "N",
+                             "Elevation_m" = "E",
+                             "GradientB:.continous_predictor" = "NxE" ,
+                             "poly(Elevation_m, 2)1" = "E",
+                             "poly(Elevation_m, 2)2" = "E2",
+                             "GradientB:poly(Elevation_m, 2)1" = "NxE",
+                             "GradientB:poly(Elevation_m, 2)2" = "NxE2")) |>
+        bind_cols(r_squared) |>
+        mutate(estimate = round(estimate, digits = 2),
+               std.error = round(std.error, digits = 2),
+               statistic = round(statistic, digits = 2),
+               R2m = round(R2m, digits = 2),
+               R2c = round(R2c, digits = 2)) %>%
+        ungroup() |>
+        select(Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = R2m, "Conditional R2" = R2c) %>%
+        write_csv(., file = "output/PCA_regression_output.csv")
+
+      }
+  ),
+
+
   ### ITV
   tar_target(
     name = itv_output,
