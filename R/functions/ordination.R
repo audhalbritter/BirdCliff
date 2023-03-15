@@ -67,6 +67,7 @@ make_sp_pca_figure <- function(comm_pca){
   # make main figure
   # reference
   pca_C <- comm_pca[[1]] |>
+    filter(Gradient == "Reference") |>
     ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation)) +
     geom_point(size = 2) +
     #annotation_custom(ref, xmin = -3.5, xmax = -5.3, ymin = 1, ymax = 2.1) +
