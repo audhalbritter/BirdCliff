@@ -18,6 +18,11 @@ analysis_plan <- list(
     command = make_community_pca(comm_raw)
   ),
 
+  tar_target(
+    name = adonis_comm_output,
+    command = tidy(comm_pca[[4]]$aov.tab)
+  ),
+
 
   # FUNCTIONAL TRAITS
   # Community trait mean
@@ -175,8 +180,14 @@ analysis_plan <- list(
                               TRUE ~ "NxE"))
   ),
 
+  # trait table
+  tar_target(
+    name = trait_variance_table,
+    command = make_trait_variance_table(community_variance_output)
+  ),
 
-  # Trait ordination (PCA)
+
+  # TRAIT ORDINATION (PCA)
   # both localities
   tar_target(
     name = trait_pca,
@@ -209,6 +220,11 @@ analysis_plan <- list(
 
     }),
 
+  tar_target(
+    name = adonis_trait_output,
+    command = tidy(trait_pca[[4]]$aov.tab)
+    ),
+
 
   ### ITV
   tar_target(
@@ -216,17 +232,14 @@ analysis_plan <- list(
     command = make_ITV_analysis(trait_mean)),
 
 
-  # INDIVIDUAL LEVEL TRAITS
-
-  # Vascular plants
-
-  # combine data
+  # BRYOPHYTES
+  # combine vascular and bryophyte data
   tar_target(
     name = ind_traits,
     command = combine_traits(traits_raw, bryo_traits_raw)),
 
 
-  # BRYOPHYTES
+  # BRYOPHYTES (maybe remove?)
   # run linear and quadratic model
   tar_target(
     name = trait_bryophyte_model,
