@@ -156,13 +156,18 @@ si_figures_plan <- list(
   # TRAIT AND CLIMATE
   # trait table
   tar_target(
-    name = trait_soil_temp_figure,
-    command = make_trait_soil_temp_figure(soil_temp_model_output)
-  ),
+    name = trait_microclimate_figure,
+    command = {
 
-  tar_target(
-    name = trait_soil_moisture_figure,
-    command = make_trait_soil_moisture_figure(soil_moisture_model_output)
+      soil_t <- make_trait_soil_temp_figure(soil_temp_model_output)
+      soil_m <- make_trait_soil_moisture_figure(soil_moisture_model_output)
+
+      soil_t / soil_m +
+        plot_layout(guides = "collect") +
+        plot_annotation(tag_levels = 'a', tag_suffix = ')')&
+        theme(legend.position = "top")
+
+    }
   )
 
 
