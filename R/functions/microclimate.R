@@ -31,7 +31,7 @@ make_climate_figure <- function(climate_model_output){
     mutate(Variable = recode(Variable, "SoilMoisture" = "Soil moisture in %", "SoilTemperature" = "Soil temperature in °C")) |>
     mutate(text = "NxE")
 
-  ggplot(out, aes(x = Elevation_m, y = Value, colour = Gradient)) +
+  p <- ggplot(out, aes(x = Elevation_m, y = Value, colour = Gradient)) +
     geom_point(alpha = 0.5) +
     geom_line(aes(y = fitted, colour = Gradient)) +
     geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
@@ -44,6 +44,10 @@ make_climate_figure <- function(climate_model_output){
     facet_wrap(~ Variable, scales = "free_y") +
     theme_minimal() +
     theme(legend.position = "top")
+
+  p <- tag_facet(p)
+
+  p + theme(strip.text = element_text())
 
 }
 
