@@ -20,7 +20,6 @@ source("R/functions/correlation_plot.R")
 source("R/functions/ordination.R")
 source("R/functions/trait-analysis.R")
 source("R/functions/trait_figures.R")
-# # source("R/functions/trait_output.R") # probably not needed anymore
 source("R/functions/itv_analysis.R")
 source("R/functions/individual_species.R")
 source("R/functions/microclimate.R")
