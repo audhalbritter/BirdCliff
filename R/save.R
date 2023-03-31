@@ -45,8 +45,8 @@ ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 6, bg =
 
 # SI figures
 
-tar_load(climate_plot)
-ggsave("output/climate_plot.jpg", climate_plot, dpi = 300, height = 4, width = 6, bg = "white")
+tar_load(environment_plot)
+ggsave("output/environment_plot.jpg", environment_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
 tar_load(community_pca_plot)
 ggsave("output/community_pca_plot.jpg", community_pca_plot, dpi = 300, height = 6, width = 7, bg = "white")
@@ -64,9 +64,5 @@ ggsave("output/bryophyte_density_plot.jpg", bryophyte_density_plot, dpi = 300, h
 # tar_load(correlation_plot)
 # ggsave("output/correlation_plot.jpg", correlation_plot, dpi = 300, height = 10, width = 7, bg = "white")
 
-tar_load(trait_soil_temp_figure)
-ggsave("output/trait_soil_temp_figure.jpg", trait_soil_temp_figure, dpi = 300, height = 6, width = 8, bg = "white")
-
-
-tar_load(trait_soil_moisture_figure)
-ggsave("output/trait_soil_moisture_figure.jpg", trait_soil_moisture_figure, dpi = 300, height = 6, width = 8, bg = "white")
+tar_load(trait_microclimate_figure)
+ggsave("output/trait_microclimate_figure.jpg", trait_microclimate_figure, dpi = 300, height = 12, width = 8, bg = "white")
