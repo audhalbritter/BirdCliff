@@ -1,17 +1,17 @@
 #
 analysis_plan <- list(
 
-  # CLIMATE
+  # ENVIRONMENT DATA (Soil temperature, moisture, C and N)
   tar_target(
-    name = climate_result,
-    command = climate_data |>
+    name = environment_result,
+    command = environment |>
       group_by(Variable, Gradient) |>
       summarise(mean = mean(Value),
                 se = sd(Value)/sqrt(n()))
   ),
 
 
-  # COMMUNITY
+  # VASCULAR PLANT COMMUNITY
   # Species community PCA
   tar_target(
     name = comm_pca,
@@ -24,7 +24,7 @@ analysis_plan <- list(
   ),
 
 
-  # FUNCTIONAL TRAITS
+  # PLANT FUNCTIONAL TRAIT REGRESSIONS
   # Community trait mean
 
   # Elevation
@@ -71,7 +71,7 @@ analysis_plan <- list(
     command = make_trait_table(community_model_output)
     ),
 
-  # MICROCLIMATE
+  # TRAIT VS MICROCLIMATE
   # run linear and quadratic model
   tar_target(
     name = trait_soil_temp_model,
@@ -187,6 +187,7 @@ analysis_plan <- list(
   ),
 
 
+  # MULTIVARIATE TRAIT ANALYSIS
   # TRAIT ORDINATION (PCA)
   # both localities
   tar_target(
@@ -226,6 +227,7 @@ analysis_plan <- list(
     ),
 
 
+  # REMOVE???
   # test PCA1 regression
   # run linear and quadratic model
   tar_target(
@@ -277,7 +279,7 @@ analysis_plan <- list(
   ),
 
 
-  ### ITV
+  ### ITV ANALYSIS
   tar_target(
     name = itv_output,
     command = make_ITV_analysis(trait_mean)),
