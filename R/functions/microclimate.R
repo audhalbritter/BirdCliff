@@ -28,8 +28,12 @@ make_climate_figure <- function(climate_model_output){
                                                                  .y |> select(fitted = .response, plo, phi)))) |>
     select(-data, -prediction, -mod, -model_output, -r) |>
     unnest(output) |>
-    mutate(Variable = recode(Variable, "SoilMoisture" = "Soil moisture in %", "SoilTemperature" = "Soil temperature in °C")) |>
-    mutate(text = "NxE")
+    mutate(text = if_else(Variable %in% c("C", "N"), "N+E", "NxE")) |>
+    mutate(Variable = recode(Variable,
+                             "SoilMoisture" = "Soil moisture in %",
+                             "SoilTemperature" = "Soil temperature in °C",
+                             "C" = "Carbon conten in %",
+                             "N" = "Nitrogen conten in %"))
 
   p <- ggplot(out, aes(x = Elevation_m, y = Value, colour = Gradient)) +
     geom_point(alpha = 0.5) +
@@ -39,7 +43,7 @@ make_climate_figure <- function(climate_model_output){
     scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
     labs(x = "Elevation m a.s.l.", y = "") +
     # add label
-    geom_text(aes(x = Inf, y = Inf, label = "NxE"),
+    geom_text(aes(x = Inf, y = Inf, label = text),
               size = 3, colour = "black", hjust = 1, vjust = 1) +
     facet_wrap(~ Variable, scales = "free_y") +
     theme_minimal() +
@@ -71,8 +75,8 @@ make_climate_table <- function(climate_model_output){
     # join R squared
     left_join(climate_model_output |>
                 select(-data, -mod, -singular, -aic, -prediction, -model_output) |>
-                unnest_wider(col = r) |>
-                rename(Rm = ...1, Rc = ...2) |>
+                unnest_wider(col = r, names_sep = "_") |>
+                rename(Rm = r_1, Rc = r_2) |>
                 ungroup() %>%
                 select(Variable, Rm, Rc),
               by = "Variable") %>%
@@ -88,53 +92,9 @@ make_climate_table <- function(climate_model_output){
 }
 
 
-### CLIMATE AND TRAITS
+### CLIMATE VS TRAIT ANALYSIS
 
-# APPROACH 1 comparing model with and without microclimate
-# # run linear and quadratic model
-# run_trait_climate_model <- function(dat, group, response, continous_predictor){
-#
-#   dat |>
-#     rename(.response = {{response}},
-#            .continous_predictor = {{continous_predictor}}) |>
-#     group_by(across(all_of({{group}})))|>
-#     nest() |>
-#     mutate(
-#       # linear model
-#       mod_linear = map(data, ~ safely(lmer)(.response ~  Gradient * .continous_predictor + SoilTemperature + (1|GS), data = .x)$result),
-#       singular_linear = map_lgl(mod_linear, isSingular),
-#       aic_linear = map(.x = mod_linear, .f = ~ safely(AIC)(.x)$result),
-#       aic_linear = as.numeric(aic_linear),
-#
-#       # quadratic
-#       mod_quadratic = map(data, ~ safely(lmer)(.response ~  Gradient * poly(.continous_predictor, 2) + (1|GS), data = .x)$result),
-#       singular_quadratic = map_lgl(mod_quadratic, isSingular),
-#       aic_quadratic = map(.x = mod_quadratic, .f = ~ safely(AIC)(.x)$result),
-#       aic_quadratic = as.numeric(aic_quadratic),
-#
-#       # quadratic plus SoilTemp
-#       mod_quadraticPlus = map(data, ~ safely(lmer)(.response ~  Gradient * poly(.continous_predictor, 2) + SoilTemperature + (1|GS), data = .x)$result),
-#       aic_quadraticPlus = map(.x = mod_quadraticPlus, .f = ~ safely(AIC)(.x)$result),
-#       aic_quadraticPlus = as.numeric(aic_quadraticPlus))
-# }
-#
-# # run linear and quadratic model
-# tar_target(
-#   name = trait_community_model,
-#   command = run_trait_climate_model(dat = trait_mean,
-#                             group = "trait_trans",
-#                             response = mean,
-#                             continous_predictor = Elevation_m) |>
-#     pivot_longer(cols = -c(trait_trans, data),
-#                  names_sep = "_",
-#                  names_to = c(".value", "names")) |>
-#     filter(singular == FALSE | is.na(singular)) |>
-#     filter(aic == min(aic))
-# ),
-
-
-### APPROACH 2
-
+# LRT soil temperature
 likelihood_ratio_test_ST <- function(trait_mean){
 
   trait_mean |>
@@ -154,7 +114,7 @@ likelihood_ratio_test_ST <- function(trait_mean){
 
 }
 
-
+# LRT soil moisture
 likelihood_ratio_test_SM <- function(trait_mean){
 
   trait_mean |>
@@ -176,7 +136,7 @@ likelihood_ratio_test_SM <- function(trait_mean){
 }
 
 
-# trait climate figure
+# trait vs. climate figure
 make_trait_soil_moisture_figure <- function(soil_moisture_model_output){
 
 out <- soil_moisture_model_output |>
@@ -239,29 +199,3 @@ make_trait_soil_temp_figure <- function(soil_temp_model_output){
     theme_minimal() +
     theme(legend.position = "top")
 }
-
-
-# out2_SM <- out_SM |>
-#   # merge data and prediction
-#   mutate(output = map2(.x = data, .y = prediction, ~ bind_cols(.x, .y))) |>
-#   select(-data, -prediction, -model, -model_output, -r) |>
-#   unnest(output) |>
-#   rename(mean = mean...4, fitted = mean...20, Gradient = Gradient...1, SoilMoisture = SoilMoisture...14) |>
-#   select(-SoilMoisture...19, -Gradient...18)
-#
-# ggplot(out2_SM, aes(x = SoilMoisture, y = mean, colour = Gradient)) +
-#   geom_point(alpha = 0.5) +
-#   geom_line(aes(y = fitted, colour = Gradient)) +
-#   geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-#   scale_colour_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-#   scale_fill_manual(name = "", values = c("green4", "grey"), labels = c("Nutrient input", "Reference")) +
-#   labs(x = "Soil moisture", y = "Bootstrapped trait mean") +
-#   # add label
-#   geom_text(data = out2_SM |>
-#               ungroup() |>
-#               distinct(trait_trans, trait_fancy, text),
-#             aes(x = Inf, y = Inf, label = text),
-#             size = 3, colour = "black", hjust = 1, vjust = 1) +
-#   facet_wrap(~ trait_fancy, scales = "free_y") +
-#   theme_minimal() +
-#   theme(legend.position = "top")

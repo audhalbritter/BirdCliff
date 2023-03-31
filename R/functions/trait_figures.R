@@ -8,8 +8,8 @@ make_trait_figure <- function(community_model_output){
     mutate(output = map2(.x = data, .y = prediction, ~ bind_cols(.x, .y))) |>
     select(-data, -singular, -aic, -prediction, -mod, -model_output, -r) |>
     unnest(output) %>%
-    rename(Gradient = Gradient...1, mean = .response...4, Elevation_m = .continous_predictor...9, fitted = .response...20) |>
-    select(-Gradient...18, -.continous_predictor...19) %>%
+    rename(Gradient = Gradient...1, mean = .response...4, Elevation_m = .continous_predictor...9, fitted = .response...19) |>
+    select(-Gradient...17, -.continous_predictor...18) %>%
     fancy_trait_name_dictionary(.) |>
     mutate(class = recode(class, "Leaf economics" = "LES", "Isotopes" = "I"),
            trait_fancy = paste(class, trait_fancy, sep = " - "),
@@ -45,8 +45,8 @@ make_trait_variance_figure <- function(community_variance_output){
     mutate(output = map2(.x = data, .y = prediction, ~ bind_cols(.x, .y))) |>
     select(-data, -singular, -aic, -prediction, -mod, -model_output, -r) |>
     unnest(output) %>%
-    rename(Gradient = Gradient...1, var = .response...5, Elevation_m = .continous_predictor...9, fitted = .response...20) |>
-    select(-Gradient...18, -.continous_predictor...19 ) %>%
+    rename(Gradient = Gradient...1, var = .response...5, Elevation_m = .continous_predictor...9, fitted = .response...19) |>
+    select(-Gradient...17, -.continous_predictor...18) %>%
     fancy_trait_name_dictionary(.) |>
     mutate(class = recode(class, "Leaf economics" = "LES", "Isotopes" = "I"),
            trait_fancy = paste(class, trait_fancy, sep = " - "),

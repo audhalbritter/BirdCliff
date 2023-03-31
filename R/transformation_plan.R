@@ -12,6 +12,15 @@ transformation_plan <- list(
              Gradient = factor(Gradient, levels = c("C", "B")))
   ),
 
+  # soil
+  tar_target(
+    name = cn_data,
+    command = read_csv(soil_cn) |>
+      mutate(GS = paste0(Gradient, Site),
+             Gradient = factor(Gradient, levels = c("C", "B"))) |>
+      select(-Unit, -Weigth_mg)
+  ),
+
   # import community
   tar_target(
     name = comm_raw,
@@ -105,13 +114,16 @@ transformation_plan <- list(
 
   # import climate
   tar_target(
-    name = climate_data,
+    name = environment,
     command = read_csv(climate) |>
       mutate(Gradient = factor(Gradient, levels = c("C", "B")),
              GS = paste0(Gradient, Site)) |>
-      left_join(coordinates, by = c("Gradient", "Site", "PlotID"))
+      select(Gradient:GS) |>
+      left_join(coordinates, by = c("Gradient", "Site", "PlotID")) |>
+      bind_rows(cn_data)
   ),
 
+  # BOOTSTRAPPING
   # make trait impute
   tar_target(
     name = trait_impute,
@@ -146,8 +158,8 @@ transformation_plan <- list(
     command = make_bootstrapping(trait_impute, trait_null_impute) %>%
       left_join(coordinates, by = c("Gradient", "Site", "PlotID")) %>%
       # join climate data
-      left_join(climate_data |>
+      left_join(environment |>
                   pivot_wider(names_from = Variable, values_from = Value),
-                by = c("Gradient", "Site", "PlotID", "Elevation_m", "Longitude_E", "Latitude_N")))
-
+                by = c("Gradient", "Site", "PlotID", "Elevation_m", "Longitude_E", "Latitude_N"))
+    )
 )
