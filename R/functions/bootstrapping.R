@@ -84,3 +84,57 @@ make_bootstrapping <- function(trait_imp, trait_imp_null){
   return(traitMean)
 
 }
+
+
+
+### Multivariate bootstrapping
+
+make_multi_trait_impute <- function(comm_raw, traits_raw){
+
+  #prepare community data
+  comm_multi <- comm_raw |>
+    select(Gradient, Site, Elevation_m, PlotID, Taxon, Cover)
+
+  #prepare trait data
+  trait_multi <- traits_raw %>%
+    mutate(value_scaled = scale(Value, scale = TRUE, center = TRUE)[,1]) |>
+    select(Gradient, Site, Elevation_m, PlotID, ID, Taxon, trait_trans, value_scaled)
+
+  #set seed for bootstrapping repeatability
+  set.seed(2626)
+  multivariate_traits <- trait_fill(comm = comm_multi,
+                                    traits = trait_multi,
+                                    scale_hierarchy = c("Gradient", "Site", "Elevation_m", "PlotID"),
+                                    global = F,
+                                    taxon_col = "Taxon",
+                                    trait_col = "trait_trans",
+                                    value_col = "value_scaled",
+                                    abundance_col = "Cover",
+                                    complete_only = TRUE,
+                                    leaf_id = "ID")
+
+}
+
+
+# make bootstrap and calculate functional diversity indices
+make_multi_bootstrap <- function(trait_multi){
+
+  boot_multi <- trait_multivariate_bootstrap(
+    selected_traits = trait_multi,
+    nrep = 100,
+    sample_size = 200,
+    id = "ID",
+    fun = function(x) {
+      dbFD(
+        x = x,
+        calc.FRic = FALSE,
+        calc.FDiv = FALSE,
+        calc.CWM = FALSE,
+        stand.x = FALSE,
+        scale.RaoQ = FALSE
+      )
+    }
+  )
+
+
+}
