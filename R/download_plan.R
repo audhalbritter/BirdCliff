@@ -40,5 +40,15 @@ download_plan <- list(
                        path = "clean_data/climate",
                        remote_path = "Climate"),
     format = "file"
+  ),
+
+  # soil data
+  tar_target(
+    name = soil_cn,
+    command = get_file(node = "smbqh",
+                       file = "PFTC4_Svalbard_2018_Gradient_Clean_Soil_CN.csv",
+                       path = "clean_data/soil",
+                       remote_path = "Soil"),
+    format = "file"
   )
 )

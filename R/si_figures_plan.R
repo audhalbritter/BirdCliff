@@ -1,22 +1,16 @@
 si_figures_plan <- list(
 
-  # CLIMATE DATA
+  # ENVIRONMENT DATA
   # analysis
   tar_target(
-    name = run_climate_model,
-    command = run_trait_model(dat = climate_data,
+    name = environment_model,
+    command = run_trait_model(dat = environment,
                               group = "Variable",
                               response = Value,
                               continous_predictor = Elevation_m) |>
       pivot_longer(cols = -c(Variable, data),
                    names_sep = "_",
-                   names_to = c(".value", "names"))
-  ),
-
-  # select best model
-  tar_target(
-    name = climate_model,
-    command = run_climate_model |>
+                   names_to = c(".value", "names")) |>
       # remove models that have singular fit
       filter(singular == FALSE) |>
       filter(aic == min(aic))
@@ -24,38 +18,37 @@ si_figures_plan <- list(
 
   # lrt
   tar_target(
-    name = climate_lrt_output,
-    command = climate_lrt(climate_data)
+    name = environment_lrt_output,
+    command = climate_lrt(environment)
   ),
 
   # Produce model output and prediction
   tar_target(
-    name = climate_model_output,
-    command = model_output_prediction(climate_model)
+    name = environment_model_output,
+    command = model_output_prediction(environment_model)
   ),
-
 
   # model output
   tar_target(
-    name = climate_table,
-    command = make_climate_table(climate_model_output)
+    name = environment_table,
+    command = make_climate_table(environment_model_output)
   ),
 
-  # climate figure
+  # environment figure
   tar_target(
-    name = climate_plot,
-    command = make_climate_figure(climate_model_output)
+    name = environment_plot,
+    command = make_climate_figure(environment_model_output)
   ),
 
-  # COMMUNITY DATA
-  # PCA
+  # MULTIVARIATE PLANT COMMUNITY ANALYSIS
+  # ORDINATION (PCA)
   tar_target(
     name = community_pca_plot,
-    command = make_sp_pca_figure(comm_pca_B, comm_pca_C)
+    command = make_sp_pca_figure(comm_pca)
     ),
 
 
-  # TRAIT DATA
+  # CHECK TRAIT IMPUTATION COVERAGE
   # trait imputation plot
   tar_target(
     name = imputation_plot,
@@ -100,7 +93,7 @@ si_figures_plan <- list(
     }
   ),
 
-  # trait mean and variance output
+  # Mean +/- SE of trait mean and variance
   tar_target(
     name = trait_mean_var,
     command = {
@@ -117,7 +110,7 @@ si_figures_plan <- list(
     }),
 
 
-  # make species list
+  # Species list
   tar_target(
     name = species_list,
     command = {
@@ -138,16 +131,36 @@ si_figures_plan <- list(
 
     }),
 
-  # TRAIT AND CLIMATE
-  # trait table
-  tar_target(
-    name = trait_soil_temp_figure,
-    command = make_trait_soil_temp_figure(soil_temp_model_output)
-  ),
 
+  # BRYOPHYTE
   tar_target(
-    name = trait_soil_moisture_figure,
-    command = make_trait_soil_moisture_figure(soil_moisture_model_output)
+    name = bryophyte_density_plot,
+    command = ind_traits |>
+      filter(Functional_group == "bryophyte") |>
+      fancy_trait_name_dictionary() |>
+      mutate(trait_fancy = factor(trait_fancy, levels = c("Shoot length cm", "Shoot ratio", "SSL cm/g", "WHC g/g", "P %"))) |>
+      ggplot(aes(x = value_trans, fill = Gradient)) +
+      geom_density(alpha = 0.5) +
+      labs(x = "Trait value") +
+      scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+      facet_wrap( ~ trait_fancy, scales = "free") +
+      theme_minimal()
+      ),
+
+  # TRAIT AND CLIMATE FIGURE
+  tar_target(
+    name = trait_microclimate_figure,
+    command = {
+
+      soil_t <- make_trait_soil_temp_figure(soil_temp_model_output)
+      soil_m <- make_trait_soil_moisture_figure(soil_moisture_model_output)
+
+      soil_t / soil_m +
+        plot_layout(guides = "collect") +
+        plot_annotation(tag_levels = 'a', tag_suffix = ')')&
+        theme(legend.position = "top")
+
+    }
   )
 
 
