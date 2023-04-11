@@ -32,8 +32,8 @@ make_climate_figure <- function(climate_model_output){
     mutate(Variable = recode(Variable,
                              "SoilMoisture" = "Soil moisture in %",
                              "SoilTemperature" = "Soil temperature in °C",
-                             "C" = "Carbon conten in %",
-                             "N" = "Nitrogen conten in %"))
+                             "C" = "Carbon content in %",
+                             "N" = "Nitrogen content in %"))
 
   p <- ggplot(out, aes(x = Elevation_m, y = Value, colour = Gradient)) +
     geom_point(alpha = 0.5) +
