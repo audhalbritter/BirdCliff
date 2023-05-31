@@ -37,7 +37,7 @@ tar_load(trait_oridination_PC3)
 ggsave("output/trait_oridination_PC3.jpg", trait_oridination_PC3, dpi = 300, height = 6, width = 6, bg = "white")
 
 tar_load(ITV_plot)
-ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
+ggsave("output/ITV_plot_new.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
 
 tar_load(bryo_plot)
 ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 6, bg = "white")
