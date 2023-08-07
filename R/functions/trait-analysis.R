@@ -156,66 +156,79 @@ make_trait_table <- function(community_model_output){
 
 }
 
+# Run dN15 analysis
 
+# make model
+run_dN15_model <- function(dat, group, response, continous_predictor){
 
-# likelihood ratio test
-likelihood_ratio_test_variance <- function(trait_mean){
-
-  trait_mean |>
-    group_by(trait_trans) |>
+  dat |>
+    rename(.response = {{response}},
+           .continous_predictor = {{continous_predictor}}) |>
+    group_by(across(all_of({{group}})))|>
     nest() |>
-    mutate(LTR = map(data, ~{
-        # quadratic model
-        ExN = lmer(var ~  Gradient * poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
-        EplusN = lmer(var ~  Gradient + poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
-        N = lmer(var ~  Gradient + (1|GS), REML=FALSE, data = .x)
-        E = lmer(var ~  poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
-        Null = lmer(var ~  1 + (1|GS), REML=FALSE, data = .x)
-        # lr test
-        test = anova(ExN, EplusN, N, E, Null)
-    })) |>
-    unnest(LTR)
-
+    mutate(mod_linear = map(data, ~ safely(lmer)(.response ~  Gradient * .continous_predictor + (1|GS), data = .x)$result),
+           singular_linear = map_lgl(mod_linear, isSingular))
 }
 
 
+# # likelihood ratio test
+# likelihood_ratio_test_variance <- function(trait_mean){
+#
+#   trait_mean |>
+#     group_by(trait_trans) |>
+#     nest() |>
+#     mutate(LTR = map(data, ~{
+#         # quadratic model
+#         ExN = lmer(var ~  Gradient * poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+#         EplusN = lmer(var ~  Gradient + poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+#         N = lmer(var ~  Gradient + (1|GS), REML=FALSE, data = .x)
+#         E = lmer(var ~  poly(Elevation_m, 2) + (1|GS), REML=FALSE, data = .x)
+#         Null = lmer(var ~  1 + (1|GS), REML=FALSE, data = .x)
+#         # lr test
+#         test = anova(ExN, EplusN, N, E, Null)
+#     })) |>
+#     unnest(LTR)
+#
+# }
 
-# trait output: model output and r2
-make_trait_variance_table <- function(community_variance_output){
 
-  community_variance_output |>
-    select(-data, -mod, -singular, -aic, -prediction, -r) |>
-    unnest(model_output) |>
-    fancy_trait_name_dictionary()  |>
-    filter(effect == "fixed")  |>
-    ungroup() |>
-    select(Trait = trait_fancy, text, term, estimate:statistic, class) %>%
-    mutate(term = recode(term,
-                         "(Intercept)" = "Intercept",
-                         "GradientB" = "N",
-                         ".continous_predictor" = "E",
-                         "GradientB:.continous_predictor" = "NxE" ,
-                         "poly(.continous_predictor, 2)1" = "E",
-                         "poly(.continous_predictor, 2)2" = "E2",
-                         "GradientB:poly(.continous_predictor, 2)1" = "NxE",
-                         "GradientB:poly(.continous_predictor, 2)2" = "NxE2")) %>%
-    # join R squared
-    left_join(community_variance_output |>
-                select(-data, -mod, -singular, -aic, -prediction, -model_output) |>
-                unnest_wider(col = r, names_sep = "_") |>
-                rename(Rm = r_1, Rc = r_2) |>
-                ungroup() %>%
-                fancy_trait_name_dictionary(.) %>%
-                select(trait_fancy, Rm, Rc),
-              by = c("Trait" = "trait_fancy")) %>%
-    mutate(estimate = round(estimate, digits = 2),
-           std.error = round(std.error, digits = 2),
-           statistic = round(statistic, digits = 2),
-           Rm = round(Rm, digits = 2),
-           Rc = round(Rc, digits = 2)) %>%
-    select(Class = class, Trait, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
-    arrange(Trait) %>%
-    write_csv(., file = "output/Community_trait_variance_regression_output.csv")
 
-}
+# # trait output: model output and r2
+# make_trait_variance_table <- function(community_variance_output){
+#
+#   community_variance_output |>
+#     select(-data, -mod, -singular, -aic, -prediction, -r) |>
+#     unnest(model_output) |>
+#     fancy_trait_name_dictionary()  |>
+#     filter(effect == "fixed")  |>
+#     ungroup() |>
+#     select(Trait = trait_fancy, text, term, estimate:statistic, class) %>%
+#     mutate(term = recode(term,
+#                          "(Intercept)" = "Intercept",
+#                          "GradientB" = "N",
+#                          ".continous_predictor" = "E",
+#                          "GradientB:.continous_predictor" = "NxE" ,
+#                          "poly(.continous_predictor, 2)1" = "E",
+#                          "poly(.continous_predictor, 2)2" = "E2",
+#                          "GradientB:poly(.continous_predictor, 2)1" = "NxE",
+#                          "GradientB:poly(.continous_predictor, 2)2" = "NxE2")) %>%
+#     # join R squared
+#     left_join(community_variance_output |>
+#                 select(-data, -mod, -singular, -aic, -prediction, -model_output) |>
+#                 unnest_wider(col = r, names_sep = "_") |>
+#                 rename(Rm = r_1, Rc = r_2) |>
+#                 ungroup() %>%
+#                 fancy_trait_name_dictionary(.) %>%
+#                 select(trait_fancy, Rm, Rc),
+#               by = c("Trait" = "trait_fancy")) %>%
+#     mutate(estimate = round(estimate, digits = 2),
+#            std.error = round(std.error, digits = 2),
+#            statistic = round(statistic, digits = 2),
+#            Rm = round(Rm, digits = 2),
+#            Rc = round(Rc, digits = 2)) %>%
+#     select(Class = class, Trait, Term = term, Estimate = estimate, "Std error" = std.error, "t-value" = "statistic", "Marginal R2" = Rm, "Conditional R2" = Rc) %>%
+#     arrange(Trait) %>%
+#     write_csv(., file = "output/Community_trait_variance_regression_output.csv")
+#
+# }
 
