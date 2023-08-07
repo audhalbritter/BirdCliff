@@ -28,7 +28,9 @@ make_climate_figure <- function(climate_model_output){
                                                                  .y |> select(fitted = .response, plo, phi)))) |>
     select(-data, -prediction, -mod, -model_output, -r) |>
     unnest(output) |>
-    mutate(text = if_else(Variable %in% c("C", "N"), "N+E", "NxE")) |>
+    mutate(text = case_when(Variable == "C" ~ "N",
+                            Variable == "N" ~ "N+E",
+                            TRUE ~ "NxE")) |>
     mutate(Variable = recode(Variable,
                              "SoilMoisture" = "Soil moisture in %",
                              "SoilTemperature" = "Soil temperature in °C",
