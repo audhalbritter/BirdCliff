@@ -23,21 +23,25 @@ library(glue)
 tar_load(community_trait_plot)
 ggsave("output/community_trait_plot.jpg", community_trait_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
-tar_load(community_trait_variance_plot)
-ggsave("output/community_trait_variance_plot.jpg", community_trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
-tar_load(single_trait_variance_plot)
-ggsave("output/single_trait_variance_plot.jpg", single_trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
-tar_load(trait_variance_plot)
-ggsave("output/trait_variance_plot.jpg", trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
+tar_load(dN15_plot)
+ggsave("output/dn15_plot2.jpg", dn15_figure, dpi = 300, height = 6, width = 8, bg = "white")
+
+
+# tar_load(community_trait_variance_plot)
+# ggsave("output/community_trait_variance_plot.jpg", community_trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
+# tar_load(single_trait_variance_plot)
+# ggsave("output/single_trait_variance_plot.jpg", single_trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
+# tar_load(trait_variance_plot)
+# ggsave("output/trait_variance_plot.jpg", trait_variance_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
 
 tar_load(trait_ordination_plot)
-ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6, bg = "white")
+ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6.5, bg = "white")
 tar_load(trait_oridination_PC3)
 ggsave("output/trait_oridination_PC3.jpg", trait_oridination_PC3, dpi = 300, height = 6, width = 6, bg = "white")
 
 tar_load(ITV_plot)
-ggsave("output/ITV_plot.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
+ggsave("output/ITV_plot_new.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
 
 tar_load(bryo_plot)
 ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 6, bg = "white")

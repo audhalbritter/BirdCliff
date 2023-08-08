@@ -5,24 +5,8 @@ library("tarchetypes")
 tar_option_set(packages = c("dataDownloader", "tidyverse", "readxl", "traitstrap", "vegan", "ggvegan", "kableExtra", "viridis", "patchwork", "broom", "ape", "nlme", "lme4", "broom.mixed", "glue", "MuMIn", "Hmisc", "egg", "FD"))
 #"performance",
 
-# source target plans - can also construct plans directly in this file.
-source("R/download_plan.R")
-source("R/transformation_plan.R")
-source("R/analysis_plan.R")
-source("R/figures_plan.R")
-source("R/si_figures_plan.R")
-# source("R/manuscript_plan.R")
-
-# source functions
-source("R/functions/fancy_traits.R")
-source("R/functions/bootstrapping.R")
-source("R/functions/correlation_plot.R")
-source("R/functions/ordination.R")
-source("R/functions/trait-analysis.R")
-source("R/functions/trait_figures.R")
-source("R/functions/itv_analysis.R")
-source("R/functions/individual_species.R")
-source("R/functions/microclimate.R")
+# source target plans and functions
+tar_source()
 
 
 #Combine target plans

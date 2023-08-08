@@ -11,11 +11,17 @@ figures_plan <- list(
         make_trait_figure(.)
   ),
 
-  # variance
+  # dN15 figure
   tar_target(
-    name = community_trait_variance_plot,
-    command = make_trait_variance_figure(community_variance_output)
+    name = dN15_plot,
+    command = make_dN15_figure(dN15_model_output)
   ),
+
+  # variance
+  # tar_target(
+  #   name = community_trait_variance_plot,
+  #   command = make_trait_variance_figure(community_variance_output)
+  # ),
 
   # density curves
   tar_target(
@@ -58,10 +64,10 @@ figures_plan <- list(
     command = make_pca_3_plot(trait_pca)
   ),
 
-  # FIGURE 6: BRYOPHYTES
-  tar_target(
-    name = bryo_plot,
-    command = make_bryo_figure(bryophyte_model_output)),
+  # # FIGURE 6: BRYOPHYTES
+  # tar_target(
+  #   name = bryo_plot,
+  #   command = make_bryo_figure(bryophyte_model_output)),
 
   # FIGURE 4: ITV PLOT
   tar_target(
