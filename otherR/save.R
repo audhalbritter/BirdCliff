@@ -24,7 +24,7 @@ tar_load(community_trait_plot)
 ggsave("output/community_trait_plot.jpg", community_trait_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
 tar_load(dN15_plot)
-ggsave("output/dn15_plot2.jpg", dn15_figure, dpi = 300, height = 6, width = 8, bg = "white")
+ggsave("output/dn15_plot.jpg", dN15_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
 
 # tar_load(community_trait_variance_plot)
@@ -43,8 +43,8 @@ ggsave("output/trait_oridination_PC3.jpg", trait_oridination_PC3, dpi = 300, hei
 tar_load(ITV_plot)
 ggsave("output/ITV_plot_new.jpg", ITV_plot, dpi = 300, height = 8, width = 10, bg = "white")
 
-tar_load(bryo_plot)
-ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 6, bg = "white")
+# tar_load(bryo_plot)
+# ggsave("output/bryo_plot.jpg", bryo_plot, dpi = 300, height = 6, width = 6, bg = "white")
 
 
 # SI figures
@@ -55,14 +55,14 @@ ggsave("output/environment_plot.jpg", environment_plot, dpi = 300, height = 6, w
 tar_load(community_pca_plot)
 ggsave("output/community_pca_plot.jpg", community_pca_plot, dpi = 300, height = 6, width = 7, bg = "white")
 
-tar_load(diversity_plot)
-ggsave("output/diversity_plot.jpg", diversity_plot, dpi = 300, height = 4, width = 6, bg = "white")
+# tar_load(diversity_plot)
+# ggsave("output/diversity_plot.jpg", diversity_plot, dpi = 300, height = 4, width = 6, bg = "white")
 
 tar_load(imputation_plot)
 ggsave("output/imputation_plot.jpg", imputation_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
-tar_load(bryophyte_density_plot)
-ggsave("output/bryophyte_density_plot.jpg", bryophyte_density_plot, dpi = 300, height = 6, width = 8, bg = "white")
+# tar_load(bryophyte_density_plot)
+# ggsave("output/bryophyte_density_plot.jpg", bryophyte_density_plot, dpi = 300, height = 6, width = 8, bg = "white")
 
 
 # tar_load(correlation_plot)

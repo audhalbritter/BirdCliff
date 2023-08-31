@@ -99,18 +99,16 @@ make_ITV_plot <- function(itv_output){
     group_by(Gradient, class, process) |>
     summarise(proportion_standardized = mean(proportion_standardized)) |>
     mutate(process = recode(process, intraspecific = "ITV"),
-           Gradient = recode(Gradient, B = "Nutrient input", C = "Reference"),
+           Gradient = recode(Gradient, B = "Nutrient", C = "Reference"),
            var = "Total") |>
     mutate(new = paste(class, Gradient, sep = "_"),
-           new = factor(new, levels = c("Size_Reference", "Size_Nutrient input", "Leaf economics_Reference", "Leaf economics_Nutrient input", "Isotopes_Reference", "Isotopes_Nutrient input"))) |>
+           new = factor(new, levels = c("Size_Reference", "Size_Nutrient", "Leaf economics_Reference", "Leaf economics_Nutrient", "Isotopes_Reference", "Isotopes_Nutrient"))) |>
     # make turnover negative
     mutate(proportion_standardized = if_else(process == "turnover", -1*proportion_standardized, proportion_standardized)) |>
     ggplot(aes(x = class, y = proportion_standardized, fill = process)) +
-    #ggplot(aes(x = new, y = proportion_standardized, fill = process, alpha = Gradient)) +
     geom_col() +
     geom_hline(yintercept = 0, colour = "grey", linetype = "dashed") +
     scale_x_discrete(limits = rev) +
-    scale_x_discrete(labels = c("", "Isotopes", "", "Leaf economics", "", "Size")) +
     coord_flip() +
     scale_fill_manual(name = "Process", values = c("#005BBB", "#FFD500")) +
     scale_alpha_manual(values = c(1, 0.5)) +
@@ -124,6 +122,9 @@ make_ITV_plot <- function(itv_output){
 
 
   ITV_plot <- fancy_trait_name_dictionary(variance_part) %>%
+    # remove class part
+    mutate(figure_names = str_remove(figure_names, "Size~-~|LES~-~|I~-~")) |>
+    mutate(figure_names = factor(figure_names, levels = c("Height~cm", "Dry~mass~g", "Area~cm^2", "Thickness~mm", "SLA~cm^2*g^{-1}", "LDMC", "C~'%'", "N~'%'", "CN", "P~'%'", "NP", "δC^{13}~'‰'", "δN^{15}~'‰'"))) |>
     # filter for processes (turnover and ITV) we are interested in and standardize to 1
     filter(process %in% c("turnover", "intraspecific")) |>
     group_by(Gradient, trait_trans) |>
@@ -131,45 +132,13 @@ make_ITV_plot <- function(itv_output){
            proportion_standardized = proportion / sum) |>
     ungroup() |>
     mutate(process = recode(process, intraspecific = "ITV"),
-           Gradient = recode(Gradient, B = "Nutrient input", C = "Reference")) |>
+           Gradient = recode(Gradient, B = "Nutrient", C = "Reference")) |>
     # make turnover negative
     mutate(proportion_standardized = if_else(process == "turnover", -1*proportion_standardized, proportion_standardized)) |>
-    # mutate(new = paste(trait_fancy, Gradient, sep = "_"),
-    #        new = factor(new, levels = c("Height cm_Reference", "Height cm_Nutrient input",
-    #                                     "Dry mass g_Reference", "Dry mass g_Nutrient input",
-    #                                     "Area cm2_Reference", "Area cm2_Nutrient input",
-    #                                     "Thickness mm_Reference", "Thickness mm_Nutrient input",
-    #
-    #                                     "LDMC_Reference", "LDMC_Nutrient input",
-    #                                     "SLA cm2/g_Reference", "SLA cm2/g_Nutrient input",
-    #                                     "C %_Reference", "C %_Nutrient input",
-    #                                     "N %_Reference", "N %_Nutrient input",
-    #                                     "CN_Reference", "CN_Nutrient input",
-    #                                     "P %_Reference", "P %_Nutrient input",
-    #                                     "NP_Reference", "NP_Nutrient input",
-    #
-    #                                     "δC13 ‰_Reference", "δC13 ‰_Nutrient input",
-    #                                     "δN15 ‰_Reference", "δN15 ‰_Nutrient input"))) |>
-    ggplot(aes(x = trait_fancy, y = proportion_standardized, fill = process)) +
-    #ggplot(aes(x = new, y = proportion_standardized, fill = process, alpha = Gradient)) +
+    ggplot(aes(x = figure_names, y = proportion_standardized, fill = process)) +
     geom_col() +
     geom_hline(yintercept = 0, colour = "grey", linetype = "dashed") +
-    scale_x_discrete(limits = rev) +
-    # scale_x_discrete(labels = c("Height cm", "",
-    #                             "Dry mass g", "",
-    #                             "Area cm2", "",
-    #                             "Thickness mm", "",
-    #
-    #                             "LDMC", "",
-    #                             "SLA cm2/g", "",
-    #                             "C e", "",
-    #                             "N %", "",
-    #                             "CN", "",
-    #                             "P %", "",
-    #                             "NP", "",
-    #
-    #                             "δC13 ‰", "",
-    #                             "δN15 ‰", "")) +
+    scale_x_discrete(limits = rev, labels = ggplot2:::parse_safe) +
     coord_flip() +
     scale_fill_manual(name = "Process", values = c("#005BBB", "#FFD500")) +
     scale_alpha_manual(values = c(1, 0.5)) +
@@ -177,7 +146,6 @@ make_ITV_plot <- function(itv_output){
     labs(x = "", y = "Relative contribution",
          tag = "(b)") +
     facet_grid(class ~ Gradient, scales = "free", space = "free_y") +
-    #facet_grid(class ~ 1, scales = "free", space = "free_y") +
     theme_minimal() +
     theme(text = element_text(size = 18),
           panel.spacing = unit(0.3, "cm"),

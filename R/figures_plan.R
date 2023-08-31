@@ -29,7 +29,7 @@ figures_plan <- list(
     command = trait_mean |>
       ggplot(aes(x = mean, fill = Gradient)) +
       geom_density(alpha = 0.4) +
-      scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+      scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
       labs(x = "Bootstrapped trait mean",
            y = "Density") +
       facet_wrap( ~ trait_trans, scales = "free") +
@@ -43,8 +43,8 @@ figures_plan <- list(
       ggplot(aes(x = factor(Site), y = PC1, fill = Gradient, colour = Gradient)) +
       geom_violin(alpha = 0.3) +
       geom_point(position=position_jitterdodge()) +
-      scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
-      scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+      scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
+      scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
       scale_x_discrete(labels = c("1" = "10.8", "2" = "41.8", "3" = "84.0", "4" = "123.0", "5" = "174.0", "6" = "224.0", "7" = "238.0")) +
       labs(x = "Elevation m a.s.l.",
            y = "PC1 score") +
