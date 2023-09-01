@@ -36,7 +36,7 @@ ggsave("output/dn15_plot.jpg", dN15_plot, dpi = 300, height = 6, width = 8, bg =
 
 
 tar_load(trait_ordination_plot)
-ggsave("output/trait_ordination_plot.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6.5, bg = "white")
+ggsave("output/trait_ordination_plot2.jpg", trait_ordination_plot, dpi = 300, height = 6, width = 6.5, bg = "white")
 tar_load(trait_oridination_PC3)
 ggsave("output/trait_oridination_PC3.jpg", trait_oridination_PC3, dpi = 300, height = 6, width = 6, bg = "white")
 

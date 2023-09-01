@@ -291,6 +291,7 @@ analysis_plan <- list(
     command = {
 
       trait_pca[[2]] %>%
+        filter(class != "Environment") |>
         select(Trait = trait_fancy, PC1:PC4) %>%
         mutate(PC1 = round(PC1, digits = 2),
                PC2 = round(PC2, digits = 2),

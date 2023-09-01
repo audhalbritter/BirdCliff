@@ -13,7 +13,7 @@ make_community_pca <- function(comm_raw){
     ungroup() %>%
     mutate(Cover = sqrt(Cover)) |>
     select(Gradient, Site, GS, Mean_elevation, PlotID, Taxon, Cover) %>%
-    mutate(Gradient = recode(Gradient, "B" = "Nutrient input", "C" = "Reference")) %>%
+    mutate(Gradient = recode(Gradient, "B" = "Nutrient", "C" = "Reference")) %>%
     pivot_wider(names_from = Taxon,
                 values_from = Cover,
                 values_fill = 0)
@@ -90,7 +90,7 @@ make_sp_pca_figure <- function(comm_pca){
 
   # Nutrient gradient
   pca_B <- comm_pca[[1]] |>
-    filter(Gradient == "Nutrient input") |>
+    filter(Gradient == "Nutrient") |>
     ggplot(aes(x = PC1, y = PC2, colour = Mean_elevation)) +
     geom_point(size = 2) +
     #annotation_custom(bird, xmin = -3.5, xmax = -4.5, ymin = 1.3, ymax = 2.6) +
@@ -98,7 +98,7 @@ make_sp_pca_figure <- function(comm_pca){
                 ylim = c(PC2_min, PC2_max)) +
     labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
          y = glue("PCA2 ({round(e_B[2] * 100, 1)}%)"),
-         title = "Nutrient input",
+         title = "Nutrient",
          tag = "(b)") +
     stat_ellipse(aes(colour = Mean_elevation, group = GS)) +
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
@@ -174,46 +174,54 @@ make_trait_pca <- function(trait_mean){
     pivot_wider(names_from = "trait_trans", values_from = "mean") %>%
     ungroup()
 
+  # environemntal variables
+  env <- cwm_fat |>
+    select(SoilMoisture, SoilTemperature)
+
   pca_output <- cwm_fat %>%
-    select(-(Gradient:GS)) %>%
-    #select(-(Gradient:SoilTemperature)) %>%
+    select(-(Gradient:SoilTemperature)) %>%
     rda(scale = TRUE, center = TRUE)
+
+  # envfit
+  env_fit <- envfit(pca_output, env)
+  env_out <- scores(env_fit, "vectors") |>
+    as_tibble() |>
+    mutate(Label = c("Moisture", "Temperature"),
+           class = "Environment",
+           figure_names = c("Moisture", "Temperature"))
 
   pca_sites <- bind_cols(
     cwm_fat %>%
-      #select(Gradient:SoilTemperature),
-      select(Gradient:GS),
+      select(Gradient:SoilTemperature),
     fortify(pca_output, display = "sites")
   )
 
+  # arrows
   pca_traits <- fortify(pca_output, display = "species") %>%
     mutate(trait_trans = Label) %>%
     fancy_trait_name_dictionary() |>
-    mutate(trait_fancy = case_when(trait_fancy == "SoilMoisture" ~ "Moisture",
-                                   trait_fancy == "SoilTemperature" ~ "Temperature",
-                                   TRUE ~ trait_fancy),
-           class = as.character(class),
-           class = case_when(trait_fancy == "Moisture" ~ "Environment",
-                              trait_fancy == "Temperature" ~ "Environment",
-                              TRUE ~ class),
+    mutate(figure_names = str_remove(figure_names, "Size~-~|LES~-~|I~-~"),
+           figure_names = str_extract(figure_names, "[^~]+"),
+           figure_names = recode(figure_names,
+                                     "δ^{13}" = "δ^{13}~C",
+                                     "δ^{15}" = "δ^{15}~N")) |>
+    # add environmental variables
+    bind_rows(env_out) |>
+    mutate(class = as.character(class),
            class = factor(class, levels = c("Size", "Leaf economics", "Isotopes", "Environment")))
-
-
 
   # permutation test
   # traits
-  #raw <- cwm_fat %>% select(-(Gradient:SoilTemperature))
-  raw <- cwm_fat %>% select(-(Gradient:GS))
+  raw <- cwm_fat %>% select(-(Gradient:SoilTemperature))
   # meta data
-  #meta <- cwm_fat %>% select(Gradient:SoilTemperature) %>%
-  meta <- cwm_fat %>% select(Gradient:GS) %>%
+  meta <- cwm_fat %>% select(Gradient:SoilTemperature) %>%
     mutate(Site = factor(Site))
 
   # adonis test
   if(meta %>% distinct(Gradient) %>% count() == 2){
-    adonis_result <- adonis(raw ~ Gradient*Mean_elevation , data = meta, permutations = 999, method = "euclidean")
+    adonis_result <- adonis2(raw ~ Gradient*Mean_elevation , data = meta, permutations = 999, method = "euclidean")
   } else {
-    adonis_result <- adonis(raw ~ Mean_elevation, data = meta, permutations = 999, method = "euclidean")
+    adonis_result <- adonis2(raw ~ Mean_elevation, data = meta, permutations = 999, method = "euclidean")
   }
 
   outputList <- list(pca_sites, pca_traits, pca_output, adonis_result)
@@ -237,7 +245,7 @@ make_pca_plot <- function(trait_pca){
   # PC range
   PC1_min <- min(trait_pca[[1]]$PC1) - 1
   PC1_max <- max(trait_pca[[1]]$PC1) + 1
-  PC2_min <- min(trait_pca[[1]]$PC2) - 1
+  PC2_min <- min(trait_pca[[1]]$PC2) - 1.5
   PC2_max <- max(trait_pca[[1]]$PC2) + 1.5
 
   # both gradients
@@ -271,7 +279,7 @@ make_pca_plot <- function(trait_pca){
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
     labs(x = glue("PCA1 ({round(e_B[1] * 100, 1)}%)"),
          y = glue("PCA2 ({round(e_B[2] * 100, 1)}%)"),
-         tag = "(b) Nutrient input") +
+         tag = "(b) Nutrient") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 0.9),
@@ -284,28 +292,22 @@ make_pca_plot <- function(trait_pca){
                  arrow = arrow(length = unit(0.2, "cm")),
                  inherit.aes = FALSE) +
     geom_text(data = trait_pca[[2]] |>
-                mutate(PC1 = case_when(Label == "Leaf_Area_cm2_log" ~ 1.8,
-                                       Label == "Thickness_mm_log" ~ 1.5,
-                                       Label == "dC13_permil" ~ 0.5,
-                                       Label == "SLA_cm2_g" ~ 1.5,
-                                       Label == "dN15_permil" ~ 1.5,
-                                       Label == "P_percent" ~ 1.4,
+                mutate(PC1 = case_when(Label == "Thickness_mm_log" ~ 1.23,
+                                       Label == "LDMC" ~ -1,
+                                       Label == "Temperature" ~ -0.4,
+                                       Label == "Moisture" ~ -1,
                                        TRUE ~ PC1),
-                       PC2 = case_when(Label == "C_percent" ~ 0.3,
-                                       Label == "LDMC" ~ -0.47,
-                                       Label == "N_percent" ~ 0.7,
-                                       Label == "Thickness_mm_log" ~ -0.4,
-                                       Label == "Dry_Mass_g_log" ~ -0.6,
-                                       Label == "Plant_Height_cm_log" ~ -1,
-                                       Label == "SoilTemperature" ~ -1,
-                                       Label == "SoilMoisture" ~ -0.3,
+                       PC2 = case_when(Label == "dC13_permil" ~ -1.25,
+                                       Label == "C_percent" ~ -0.3,
+                                       Label == "dN15_permil" ~ -0.3,
+                                       Label == "Temperature" ~ 0.4,
+                                       Label == "Moisture" ~ 0.06,
                                        TRUE ~ PC2)),
-              aes(x = PC1, y = PC2, label = trait_fancy, colour = class),
+              aes(x = PC1+0.3, y = PC2, label = figure_names, colour = class),
               size = 2.5,
               inherit.aes = FALSE,
-              show.legend = FALSE) +
-    coord_equal(xlim = c(PC1_min+1, PC1_max-1.5), ylim = c(PC2_min+2, PC2_max-1.2)) +
-    #coord_equal(clip = "off", xlim = c(PC1_min+0.5, PC1_max-1), ylim = c(PC2_min+1, PC2_max-2)) +
+              show.legend = FALSE, parse = TRUE) +
+    coord_equal(clip = "off", xlim = c(PC1_min+1, PC1_max-1.5), ylim = c(PC2_min+1.5, PC2_max-3)) +
     labs(x = "PCA1", y = "PCA2", tag = "(c)") +
     scale_x_continuous(expand = c(.2, 0)) +
     scale_linetype_manual(name = "", values = c("solid", "dashed", "solid", "solid")) +
@@ -338,7 +340,7 @@ make_pca_3_plot <- function(trait_pca){
   PC3_min <- min(trait_pca[[1]]$PC3) - 1
   PC3_max <- max(trait_pca[[1]]$PC3) + 0.5
   PC4_min <- min(trait_pca[[1]]$PC4) - 0.5
-  PC4_max <- max(trait_pca[[1]]$PC5) + 0.5
+  PC4_max <- max(trait_pca[[1]]$PC5) + 1
 
   # both gradients
   e_B <- eigenvals(trait_pca[[3]])/sum(eigenvals(trait_pca[[3]]))
@@ -369,7 +371,7 @@ make_pca_3_plot <- function(trait_pca){
     scale_colour_viridis_c(end = 0.8, option = "inferno", direction = -1, name = "Elevation m a.s.l.", limits = c(range[1], range[2])) +
     labs(x = glue("PCA3 ({round(e_B[3] * 100, 1)}%)"),
          y = glue("PCA4 ({round(e_B[4] * 100, 1)}%)"),
-         tag = "(b) Nutrient input") +
+         tag = "(b) Nutrient") +
     theme_minimal() +
     theme(aspect.ratio = 1,
           plot.tag.position = c(0, 0.9),
@@ -382,22 +384,18 @@ make_pca_3_plot <- function(trait_pca){
                  arrow = arrow(length = unit(0.2, "cm")),
                  inherit.aes = FALSE) +
     geom_text(data = trait_pca[[2]] |>
-                mutate(PC3 = case_when(Label == "Dry_Mass_g_log" ~ 1.2,
-                                       Label == "P_percent" ~ -0.3,
-                                       Label == "dN15_permil" ~ 0.3,
-                                       Label == "N_percent" ~ 0.8,
+                mutate(PC3 = case_when(Label == "C_percent" ~ -0.1,
                                        TRUE ~ PC3),
-                       PC4 = case_when(Label == "LDMC" ~ -0.3,
-                                       Label == "SLA_cm2_g" ~ -0.22,
-                                       Label == "Leaf_Area_cm2_log" ~ -0.12,
-                                       Label == "N_percent" ~ -0.08,
-                                       Label == "P_percent" ~ 0.3,
-                                       Label == "Thickness_mm_log" ~ 0.53,
+                       PC4 = case_when(Label == "Plant_Height_cm_log" ~ 0,
+                                       Label == "Thickness_mm_log" ~ -0.8,
+                                       Label == "C_percent" ~ 0.5,
+                                       Label == "dN15_permil" ~ 0.42,
+                                       Label == "P_percent" ~ -0.1,
                                        TRUE ~ PC4)),
-              aes(x = PC3 * 1.1, y = PC4 * 1.1, label = trait_fancy, colour = class),
+              aes(x = PC3 + 0.2, y = PC4, label = figure_names, colour = class),
               size = 2.5,
               inherit.aes = FALSE,
-              show.legend = FALSE) +
+              show.legend = FALSE, parse = TRUE) +
     coord_equal(xlim = c(PC3_min+1.5, PC3_max-1), ylim = c(PC4_min+1.5, PC4_max-1.5)) +
     labs(x = "PCA3", y = "PCA4", tag = "(c)") +
     scale_x_continuous(expand = c(.2, 0)) +
