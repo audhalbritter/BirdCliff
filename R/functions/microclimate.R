@@ -20,9 +20,9 @@ climate_lrt <- function(climate_data){
 
 
 # climate figure
-make_climate_figure <- function(climate_model_output){
+make_climate_figure <- function(environment_model_output){
 
-  out <- climate_model_output |>
+  out <- environment_model_output |>
     # merge data and prediction
     mutate(output = map2(.x = data, .y = prediction, ~ bind_cols(.x |> rename(Value = .response, Elevation_m = .continous_predictor),
                                                                  .y |> select(fitted = .response, plo, phi)))) |>
@@ -35,7 +35,8 @@ make_climate_figure <- function(climate_model_output){
                              "SoilMoisture" = "Soil moisture in %",
                              "SoilTemperature" = "Soil temperature in °C",
                              "C" = "Carbon content in %",
-                             "N" = "Nitrogen content in %"))
+                             "N" = "Nitrogen content in %"),
+           Variable = factor(Variable, levels = c("Soil temperature in °C", "Soil moisture in %", "Carbon content in %", "Nitrogen content in %")))
 
   p <- ggplot(out, aes(x = Elevation_m, y = Value, colour = Gradient)) +
     geom_point(alpha = 0.5) +
@@ -148,7 +149,7 @@ out <- soil_moisture_model_output |>
   select(-data, -prediction, -mod, -model_output, -r) |>
   unnest(output) |>
   fancy_trait_name_dictionary() |>
-  mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δC^{13}~'‰'", "I~-~δN^{15}~'‰'")))
+  mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'")))
 
 ggplot(out, aes(x = SoilMoisture, y = mean, colour = Gradient)) +
   geom_point(alpha = 0.5) +
@@ -178,7 +179,7 @@ make_trait_soil_temp_figure <- function(soil_temp_model_output){
     select(-data, -prediction, -mod, -model_output, -r) |>
     unnest(output) |>
     fancy_trait_name_dictionary() |>
-    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δC^{13}~'‰'", "I~-~δN^{15}~'‰'")))
+    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'")))
 
   ggplot(out, aes(x = SoilTemperature, y = mean, colour = Gradient)) +
     geom_point(alpha = 0.5) +

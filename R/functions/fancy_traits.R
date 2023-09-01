@@ -36,8 +36,8 @@ fancy_trait_name_dictionary <- function(dat){
                                      "CN_ratio" ~ "LES~-~CN",
                                      "P_percent" ~ "LES~-~P~'%'",
                                      "NP_ratio" ~ "LES~-~NP",
-                                     "dC13_permil" ~ "I~-~δC^{13}~'‰'",
-                                     "dN15_permil" ~ "I~-~δN^{15}~'‰'")) |>
+                                     "dC13_permil" ~ "I~-~δ^{13}~C~'‰'",
+                                     "dN15_permil" ~ "I~-~δ^{15}~N~'‰'")) |>
 
     # add class
     mutate(class = case_when(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "Shoot_Length_cm_log", "Shoot_Length_Green_cm_log") ~ "Size",

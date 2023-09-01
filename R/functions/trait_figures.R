@@ -11,7 +11,7 @@ make_trait_figure <- function(community_model_output){
     rename(Gradient = Gradient...1, mean = .response...4, Elevation_m = .continous_predictor...9, fitted = .response...19) |>
     select(-Gradient...17, -.continous_predictor...18) %>%
     fancy_trait_name_dictionary(.) %>%
-    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δC^{13}~'‰'", "I~-~δN^{15}~'‰'")))
+    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'")))
 
 
 
@@ -45,12 +45,13 @@ make_dN15_figure <- function(dN15_model_output){
     rename(Gradient = Gradient...1, mean = .response...6, dN15 = .continous_predictor...5, fitted = .response...9) |>
     select(-Gradient...7, -.continous_predictor...8) %>%
     fancy_trait_name_dictionary(.) %>%
-    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δC^{13}~'‰'", "I~-~δN^{15}~'‰'"))) |>
+    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'"))) |>
     # fix stats
     mutate(text = case_match(text,
-                             "δN15" ~ "δN^{15}",
-                             "N+δN15" ~ "N+δN^{15}",
-                             "NxδN15" ~ "NxδN^{15}"))
+                             "δN15" ~ "δ^{15}~N",
+                             "N+δN15" ~ "N+δ^{15}~N",
+                             "NxδN15" ~ "Nxδ^{15}~N",
+                             "Null" ~ "Null"))
 
   # make figure
   dn15_figure <- ggplot(dat, aes(x = dN15, y = mean, colour = Gradient)) +
