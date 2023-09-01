@@ -291,6 +291,7 @@ analysis_plan <- list(
     command = {
 
       trait_pca[[2]] %>%
+        filter(class != "Environment") |>
         select(Trait = trait_fancy, PC1:PC4) %>%
         mutate(PC1 = round(PC1, digits = 2),
                PC2 = round(PC2, digits = 2),
@@ -371,55 +372,55 @@ analysis_plan <- list(
   ### ITV ANALYSIS
   tar_target(
     name = itv_output,
-    command = make_ITV_analysis(trait_mean)),
+    command = make_ITV_analysis(trait_mean))
 
 
-  # BRYOPHYTES
-  # combine vascular and bryophyte data
-  tar_target(
-    name = ind_traits,
-    command = combine_traits(traits_raw, bryo_traits_raw)),
-
-
-  # BRYOPHYTES (maybe remove?)
-  # run linear and quadratic model
-  tar_target(
-    name = trait_bryophyte_model,
-    command = run_bryophyte_model(dat = ind_traits |>
-                                filter(Functional_group == "bryophyte"),
-                              group = c("trait_trans", "Taxon"),
-                              response = Value,
-                              continous_predictor = Elevation_m) |>
-      pivot_longer(cols = -c(Taxon, trait_trans, data),
-                   names_sep = "_",
-                   names_to = c(".value", "names"))
-  ),
-
-  # select best model
-  tar_target(
-    name = bryophyte_model,
-    command = trait_bryophyte_model |>
-      filter(aic == min(aic))
-  ),
-
-  # Produce model output and prediction
-  tar_target(
-    name = bryophyte_model_output,
-    command = bryophyte_model |>
-      # make model output and prediction
-      mutate(model_output = map(mod, tidy),
-             prediction = map2(.x = mod, .y = data,
-                               .f = ~augment(.x, interval = "confidence") |>
-                                 select(.fitted, .lower, .upper) |>
-                                 bind_cols(.y))) #|>
-      #unnest(prediction)
-  ),
-
-  # Produce model output and prediction
-  tar_target(
-    name = bryo_table,
-    command = make_bryo_table(bryophyte_model_output)
-  )
+  # # BRYOPHYTES
+  # # combine vascular and bryophyte data
+  # tar_target(
+  #   name = ind_traits,
+  #   command = combine_traits(traits_raw, bryo_traits_raw)),
+  #
+  #
+  # # BRYOPHYTES (maybe remove?)
+  # # run linear and quadratic model
+  # tar_target(
+  #   name = trait_bryophyte_model,
+  #   command = run_bryophyte_model(dat = ind_traits |>
+  #                               filter(Functional_group == "bryophyte"),
+  #                             group = c("trait_trans", "Taxon"),
+  #                             response = Value,
+  #                             continous_predictor = Elevation_m) |>
+  #     pivot_longer(cols = -c(Taxon, trait_trans, data),
+  #                  names_sep = "_",
+  #                  names_to = c(".value", "names"))
+  # ),
+  #
+  # # select best model
+  # tar_target(
+  #   name = bryophyte_model,
+  #   command = trait_bryophyte_model |>
+  #     filter(aic == min(aic))
+  # ),
+  #
+  # # Produce model output and prediction
+  # tar_target(
+  #   name = bryophyte_model_output,
+  #   command = bryophyte_model |>
+  #     # make model output and prediction
+  #     mutate(model_output = map(mod, tidy),
+  #            prediction = map2(.x = mod, .y = data,
+  #                              .f = ~augment(.x, interval = "confidence") |>
+  #                                select(.fitted, .lower, .upper) |>
+  #                                bind_cols(.y))) #|>
+  #     #unnest(prediction)
+  # ),
+  #
+  # # Produce model output and prediction
+  # tar_target(
+  #   name = bryo_table,
+  #   command = make_bryo_table(bryophyte_model_output)
+  # )
 
 
 )

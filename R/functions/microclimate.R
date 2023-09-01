@@ -20,9 +20,9 @@ climate_lrt <- function(climate_data){
 
 
 # climate figure
-make_climate_figure <- function(climate_model_output){
+make_climate_figure <- function(environment_model_output){
 
-  out <- climate_model_output |>
+  out <- environment_model_output |>
     # merge data and prediction
     mutate(output = map2(.x = data, .y = prediction, ~ bind_cols(.x |> rename(Value = .response, Elevation_m = .continous_predictor),
                                                                  .y |> select(fitted = .response, plo, phi)))) |>
@@ -35,14 +35,15 @@ make_climate_figure <- function(climate_model_output){
                              "SoilMoisture" = "Soil moisture in %",
                              "SoilTemperature" = "Soil temperature in °C",
                              "C" = "Carbon content in %",
-                             "N" = "Nitrogen content in %"))
+                             "N" = "Nitrogen content in %"),
+           Variable = factor(Variable, levels = c("Soil temperature in °C", "Soil moisture in %", "Carbon content in %", "Nitrogen content in %")))
 
   p <- ggplot(out, aes(x = Elevation_m, y = Value, colour = Gradient)) +
     geom_point(alpha = 0.5) +
     geom_line(aes(y = fitted, colour = Gradient)) +
     geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
-    scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+    scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
+    scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
     labs(x = "Elevation m a.s.l.", y = "") +
     # add label
     geom_text(aes(x = Inf, y = Inf, label = text),
@@ -148,24 +149,22 @@ out <- soil_moisture_model_output |>
   select(-data, -prediction, -mod, -model_output, -r) |>
   unnest(output) |>
   fancy_trait_name_dictionary() |>
-  mutate(class = recode(class, "Leaf economics" = "LES", "Isotopes" = "I"),
-         trait_fancy = paste(class, trait_fancy, sep = " - "),
-         trait_fancy = factor(trait_fancy, levels = c("Size - Height cm", "Size - Dry mass g", "Size - Area cm2", "Size - Thickness mm", "LES - SLA cm2/g", "LES - LDMC", "LES - C %", "LES - N %", "LES - CN", "LES - P %", "LES - NP", "I - δC13 ‰", "I - δN15 ‰")))
+  mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'")))
 
 ggplot(out, aes(x = SoilMoisture, y = mean, colour = Gradient)) +
   geom_point(alpha = 0.5) +
   geom_line(aes(y = fitted, colour = Gradient)) +
   geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-  scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
-  scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+  scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
+  scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
   labs(x = "Soil moisture in %", y = "Bootstrapped trait mean") +
   # add label
   geom_text(data = out |>
               ungroup() |>
-              distinct(trait_trans, trait_fancy, text),
+              distinct(trait_trans, figure_names, text),
             aes(x = Inf, y = Inf, label = text),
             size = 3, colour = "black", hjust = 1, vjust = 1) +
-  facet_wrap(~ trait_fancy, scales = "free_y") +
+  facet_wrap(~ figure_names, scales = "free_y", labeller = label_parsed) +
   theme_minimal() +
   theme(legend.position = "top")
 }
@@ -180,24 +179,22 @@ make_trait_soil_temp_figure <- function(soil_temp_model_output){
     select(-data, -prediction, -mod, -model_output, -r) |>
     unnest(output) |>
     fancy_trait_name_dictionary() |>
-    mutate(class = recode(class, "Leaf economics" = "LES", "Isotopes" = "I"),
-           trait_fancy = paste(class, trait_fancy, sep = " - "),
-           trait_fancy = factor(trait_fancy, levels = c("Size - Height cm", "Size - Dry mass g", "Size - Area cm2", "Size - Thickness mm", "LES - SLA cm2/g", "LES - LDMC", "LES - C %", "LES - N %", "LES - CN", "LES - P %", "LES - NP", "I - δC13 ‰", "I - δN15 ‰")))
+    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'")))
 
   ggplot(out, aes(x = SoilTemperature, y = mean, colour = Gradient)) +
     geom_point(alpha = 0.5) +
     geom_line(aes(y = fitted, colour = Gradient)) +
     geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
-    scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
-    scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient input")) +
+    scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
+    scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
     labs(x = "Soil temperature in °C", y = "Bootstrapped trait mean") +
     # add label
     geom_text(data = out |>
                 ungroup() |>
-                distinct(trait_trans, trait_fancy, text),
+                distinct(trait_trans, figure_names, text),
               aes(x = Inf, y = Inf, label = text),
               size = 3, colour = "black", hjust = 1, vjust = 1) +
-    facet_wrap(~ trait_fancy, scales = "free_y") +
+    facet_wrap(~ figure_names, scales = "free_y", labeller = label_parsed) +
     theme_minimal() +
     theme(legend.position = "top")
 }
