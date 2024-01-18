@@ -25,19 +25,19 @@ fancy_trait_name_dictionary <- function(dat){
                               SSL_cm_g = "SSL cm/g",
                               WHC_g_g = "WHC g/g")) |>
     mutate(figure_names = case_match(trait_trans,
-                                     "Plant_Height_cm_log" ~ "Size~-~Height~cm",
-                                     "Dry_Mass_g_log" ~ "Size~-~Dry~mass~g",
-                                     "Leaf_Area_cm2_log" ~ "Size~-~Area~cm^2",
-                                     "Thickness_mm_log" ~ "Size~-~Thickness~mm",
+                                     "Plant_Height_cm_log" ~ "Size~-~Height~(cm)",
+                                     "Dry_Mass_g_log" ~ "Size~-~Dry~mass~(g)",
+                                     "Leaf_Area_cm2_log" ~ "Size~-~Area~(cm^2)",
+                                     "Thickness_mm_log" ~ "Size~-~Thickness~(mm)",
                                      "LDMC" ~ "LES~-~LDMC",
-                                     "SLA_cm2_g" ~ "LES~-~SLA~cm^2*g^{-1}",
-                                     "C_percent" ~ "LES~-~C~'%'",
-                                     "N_percent" ~ "LES~-~N~'%'",
+                                     "SLA_cm2_g" ~ "LES~-~SLA~(cm^2*g^{-1})",
+                                     "C_percent" ~ "LES~-~C~('%')",
+                                     "N_percent" ~ "LES~-~N~('%')",
                                      "CN_ratio" ~ "LES~-~CN",
-                                     "P_percent" ~ "LES~-~P~'%'",
+                                     "P_percent" ~ "LES~-~P~('%')",
                                      "NP_ratio" ~ "LES~-~NP",
-                                     "dC13_permil" ~ "I~-~δ^{13}~C~'‰'",
-                                     "dN15_permil" ~ "I~-~δ^{15}~N~'‰'")) |>
+                                     "dC13_permil" ~ "I~-~δ^{13}~C~'(‰)'",
+                                     "dN15_permil" ~ "I~-~δ^{15}~N~'(‰)'")) |>
 
     # add class
     mutate(class = case_when(trait_trans %in% c("Plant_Height_cm_log", "Dry_Mass_g_log", "Leaf_Area_cm2_log", "Thickness_mm_log", "Shoot_Length_cm_log", "Shoot_Length_Green_cm_log") ~ "Size",

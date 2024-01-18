@@ -11,7 +11,7 @@ make_trait_figure <- function(community_model_output){
     rename(Gradient = Gradient...1, mean = .response...4, Elevation_m = .continous_predictor...9, fitted = .response...19) |>
     select(-Gradient...17, -.continous_predictor...18) %>%
     fancy_trait_name_dictionary(.) %>%
-    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'")))
+    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~(cm)", "Size~-~Dry~mass~(g)", "Size~-~Area~(cm^2)", "Size~-~Thickness~(mm)", "LES~-~SLA~(cm^2*g^{-1})", "LES~-~LDMC", "LES~-~C~('%')", "LES~-~N~('%')", "LES~-~CN", "LES~-~P~('%')", "LES~-~NP", "I~-~δ^{13}~C~'(‰)'", "I~-~δ^{15}~N~'(‰)'")))
 
 
 
@@ -45,7 +45,7 @@ make_dN15_figure <- function(dN15_model_output){
     rename(Gradient = Gradient...1, mean = .response...6, dN15 = .continous_predictor...5, fitted = .response...9) |>
     select(-Gradient...7, -.continous_predictor...8) %>%
     fancy_trait_name_dictionary(.) %>%
-    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'"))) |>
+    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~(cm)", "Size~-~Dry~mass~(g)", "Size~-~Area~(cm^2)", "Size~-~Thickness~(mm)", "LES~-~SLA~(cm^2*g^{-1})", "LES~-~LDMC", "LES~-~C~('%')", "LES~-~N~('%')", "LES~-~CN", "LES~-~P~('%')", "LES~-~NP", "I~-~δ^{13}~C~'(‰)'", "I~-~δ^{15}~N~'(‰)'"))) |>
     # fix stats
     mutate(text = case_match(text,
                              "δN15" ~ "δ^{15}~N",
@@ -60,7 +60,7 @@ make_dN15_figure <- function(dN15_model_output){
     geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
     scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
-    labs(x = "dN15 in permil", y = "Bootstrapped trait mean") +
+    labs(x = bquote(δ^'15'~"N trait mean"), y = "Bootstrapped trait mean") +
     # add label
     geom_text(data = dat %>%
                 ungroup() |>

@@ -124,7 +124,8 @@ make_ITV_plot <- function(itv_output){
   ITV_plot <- fancy_trait_name_dictionary(variance_part) %>%
     # remove class part
     mutate(figure_names = str_remove(figure_names, "Size~-~|LES~-~|I~-~")) |>
-    mutate(figure_names = factor(figure_names, levels = c("Height~cm", "Dry~mass~g", "Area~cm^2", "Thickness~mm", "SLA~cm^2*g^{-1}", "LDMC", "C~'%'", "N~'%'", "CN", "P~'%'", "NP", "δ^{13}~C~'‰'", "δ^{15}~N~'‰'"))) |>
+    mutate(figure_names = factor(figure_names, levels = c("Height~(cm)", "Dry~mass~(g)", "Area~(cm^2)", "Thickness~(mm)", "SLA~(cm^2*g^{-1})", "LDMC", "C~('%')", "N~('%')", "CN", "P~('%')", "NP", "δ^{13}~C~'(‰)'", "δ^{15}~N~'(‰)'"))) |>
+
     # filter for processes (turnover and ITV) we are interested in and standardize to 1
     filter(process %in% c("turnover", "intraspecific")) |>
     group_by(Gradient, trait_trans) |>
