@@ -18,7 +18,7 @@ transformation_plan <- list(
     command = read_csv(soil_cn) |>
       mutate(GS = paste0(Gradient, Site),
              Gradient = factor(Gradient, levels = c("C", "B"))) |>
-      select(-Unit, -Weigth_mg)
+      select(-Unit, -Weight_mg)
   ),
 
   # import community

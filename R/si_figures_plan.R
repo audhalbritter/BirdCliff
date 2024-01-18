@@ -59,18 +59,18 @@ si_figures_plan <- list(
         C = "Reference")
 
       trait_names <- c(
-        "Plant_Height_cm_log" = "Height cm",
-        "Dry_Mass_g_log" = "Dry mass g",
-        "Thickness_mm_log" = "Thickness mm",
-        "Leaf_Area_cm2_log" = "Area cm2",
-        "SLA_cm2_g" = "SLA cm2/g",
+        "Plant_Height_cm_log" = "Height (cm)",
+        "Dry_Mass_g_log" = "Dry mass (g)",
+        "Thickness_mm_log" = "Thickness (mm)",
+        "Leaf_Area_cm2_log" = "Area (cm2)",
+        "SLA_cm2_g" = "SLA (cm2/g)",
         "LDMC" = "LDMC",
-        "C_percent" = "C %",
-        "N_percent" = "N % ",
+        "C_percent" = "C (%)",
+        "N_percent" = "N (%) ",
         "CN_ratio" = "CN",
-        "dN15_permil" = "δN15 ‰",
-        "dC13_permil" = "δC13 ‰",
-        "P_percent" = "P %",
+        "dN15_permil" = "δN15 (‰)",
+        "dC13_permil" = "δC13 (‰)",
+        "P_percent" = "P (%)",
         "NP_ratio" = "NP")
 
       #check trait coverage
