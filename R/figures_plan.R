@@ -58,6 +58,11 @@ figures_plan <- list(
     command = make_pca_plot(trait_pca)
   ),
 
+  tar_target(
+    name = trait_ordination_plot_new,
+    command = make_pca_new(trait_pca)
+  ),
+
   # axis 1 and 3
   tar_target(
     name = trait_oridination_PC3,
