@@ -137,8 +137,7 @@ transformation_plan <- list(
     command = fortify_filled_trait(trait_impute) |>
       ungroup() |>
       #filter(Trait == "CN_ratio") |>
-      complete(.id, level, trait_trans, fill = list(s = 0)) |> # .id does not exist anymore...
-      complete(level, trait_trans, fill = list(s = 0)) |>
+      complete(.id, level, trait_trans, fill = list(s = 0)) |>
       filter(level == "PlotID") |>
       group_by(Gradient, trait_trans) |>
       # prob = 0.25 gives 75% of the plots
