@@ -35,8 +35,10 @@ make_climate_figure <- function(environment_model_output){
                              "SoilMoisture" = "Soil moisture (%)",
                              "SoilTemperature" = "Soil temperature (°C)",
                              "C" = "Carbon content (%)",
-                             "N" = "Nitrogen content (%)"),
-           Variable = factor(Variable, levels = c("Soil temperature (°C)", "Soil moisture (%)", "Carbon content (%)", "Nitrogen content (%)")))
+                             "N" = "Nitrogen content (%)",
+                             "d13c" = "δC13 (‰)",
+                             "d15n" = "δN15 (‰)"),
+           Variable = factor(Variable, levels = c("Soil temperature (°C)", "Soil moisture (%)", "Carbon content (%)", "Nitrogen content (%)", "δC13 (‰)", "δN15 (‰)")))
 
   p <- ggplot(out, aes(x = Elevation_m, y = Value, colour = Gradient)) +
     geom_point(alpha = 0.5) +
