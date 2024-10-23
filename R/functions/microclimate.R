@@ -32,11 +32,13 @@ make_climate_figure <- function(environment_model_output){
                             Variable == "N" ~ "N+E",
                             TRUE ~ "NxE")) |>
     mutate(Variable = recode(Variable,
-                             "SoilMoisture" = "Soil moisture in %",
-                             "SoilTemperature" = "Soil temperature in °C",
-                             "C" = "Carbon content in %",
-                             "N" = "Nitrogen content in %"),
-           Variable = factor(Variable, levels = c("Soil temperature in °C", "Soil moisture in %", "Carbon content in %", "Nitrogen content in %")))
+                             "SoilMoisture" = "Soil moisture (%)",
+                             "SoilTemperature" = "Soil temperature (°C)",
+                             "C" = "Carbon content (%)",
+                             "N" = "Nitrogen content (%)",
+                             "d13c" = "δC13 (‰)",
+                             "d15n" = "δN15 (‰)"),
+           Variable = factor(Variable, levels = c("Soil temperature (°C)", "Soil moisture (%)", "Carbon content (%)", "Nitrogen content (%)", "δC13 (‰)", "δN15 (‰)")))
 
   p <- ggplot(out, aes(x = Elevation_m, y = Value, colour = Gradient)) +
     geom_point(alpha = 0.5) +
@@ -149,7 +151,7 @@ out <- soil_moisture_model_output |>
   select(-data, -prediction, -mod, -model_output, -r) |>
   unnest(output) |>
   fancy_trait_name_dictionary() |>
-  mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'")))
+  mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~(cm)", "Size~-~Dry~mass~(g)", "Size~-~Area~(cm^2)", "Size~-~Thickness~(mm)", "LES~-~SLA~(cm^2*g^{-1})", "LES~-~LDMC", "LES~-~C~('%')", "LES~-~N~('%')", "LES~-~CN", "LES~-~P~('%')", "LES~-~NP", "I~-~δ^{13}~C~'(‰)'", "I~-~δ^{15}~N~'(‰)'")))
 
 ggplot(out, aes(x = SoilMoisture, y = mean, colour = Gradient)) +
   geom_point(alpha = 0.5) +
@@ -157,7 +159,7 @@ ggplot(out, aes(x = SoilMoisture, y = mean, colour = Gradient)) +
   geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
   scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
   scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
-  labs(x = "Soil moisture in %", y = "Bootstrapped trait mean") +
+  labs(x = "Soil moisture (%)", y = "Bootstrapped trait mean") +
   # add label
   geom_text(data = out |>
               ungroup() |>
@@ -179,7 +181,7 @@ make_trait_soil_temp_figure <- function(soil_temp_model_output){
     select(-data, -prediction, -mod, -model_output, -r) |>
     unnest(output) |>
     fancy_trait_name_dictionary() |>
-    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~cm", "Size~-~Dry~mass~g", "Size~-~Area~cm^2", "Size~-~Thickness~mm", "LES~-~SLA~cm^2*g^{-1}", "LES~-~LDMC", "LES~-~C~'%'", "LES~-~N~'%'", "LES~-~CN", "LES~-~P~'%'", "LES~-~NP", "I~-~δ^{13}~C~'‰'", "I~-~δ^{15}~N~'‰'")))
+    mutate(figure_names = factor(figure_names, levels = c("Size~-~Height~(cm)", "Size~-~Dry~mass~(g)", "Size~-~Area~(cm^2)", "Size~-~Thickness~(mm)", "LES~-~SLA~(cm^2*g^{-1})", "LES~-~LDMC", "LES~-~C~('%')", "LES~-~N~('%')", "LES~-~CN", "LES~-~P~('%')", "LES~-~NP", "I~-~δ^{13}~C~'(‰)'", "I~-~δ^{15}~N~'(‰)'")))
 
   ggplot(out, aes(x = SoilTemperature, y = mean, colour = Gradient)) +
     geom_point(alpha = 0.5) +
@@ -187,7 +189,7 @@ make_trait_soil_temp_figure <- function(soil_temp_model_output){
     geom_ribbon(aes(ymin = plo, ymax = phi, fill = Gradient), alpha = 0.3, linetype = 0) +
     scale_fill_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
     scale_colour_manual(name = "", values = c("grey", "green4"), labels = c("Reference", "Nutrient")) +
-    labs(x = "Soil temperature in °C", y = "Bootstrapped trait mean") +
+    labs(x = "Soil temperature (°C)", y = "Bootstrapped trait mean") +
     # add label
     geom_text(data = out |>
                 ungroup() |>

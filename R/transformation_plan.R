@@ -18,7 +18,22 @@ transformation_plan <- list(
     command = read_csv(soil_cn) |>
       mutate(GS = paste0(Gradient, Site),
              Gradient = factor(Gradient, levels = c("C", "B"))) |>
-      select(-Unit, -Weigth_mg)
+      select(-Unit, -Weight_mg)
+  ),
+
+  # soil isotopes
+  tar_target(
+    name = isotope_data,
+    command = read_excel(soil_isotopes) |>
+      clean_names() |>
+      mutate(Gradient = str_split_fixed(sample_id, "", 3)[,1],
+             Site = as.numeric(str_split_fixed(sample_id, "", 3)[,2]),
+             PlotID = str_split_fixed(sample_id, "", 3)[,3],
+             GS = paste0(Gradient, Site),
+             Gradient = factor(Gradient, levels = c("C", "B"))) |>
+      select(Gradient:GS, d15n, d13c) |>
+      left_join(coordinates, by = c("Gradient", "Site", "PlotID")) |>
+      pivot_longer(cols = c(d15n, d13c), names_to = "Variable", values_to = "Value")
   ),
 
   # import community
@@ -120,7 +135,8 @@ transformation_plan <- list(
              GS = paste0(Gradient, Site)) |>
       select(Gradient:GS) |>
       left_join(coordinates, by = c("Gradient", "Site", "PlotID")) |>
-      bind_rows(cn_data)
+      bind_rows(cn_data) |>
+      bind_rows(isotope_data)
   ),
 
   # BOOTSTRAPPING
@@ -134,7 +150,7 @@ transformation_plan <- list(
   # trait coverage
   tar_target(
     name = trait_coverage,
-    command = fortify(trait_impute) |>
+    command = fortify_filled_trait(trait_impute) |>
       ungroup() |>
       #filter(Trait == "CN_ratio") |>
       complete(.id, level, trait_trans, fill = list(s = 0)) |>
