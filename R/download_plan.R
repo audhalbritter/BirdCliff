@@ -32,6 +32,24 @@ download_plan <- list(
     format = "file"
   ),
 
+  tar_target(
+    name = sp_list_download,
+    command = get_file(node = "smbqh",
+                       file = "PFTC4_Svalbard_2018_Species_list.csv",
+                       path = "clean_data/community",
+                       remote_path = "Community"),
+    format = "file"
+  ),
+
+  tar_target(
+    name = comm_strucutre_download,
+    command = get_file(node = "smbqh",
+                       file = "PFTC4_Svalbard_2018_Community_Structure_Gradient.csv",
+                       path = "clean_data/community",
+                       remote_path = "Community"),
+    format = "file"
+  ),
+
   # climate data
   tar_target(
     name = climate,
