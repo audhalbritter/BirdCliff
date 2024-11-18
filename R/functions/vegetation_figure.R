@@ -16,11 +16,11 @@ make_community_figure <- function(comm_structure, comm_raw, family_list){
     #mutate(Value = if_else(Gradient == "Reference", -1*Value, Value))
 
 comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
-    geom_col(position = "fill") +
+    geom_col() +
     coord_flip() +
     scale_fill_manual(values = c("chocolate4", "peachpuff4", "yellowgreen", "sienna1", "peru", "slategray", "limegreen"), name = "") +
     labs(x = "Sites",
-         y = "Proportion cover",
+         y = "Cover",
          tag = "a)") +
     facet_wrap(~ Gradient) +
     theme_minimal()
@@ -34,14 +34,15 @@ comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
            FunctionalGroup = case_when(FunctionalGroup == "dshrub" ~ "decidious shrubs",
                                        FunctionalGroup == "eshrub" ~ "evergreen shrubs",
                                        is.na(FunctionalGroup) ~ "unknown",
-                                       TRUE ~ FunctionalGroup))
+                                       TRUE ~ FunctionalGroup)) |>
+    filter(!FunctionalGroup %in% c("unknown"))
     # make reference gradient negative
     #mutate(sumofCover = if_else(Gradient == "Reference", -1*sumofCover, sumofCover))
 
   comm2 <- ggplot(sums, aes(x = Site, y = sumofCover, fill = FunctionalGroup)) +
     geom_col(position = "fill") +
     coord_flip() +
-    scale_fill_manual(values = c("darkgreen", "limegreen", "plum3", "lawngreen", "peru"), name = "") +
+    scale_fill_manual(values = c("limegreen", "darkgreen", "plum3", "lawngreen"), name = "") +
     labs(x = "Sites",
          y = "Proportion cover",
          tag = "b)") +
