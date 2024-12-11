@@ -68,6 +68,12 @@ figures_plan <- list(
   tar_target(
     name = ITV_plot,
     command = make_ITV_plot(itv_output)
+  ),
+
+  # FIGURE: Vegetation plot
+  tar_target(
+    name = vegetation_plot,
+    command = make_community_figure(comm_structure, comm_raw, family_list)
   )
 
 )
