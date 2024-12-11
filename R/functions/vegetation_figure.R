@@ -19,7 +19,7 @@ comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
     geom_col() +
     coord_flip() +
     scale_fill_manual(values = c("chocolate4", "peachpuff4", "yellowgreen", "sienna1", "peru", "slategray", "limegreen"), name = "") +
-    labs(x = "Sites",
+    labs(x = "Site",
          y = "Cover",
          tag = "a)") +
     facet_wrap(~ Gradient) +
