@@ -118,14 +118,19 @@ si_figures_plan <- list(
       bind_rows(vascular = comm_raw |>
                   group_by(Gradient, Taxon) |>
                   summarise(Cover = round(mean(Cover), 1),
+                            n = n(),
                             Cover = as.factor(Cover)),
                 bryophyte = bryo_traits_raw |>
                   distinct(Gradient, Taxon) |>
                   mutate(Cover = "x"),
                 .id = "Functionalgroup") |>
-        pivot_wider(names_from = Gradient, values_from = Cover) |>
+        filter(!Functionalgroup %in% c("bryophyte")) |>
+        pivot_wider(names_from = Gradient, values_from = c(Cover, n)) |>
         arrange(Functionalgroup, Taxon) |>
-        rename("Bird cliff" = "B", "Reference" = "C", "Functional group" = "Functionalgroup") |>
+        mutate(Reference = paste0(Cover_C, " (", n_C, ")"),
+               "Bird cliff" = paste0(Cover_B, " (", n_B, ")")) |>
+        select(-Cover_C, -Cover_B, -n_C, -n_B) |>
+        rename("Functional group" = "Functionalgroup") |>
         filter(Taxon != "unknown sp") |>
         write_csv(file = "output/species_list.csv")
 
@@ -162,6 +167,23 @@ si_figures_plan <- list(
 
     }
   )
+
+  # tar_target(
+  #   name = nr_traits,
+  #   command = traits_raw |>
+  #     group_by(Gradient) |>
+  #     count() |>
+  #     pivot_wider(names_from = Gradient, values_from = n) %>%
+  #     #fancy_trait_name_dictionary(.) |>
+  #     ungroup() |>
+  #     select(Site, "Reference gradient" = C, "Nutrient gradient" = B) |>
+  #     arrange(Site) |>
+  #     gt()
+  #
+  # )
+
+
+
 
 
 
