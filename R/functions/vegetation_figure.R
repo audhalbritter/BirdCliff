@@ -16,7 +16,7 @@ make_community_figure <- function(comm_structure, comm_raw, family_list){
     #mutate(Value = if_else(Gradient == "Reference", -1*Value, Value))
 
 comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
-    geom_col() +
+    geom_col(position = "fill") +
     coord_flip() +
     scale_fill_manual(values = c("chocolate4", "peachpuff4", "yellowgreen", "sienna1", "peru", "slategray", "limegreen"), name = "") +
     labs(x = "Site",
