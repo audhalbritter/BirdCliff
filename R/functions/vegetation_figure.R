@@ -18,7 +18,7 @@ make_community_figure <- function(comm_structure, comm_raw, family_list){
 comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
     geom_col(position = "fill") +
     coord_flip() +
-    scale_fill_manual(values = c("chocolate4", "peachpuff4", "yellowgreen", "sienna1", "peru", "slategray", "limegreen"), name = "") +
+    scale_fill_manual(values = c("chocolate4", "peachpuff4", "yellowgreen", "tomato1", "peru", "slategray", "limegreen"), name = "") +
     labs(x = "Site",
          y = "Cover",
          tag = "a)") +
@@ -31,8 +31,10 @@ comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
     summarise(sumofCover = sum(Cover)) |>
     mutate(Gradient = if_else(Gradient == "C", "Reference", "Nutrient"),
            Gradient = factor(Gradient, levels = c("Reference", "Nutrient")),
-           FunctionalGroup = case_when(FunctionalGroup == "dshrub" ~ "decidious shrubs",
-                                       FunctionalGroup == "eshrub" ~ "evergreen shrubs",
+           FunctionalGroup = case_when(FunctionalGroup == "dshrub" ~ "Decidious shrubs",
+                                       FunctionalGroup == "eshrub" ~ "Evergreen shrubs",
+                                       FunctionalGroup == "forbs" ~ "Forbs",
+                                       FunctionalGroup == "graminoid" ~ "Graminoids",
                                        is.na(FunctionalGroup) ~ "unknown",
                                        TRUE ~ FunctionalGroup)) |>
     filter(!FunctionalGroup %in% c("unknown"))
@@ -42,7 +44,7 @@ comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
   comm2 <- ggplot(sums, aes(x = Site, y = sumofCover, fill = FunctionalGroup)) +
     geom_col(position = "fill") +
     coord_flip() +
-    scale_fill_manual(values = c("limegreen", "darkgreen", "plum3", "lawngreen"), name = "") +
+    scale_fill_manual(values = c("limegreen", "darkgreen", "plum3", "steelblue2"), name = "") +
     labs(x = "Sites",
          y = "Proportion cover",
          tag = "b)") +
