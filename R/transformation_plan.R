@@ -43,6 +43,31 @@ transformation_plan <- list(
       # remove duplicates
       distinct() %>%
       mutate(GS = paste0(Gradient, Site),
+             Gradient = factor(Gradient, levels = c("C", "B")),
+             Taxon = if_else(Taxon == "cochleria groenlandica", "cochlearia groenlandica", Taxon))
+  ),
+
+  # import sp list
+  tar_target(
+    name = family_list,
+    command = read_csv(sp_list_download) %>%
+      select(FunctionalGroup, Taxon) |>
+      mutate(Taxon = case_when(Taxon == "micranthes hieraciifolia" ~ "micranthes hieracifolia",
+                               TRUE ~ Taxon),
+             FunctionalGroup = case_when(Taxon %in% c("alopecurus magellanicus", "calamagrostis stricta") ~ "graminoid",
+                                         Taxon == "huperzia appressa" ~ "forbs",
+                                         #Taxon == "unknown sp" ~ "forbs",
+                                         TRUE ~ FunctionalGroup)) |>
+      bind_rows(tibble(FunctionalGroup = c("graminoid", "graminoid", "forbs"),
+                       Taxon = c("alopecurus ovatus", "calamagrostis neglecta", "huperzia arctica")))
+
+  ),
+
+  # import comm structure
+  tar_target(
+    name = comm_structure,
+    command = read_csv(comm_strucutre_download) |>
+      mutate(GS = paste0(Gradient, Site),
              Gradient = factor(Gradient, levels = c("C", "B")))
   ),
 
