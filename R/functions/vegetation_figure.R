@@ -18,9 +18,10 @@ make_community_figure <- function(comm_structure, comm_raw, family_list){
 comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
     geom_col(position = "fill") +
     coord_flip() +
-    scale_fill_manual(values = c("chocolate4", "peachpuff4", "yellowgreen", "tomato1", "peru", "slategray", "limegreen"), name = "") +
+    scale_fill_manual(values = friendly_pal("muted_nine"), name = "") +
+    #scale_fill_manual(values = c("chocolate4", "peachpuff4", "yellowgreen", "tomato1", "peru", "slategray", "limegreen"), name = "") +
     labs(x = "Site",
-         y = "Cover",
+         y = "Relative cover",
          tag = "a)") +
     facet_wrap(~ Gradient) +
     theme_minimal()
@@ -44,9 +45,10 @@ comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
   comm2 <- ggplot(sums, aes(x = Site, y = sumofCover, fill = FunctionalGroup)) +
     geom_col(position = "fill") +
     coord_flip() +
-    scale_fill_manual(values = c("limegreen", "darkgreen", "plum3", "steelblue2"), name = "") +
+    scale_fill_manual(values = friendly_pal("zesty_four"), name = "") +
+    #scale_fill_manual(values = c("limegreen", "darkgreen", "plum3", "steelblue2"), name = "") +
     labs(x = "Sites",
-         y = "Proportion cover",
+         y = "Relative cover",
          tag = "b)") +
     facet_wrap(~ Gradient) +
     theme_minimal()
