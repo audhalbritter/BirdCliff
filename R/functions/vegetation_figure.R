@@ -9,7 +9,7 @@ make_community_figure <- function(comm_structure, comm_raw, family_list){
                                 Variable == "BioCrust" ~ "Biocrust",
                                 Variable == "BareGround" ~ "Bare ground",
                                 TRUE ~ Variable),
-           factor(Variable, levels = c("Litter", "Biocrust", "Bare ground", "Rock", "Lichen",  "Bryophytes", "Vascular plants")),
+           Variable = factor(Variable, levels = c("Rock", "Bare ground", "Biocrust", "Litter", "Lichen",  "Bryophytes", "Vascular plants")),
            Gradient = if_else(Gradient == "C", "Reference", "Nutrient"),
            Gradient = factor(Gradient, levels = c("Reference", "Nutrient")))
     # make reference gradient negative
@@ -18,13 +18,14 @@ make_community_figure <- function(comm_structure, comm_raw, family_list){
 comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
     geom_col(position = "fill") +
     coord_flip() +
-    scale_fill_manual(values = friendly_pal("muted_nine"), name = "") +
-    #scale_fill_manual(values = c("chocolate4", "peachpuff4", "yellowgreen", "tomato1", "peru", "slategray", "limegreen"), name = "") +
+    scale_fill_manual(values = hcl.colors(palette = "Batlow", n = 7, rev = TRUE), name = "") +
     labs(x = "Site",
          y = "Relative cover",
          tag = "a)") +
     facet_wrap(~ Gradient) +
     theme_minimal()
+
+
 
   sums <- comm_raw |>
     tidylog::left_join(family_list, by = "Taxon") |>
@@ -37,7 +38,8 @@ comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
                                        FunctionalGroup == "forbs" ~ "Forbs",
                                        FunctionalGroup == "graminoid" ~ "Graminoids",
                                        is.na(FunctionalGroup) ~ "unknown",
-                                       TRUE ~ FunctionalGroup)) |>
+                                       TRUE ~ FunctionalGroup),
+           FunctionalGroup = factor(FunctionalGroup, levels = c("Graminoids", "Forbs", "Decidious shrubs", "Evergreen shrubs", "unknown"))) |>
     filter(!FunctionalGroup %in% c("unknown"))
     # make reference gradient negative
     #mutate(sumofCover = if_else(Gradient == "Reference", -1*sumofCover, sumofCover))
@@ -45,8 +47,7 @@ comm1 <- ggplot(dat, aes(x = Site, y = Value, fill = Variable)) +
   comm2 <- ggplot(sums, aes(x = Site, y = sumofCover, fill = FunctionalGroup)) +
     geom_col(position = "fill") +
     coord_flip() +
-    scale_fill_manual(values = friendly_pal("zesty_four"), name = "") +
-    #scale_fill_manual(values = c("limegreen", "darkgreen", "plum3", "steelblue2"), name = "") +
+    scale_fill_manual(values = hcl.colors(palette = "Hawaii", n = 4, rev = TRUE), name = "") +
     labs(x = "Sites",
          y = "Relative cover",
          tag = "b)") +
