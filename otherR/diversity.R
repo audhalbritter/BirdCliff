@@ -57,7 +57,7 @@ tar_target(
 
     return(diversity_output)
 
-  }),
+  })
 
 # test best diversity model
 tar_target(
@@ -72,4 +72,4 @@ tar_target(
         model.set = dredge(mod, rank = "AICc", extra = "R^2")
       })) %>%
       unnest(model.set)
-  }),
+  })

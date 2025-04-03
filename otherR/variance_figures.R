@@ -49,7 +49,7 @@ tar_target(
   command = make_multi_trait_impute(comm_raw, traits_raw |>
                                       # without ratios
                                       filter(!Trait %in% c("CN_ratio", "NP_ratio")))
-),
+)
 
 # no chem traits
 tar_target(
@@ -58,13 +58,13 @@ tar_target(
                                     # remove all chemical traits
                                     traits_raw |>
                                       filter(!Trait %in% c("C_percent", "N_percent", "CN_ratio", "dN15_permil", "dC13_permil", "P_percent", "NP_ratio")))
-),
+)
 
 # make bootstrap
 tar_target(
   name = func_diversity,
   command = make_multi_bootstrap(multi_trait)
-),
+)
 
 # make bootstrap
 tar_target(
