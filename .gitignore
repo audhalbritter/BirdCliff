@@ -65,3 +65,13 @@ vignettes/*.pdf
 *.md
 
 *.DS_Store
+
+# renv files to ignore
+# Ignore renv library
+renv/library/
+
+# Ignore renv staging area
+renv/staging/
+
+# Ignore user-specific renv settings
+renv/settings.json
