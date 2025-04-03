@@ -16,4 +16,5 @@ library(MuMIn)
 library(Hmisc)
 library(egg)
 library(janitor)
+library(ggpubfigs)
 
